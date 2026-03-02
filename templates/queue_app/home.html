@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}МедЗапись — Запись к врачу онлайн{% endblock %}
+
+{% block content %}
+
+<!-- ─── ГЕРОЙ-СЕКЦИЯ ─────────────────────────────────────────────────────── -->
+<section class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center min-vh-65">
+            <div class="col-lg-6">
+                <div class="hero-badge mb-3">
+                    <i class="bi bi-patch-check-fill me-2 text-success"></i>
+                    Быстро, удобно, онлайн
+                </div>
+                <h1 class="hero-title">
+                    Запишитесь к врачу<br>
+                    <span class="text-gradient">без очередей</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Выберите специалиста, удобное время и получите номер очереди прямо сейчас.
+                    Никаких звонков — только несколько кликов.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <a href="{% url 'services' %}" class="btn btn-primary btn-lg px-4 fw-semibold">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        Записаться сейчас
+                    </a>
+                    <a href="{% url 'specialists' %}" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="bi bi-people me-2"></i>
+                        Наши врачи
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+                <div class="hero-illustration">
+                    <i class="bi bi-hospital-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── СТАТИСТИКА ─────────────────────────────────────────────────────────── -->
+<section class="stats-section py-4">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-num">{{ specialists_count }}+</div>
+                    <div class="stat-label">Врачей</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-num">{{ appointments_count }}+</div>
+                    <div class="stat-label">Записей</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-num">24/7</div>
+                    <div class="stat-label">Онлайн-запись</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-num">0</div>
+                    <div class="stat-label">Минут ожидания</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── УСЛУГИ ─────────────────────────────────────────────────────────────── -->
+<section class="py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <span class="section-badge">Что мы предлагаем</span>
+            <h2 class="section-title">Медицинские услуги</h2>
+            <p class="text-muted">Запишитесь к нужному специалисту в несколько кликов</p>
+        </div>
+
+        <div class="row g-4">
+            {% for service in services %}
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card card border-0 h-100">
+                    <div class="card-body p-4">
+                        <div class="service-icon-wrap mb-3">
+                            <i class="bi {{ service.icon }}"></i>
+                        </div>
+                        <h3 class="h5 fw-bold mb-2">{{ service.name }}</h3>
+                        <p class="text-muted small mb-3">
+                            {{ service.description|default:"Запись к специалисту"|truncatechars:100 }}
+                        </p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-muted small">
+                                <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} мин
+                                &nbsp;·&nbsp;
+                                <i class="bi bi-people me-1"></i>
+                                {{ service.specialists.count }} врач{{ service.specialists.count|pluralize:",,а,ей" }}
+                            </span>
+                            <a href="{% url 'specialists_by_service' service.id %}" class="btn btn-primary btn-sm">
+                                Записаться <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-4">
+                <i class="bi bi-hospital text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">Услуги ещё не добавлены. Зайдите позже.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'services' %}" class="btn btn-outline-primary">
+                Все услуги <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ─── КАК ЭТО РАБОТАЕТ ──────────────────────────────────────────────────── -->
+<section class="how-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <span class="section-badge">Просто и быстро</span>
+            <h2 class="section-title">Как записаться</h2>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step text-center">
+                    <div class="step-num">1</div>
+                    <i class="bi bi-person-plus how-icon"></i>
+                    <h4 class="h6 fw-bold mt-3">Регистрация</h4>
+                    <p class="text-muted small">Создайте аккаунт за 1 минуту</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step text-center">
+                    <div class="step-num">2</div>
+                    <i class="bi bi-search how-icon"></i>
+                    <h4 class="h6 fw-bold mt-3">Выбор услуги</h4>
+                    <p class="text-muted small">Найдите нужного специалиста</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step text-center">
+                    <div class="step-num">3</div>
+                    <i class="bi bi-calendar-check how-icon"></i>
+                    <h4 class="h6 fw-bold mt-3">Запись</h4>
+                    <p class="text-muted small">Выберите удобное время</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step text-center">
+                    <div class="step-num">4</div>
+                    <i class="bi bi-ticket-perforated how-icon"></i>
+                    <h4 class="h6 fw-bold mt-3">Получите талон</h4>
+                    <p class="text-muted small">Номер очереди придёт сразу</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── CTA ───────────────────────────────────────────────────────────────── -->
+{% if not user.is_authenticated %}
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="cta-card text-center p-5">
+            <h2 class="fw-bold mb-3">Готовы записаться?</h2>
+            <p class="text-muted mb-4">Создайте аккаунт бесплатно и запишитесь к врачу прямо сейчас.</p>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 fw-semibold">
+                <i class="bi bi-person-plus me-2"></i>
+                Зарегистрироваться бесплатно
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

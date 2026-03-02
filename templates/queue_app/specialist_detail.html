@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ specialist.get_full_name }} — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="page-header py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'specialists' %}">Врачи</a></li>
+                <li class="breadcrumb-item active">{{ specialist.get_full_name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4">
+
+        <!-- ─── Карточка специалиста ─────────────────────────────────────── -->
+        <div class="col-lg-4">
+            <div class="specialist-profile card border-0 shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-body p-4 text-center">
+                    <!-- Аватар -->
+                    <div class="specialist-avatar-lg mx-auto mb-3">
+                        {% if specialist.photo %}
+                        <img src="{{ specialist.photo.url }}" alt="{{ specialist.get_full_name }}">
+                        {% else %}
+                        <i class="bi bi-person-fill"></i>
+                        {% endif %}
+                    </div>
+
+                    <h1 class="h4 fw-bold mb-1">{{ specialist.get_full_name }}</h1>
+                    <span class="badge bg-primary mb-3">{{ specialist.service.name }}</span>
+
+                    <!-- Детали -->
+                    <div class="profile-details text-start">
+                        {% if specialist.experience_years %}
+                        <div class="profile-detail-item">
+                            <i class="bi bi-award text-warning"></i>
+                            <div>
+                                <div class="label">Стаж</div>
+                                <div class="value">{{ specialist.experience_years }} лет</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if specialist.cabinet %}
+                        <div class="profile-detail-item">
+                            <i class="bi bi-door-open text-primary"></i>
+                            <div>
+                                <div class="label">Кабинет</div>
+                                <div class="value">{{ specialist.cabinet }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="profile-detail-item">
+                            <i class="bi bi-clock text-success"></i>
+                            <div>
+                                <div class="label">Рабочее время</div>
+                                <div class="value">{{ specialist.work_start|time:"H:i" }} — {{ specialist.work_end|time:"H:i" }}</div>
+                            </div>
+                        </div>
+                        <div class="profile-detail-item">
+                            <i class="bi bi-stopwatch text-info"></i>
+                            <div>
+                                <div class="label">Длительность приёма</div>
+                                <div class="value">{{ specialist.service.duration_minutes }} мин</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if specialist.bio %}
+                    <hr>
+                    <p class="text-muted small text-start">{{ specialist.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Выбор времени ─────────────────────────────────────────────── -->
+        <div class="col-lg-8">
+            <h2 class="h5 fw-bold mb-4">
+                <i class="bi bi-calendar3 me-2 text-primary"></i>
+                Доступное время для записи
+            </h2>
+
+            {% if slots_by_date %}
+            {% for date, slots in slots_by_date.items %}
+            <div class="date-group mb-4">
+                <!-- Дата -->
+                <div class="date-header mb-3">
+                    <div class="date-badge">
+                        <span class="date-day">{{ date|date:"d" }}</span>
+                        <span class="date-month">{{ date|date:"M" }}</span>
+                    </div>
+                    <div class="date-info">
+                        <h3 class="h6 fw-bold mb-0">{{ date|date:"l, d E Y" }}</h3>
+                        <small class="text-muted">{{ slots|length }} свободн{{ slots|length|pluralize:"ый,ых,ых" }}
+                            слот{{ slots|length|pluralize:",,а,ов" }}</small>
+                    </div>
+                </div>
+
+                <!-- Временные слоты -->
+                <div class="time-slots-grid">
+                    {% for slot in slots %}
+                    <a href="{% if user.is_authenticated %}{% url 'booking' slot.id %}{% else %}{% url 'login' %}?next={% url 'booking' slot.id %}{% endif %}"
+                        class="time-slot-btn">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ slot.time|time:"H:i" }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not user.is_authenticated %}
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-info-circle me-2"></i>
+                Для записи необходимо <a href="{% url 'login' %}" class="alert-link">войти</a> или
+                <a href="{% url 'register' %}" class="alert-link">зарегистрироваться</a>.
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <i class="bi bi-calendar-x text-muted" style="font-size:3rem;"></i>
+                <h4 class="text-muted mt-3">Свободных слотов нет</h4>
+                <p class="text-muted">На ближайшие дни нет доступного времени. Попробуйте позже.</p>
+                <a href="{% url 'specialists' %}" class="btn btn-outline-primary mt-2">
+                    ← Выбрать другого врача
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

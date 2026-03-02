@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center auth-page">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+
+                <div class="auth-card card shadow-lg border-0">
+                    <div class="card-body p-5">
+
+                        <!-- Заголовок -->
+                        <div class="text-center mb-4">
+                            <div class="auth-icon-wrap mx-auto mb-3">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                            </div>
+                            <h1 class="h3 fw-bold">Вход в систему</h1>
+                            <p class="text-muted">Войдите для записи к врачу</p>
+                        </div>
+
+                        <!-- Форма -->
+                        <form method="POST" novalidate>
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-person me-1"></i> {{ form.username.label }}
+                                </label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-lock me-1"></i> {{ form.password.label }}
+                                </label>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                                    Войти
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4">
+                        <p class="text-center text-muted mb-0">
+                            Нет аккаунта?
+                            <a href="{% url 'register' %}" class="text-primary fw-semibold text-decoration-none">
+                                Зарегистрироваться
+                            </a>
+                        </p>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

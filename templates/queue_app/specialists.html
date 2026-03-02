@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Врачи — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="page-header py-5">
+    <div class="container">
+        <h1 class="page-title">
+            {% if selected_service %}
+            Врачи: {{ selected_service.name }}
+            {% else %}
+            Все специалисты
+            {% endif %}
+        </h1>
+        <p class="text-muted">Выберите врача для записи</p>
+    </div>
+</div>
+
+<div class="container py-5">
+
+    <!-- Фильтр по услугам -->
+    <div class="mb-4">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-muted small fw-semibold me-2">Фильтр:</span>
+            <a href="{% url 'specialists' %}"
+                class="btn btn-sm {% if not selected_service %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                Все врачи
+            </a>
+            {% for service in services %}
+            <a href="{% url 'specialists_by_service' service.id %}"
+                class="btn btn-sm {% if selected_service.id == service.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi {{ service.icon }} me-1"></i>{{ service.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Сетка специалистов -->
+    <div class="row g-4">
+        {% for specialist in specialists %}
+        <div class="col-md-6 col-lg-4">
+            <div class="specialist-card card border-0 h-100 hover-lift">
+                <div class="card-body p-4">
+                    <!-- Фото и базовая информация -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="specialist-avatar">
+                            {% if specialist.photo %}
+                            <img src="{{ specialist.photo.url }}" alt="{{ specialist.get_full_name }}"
+                                class="avatar-img">
+                            {% else %}
+                            <i class="bi bi-person-fill"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h2 class="h6 fw-bold mb-1">{{ specialist.get_full_name }}</h2>
+                            <span class="badge bg-primary-soft text-primary small">
+                                {{ specialist.service.name }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Детали -->
+                    <div class="specialist-details">
+                        {% if specialist.experience_years %}
+                        <div class="detail-item">
+                            <i class="bi bi-award text-warning"></i>
+                            <span>Стаж: {{ specialist.experience_years }} лет</span>
+                        </div>
+                        {% endif %}
+                        {% if specialist.cabinet %}
+                        <div class="detail-item">
+                            <i class="bi bi-door-open text-primary"></i>
+                            <span>Кабинет {{ specialist.cabinet }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="detail-item">
+                            <i class="bi bi-clock text-success"></i>
+                            <span>{{ specialist.work_start|time:"H:i" }} — {{ specialist.work_end|time:"H:i" }}</span>
+                        </div>
+                    </div>
+
+                    {% if specialist.bio %}
+                    <p class="text-muted small mt-3 mb-0">{{ specialist.bio|truncatechars:100 }}</p>
+                    {% endif %}
+
+                    <!-- Кнопка записи -->
+                    <a href="{% url 'specialist_detail' specialist.id %}"
+                        class="btn btn-primary w-100 mt-3 fw-semibold">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        Записаться
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-person-x text-muted" style="font-size:3rem;"></i>
+            <p class="text-muted mt-3">
+                {% if selected_service %}
+                По данной услуге специалисты не найдены.
+                {% else %}
+                Специалисты ещё не добавлены.
+                {% endif %}
+            </p>
+            <a href="{% url 'services' %}" class="btn btn-outline-primary mt-2">← Вернуться к услугам</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

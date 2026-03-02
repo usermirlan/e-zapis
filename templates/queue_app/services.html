@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Услуги — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="page-header py-5">
+    <div class="container">
+        <h1 class="page-title">Медицинские услуги</h1>
+        <p class="text-muted">Выберите направление для записи к специалисту</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        {% for service in services %}
+        <div class="col-md-6 col-lg-4">
+            <div class="service-card card border-0 h-100 hover-lift">
+                <div class="card-body p-4">
+                    <div class="service-icon-wrap mb-4">
+                        <i class="bi {{ service.icon }}"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2">{{ service.name }}</h2>
+                    <p class="text-muted small mb-4">
+                        {{ service.description|default:"Консультация специалиста."|truncatechars:150 }}
+                    </p>
+
+                    <!-- Информационные бейджи -->
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="badge bg-primary-soft text-primary">
+                            <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} мин
+                        </span>
+                        <span class="badge bg-success-soft text-success">
+                            <i class="bi bi-people me-1"></i>
+                            {{ service.specialists.count }}
+                            врач{{ service.specialists.count|pluralize:",,а,ей" }}
+                        </span>
+                    </div>
+
+                    <!-- Кнопка перехода -->
+                    <a href="{% url 'specialists_by_service' service.id %}" class="btn btn-primary w-100 fw-semibold">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        Записаться
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state text-center py-5">
+                <i class="bi bi-hospital text-muted mb-3" style="font-size:4rem;"></i>
+                <h4 class="text-muted">Услуги ещё не добавлены</h4>
+                <p class="text-muted">Администратор скоро добавит доступные услуги.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

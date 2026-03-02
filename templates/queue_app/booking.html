@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Запись к {{ specialist.get_full_name }} — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="page-header py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'specialist_detail' specialist.id %}">{{
+                        specialist.get_full_name }}</a></li>
+                <li class="breadcrumb-item active">Подтверждение записи</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="booking-card card border-0 shadow">
+                <div class="card-header py-3">
+                    <h1 class="h5 fw-bold mb-0">
+                        <i class="bi bi-calendar-check me-2 text-primary"></i>
+                        Подтверждение записи
+                    </h1>
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Информация о записи -->
+                    <div class="booking-info mb-4">
+                        <div class="booking-info-row">
+                            <div class="booking-avatar">
+                                {% if specialist.photo %}
+                                <img src="{{ specialist.photo.url }}" alt="">
+                                {% else %}
+                                <i class="bi bi-person-fill"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h2 class="h6 fw-bold mb-1">{{ specialist.get_full_name }}</h2>
+                                <span class="badge bg-primary-soft text-primary">{{ specialist.service.name }}</span>
+                                {% if specialist.cabinet %}
+                                <span class="text-muted small ms-2">Каб. {{ specialist.cabinet }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="info-block">
+                                    <div class="info-label">
+                                        <i class="bi bi-calendar3 text-primary me-1"></i> Дата
+                                    </div>
+                                    <div class="info-value fw-semibold">{{ slot.date|date:"d E Y г." }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="info-block">
+                                    <div class="info-label">
+                                        <i class="bi bi-clock text-primary me-1"></i> Время
+                                    </div>
+                                    <div class="info-value fw-semibold">{{ slot.time|time:"H:i" }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="info-block">
+                                    <div class="info-label">
+                                        <i class="bi bi-stopwatch text-primary me-1"></i> Длительность
+                                    </div>
+                                    <div class="info-value fw-semibold">{{ specialist.service.duration_minutes }} минут
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="info-block">
+                                    <div class="info-label">
+                                        <i class="bi bi-person text-primary me-1"></i> Пациент
+                                    </div>
+                                    <div class="info-value fw-semibold">{{ user.get_full_name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Форма подтверждения -->
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="complaint" class="form-label fw-semibold text-muted small">
+                                <i class="bi bi-chat-text me-1"></i>
+                                Причина обращения <span class="fw-normal">(необязательно)</span>
+                            </label>
+                            <textarea name="complaint" id="complaint" rows="3" class="form-control"
+                                placeholder="Опишите жалобы или причину визита..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Подтвердить запись
+                            </button>
+                            <a href="{% url 'specialist_detail' specialist.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Выбрать другое время
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
