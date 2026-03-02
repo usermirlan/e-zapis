@@ -1,11 +1,33 @@
 from pathlib import Path
 import os
 
+try:
+    from decouple import config
+    _USE_DECOUPLE = True
+except ImportError:
+    _USE_DECOUPLE = False
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-clinic-queue-secret-key-change-in-production-2024'
 
-DEBUG = True
+def _cfg(key, default=None, cast=None):
+    """Читает из .env через decouple, иначе из os.environ или default."""
+    if _USE_DECOUPLE:
+        if cast is not None:
+            return config(key, default=default, cast=cast)
+        return config(key, default=default)
+    val = os.environ.get(key, default)
+    if cast and val is not None:
+        return cast(val)
+    return val
+
+
+SECRET_KEY = _cfg(
+    'SECRET_KEY',
+    default='django-insecure-clinic-queue-secret-key-change-in-production-2024'
+)
+
+DEBUG = _cfg('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['*']
 
@@ -93,3 +115,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# ─── Email (консоль для разработки) ───────────────────────────────────────────
+EMAIL_BACKEND = _cfg(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = _cfg('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = _cfg('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = _cfg('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = _cfg('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = _cfg('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = _cfg('DEFAULT_FROM_EMAIL', default='noreply@medzapis.kz')
+
+# ─── Сообщения — маппинг тегов ────────────────────────────────────────────────
+from django.contrib.messages import constants as message_constants
+MESSAGE_TAGS = {
+    message_constants.ERROR: 'danger',
+}

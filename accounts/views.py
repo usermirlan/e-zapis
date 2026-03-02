@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm, LoginForm, ProfileEditForm
 
 
 def register_view(request):
@@ -34,7 +34,6 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             messages.success(request, f'Добро пожаловать, {user.get_full_name()}!')
-            # Перенаправление на страницу, с которой пришёл пользователь
             next_url = request.GET.get('next', 'home')
             return redirect(next_url)
         else:
@@ -61,3 +60,20 @@ def profile_view(request):
         'user': request.user,
         'appointments': appointments,
     })
+
+
+@login_required
+def profile_edit_view(request):
+    """Редактирование профиля пользователя."""
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Профиль успешно обновлён!')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+    else:
+        form = ProfileEditForm(instance=request.user)
+
+    return render(request, 'accounts/profile_edit.html', {'form': form})

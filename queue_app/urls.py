@@ -1,5 +1,3 @@
-
-
 from django.urls import path
 from . import views
 
@@ -10,7 +8,7 @@ urlpatterns = [
     # Список услуг
     path('services/', views.services_view, name='services'),
 
-    # Все специалисты
+    # Все специалисты (с поиском: ?q=)
     path('specialists/', views.specialists_view, name='specialists'),
 
     # Специалисты по конкретной услуге
@@ -26,6 +24,10 @@ urlpatterns = [
     # ─── Личный кабинет ────────────────────────────────────────────────────────
     path('my-appointments/', views.my_appointments_view, name='my_appointments'),
     path('appointments/<int:appointment_id>/cancel/', views.cancel_appointment_view, name='cancel_appointment'),
+
+    # ─── Панель сотрудника ─────────────────────────────────────────────────────
+    path('staff/', views.staff_panel_view, name='staff_panel'),
+    path('staff/appointments/<int:appointment_id>/status/', views.update_appointment_status_view, name='update_appointment_status'),
 
     # ─── API-эндпоинты (JSON) ──────────────────────────────────────────────────
     path('api/services/', views.api_services, name='api_services'),

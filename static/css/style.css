@@ -450,18 +450,52 @@ main { flex: 1; }
 .empty-state { padding: 4rem 1rem; }
 .empty-icon { font-size: 4rem; color: #CBD5E1; }
 
-/* ─── Footer ─────────────────────────────────────────────────────────────── */
+/* ─── Footer (Новый темный дизайн) ───────────────────────────────────────── */
 .footer {
-    background: white;
-    border-top: 1px solid var(--border);
+    background-color: #0F172A !important;
+    border-top: 1px solid rgba(255,255,255,0.05);
 }
+
+.brand-icon-footer {
+    width: 38px; height: 38px;
+    background: rgba(37,99,235,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+}
+
 .footer-link {
-    color: var(--text-muted);
+    color: #94A3B8;
     text-decoration: none;
     font-size: 0.875rem;
-    transition: color 0.2s;
+    transition: all 0.2s;
+    display: inline-block;
 }
-.footer-link:hover { color: var(--primary); }
+.footer-link:hover { 
+    color: #FFFFFF;
+    transform: translateX(3px);
+}
+
+.social-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.05);
+    color: #94A3B8;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+.social-icon:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+}
+
+.letter-spacing-1 { letter-spacing: 1px; }
+.hover-white:hover { color: #FFFFFF !important; }
+.transition-colors { transition: color 0.2s ease; }
 
 /* ─── Bootstrap Утилиты (кастомные) ─────────────────────────────────────── */
 .bg-primary-soft { background: var(--primary-light) !important; }

@@ -93,6 +93,33 @@
         {% endfor %}
     </div>
 
+    <!-- Пагинация -->
+    {% if appointments.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if appointments.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ appointments.previous_page_number }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            {% for num in appointments.paginator.page_range %}
+            <li class="page-item {% if appointments.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if appointments.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ appointments.next_page_number }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
     {% else %}
     <!-- Пустое состояние -->
     <div class="empty-state text-center py-5">

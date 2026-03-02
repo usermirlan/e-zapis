@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель сотрудника — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Заголовок -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1"><i class="bi bi-clipboard2-pulse text-primary me-2"></i>Панель сотрудника</h1>
+      <p class="text-muted mb-0">Управление записями пациентов</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>На главную
+    </a>
+  </div>
+
+  <!-- Фильтры -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">📅 Дата</label>
+          <input type="date" name="date" class="form-control" value="{{ selected_date }}" max="">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">👨‍⚕️ Врач</label>
+          <select name="specialist" class="form-select">
+            <option value="">Все врачи</option>
+            {% for sp in specialists %}
+            <option value="{{ sp.pk }}" {% if selected_specialist == sp.pk|stringformat:"s" %}selected{% endif %}>
+              {{ sp.get_full_name }} — {{ sp.service.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">📋 Статус</label>
+          <select name="status" class="form-select">
+            <option value="">Все статусы</option>
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-funnel me-1"></i>Фильтровать
+          </button>
+          <a href="{% url 'staff_panel' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Статистика за день -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card text-center border-0 bg-warning bg-opacity-10">
+        <div class="card-body py-3">
+          <div class="fs-4 fw-bold text-warning">{{ appointments.paginator.count }}</div>
+          <div class="small text-muted">Всего записей</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Таблица записей -->
+  {% if appointments %}
+  <div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+      <h5 class="mb-0 fw-semibold">
+        <i class="bi bi-list-ul me-2 text-primary"></i>
+        Записи на {{ selected_date }}
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>№</th>
+              <th>Время</th>
+              <th>Пациент</th>
+              <th>Врач / Услуга</th>
+              <th>Жалоба</th>
+              <th>Статус</th>
+              <th class="text-center">Действие</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appt in appointments %}
+            <tr>
+              <td><span class="badge bg-secondary">№{{ appt.queue_number }}</span></td>
+              <td>
+                <strong>{{ appt.time_slot.time|time:"H:i" }}</strong><br>
+                <small class="text-muted">{{ appt.time_slot.date|date:"d.m.Y" }}</small>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ appt.patient.get_full_name }}</div>
+                <small class="text-muted">
+                  <i class="bi bi-envelope me-1"></i>{{ appt.patient.email }}
+                </small>
+                {% if appt.patient.phone %}
+                <br><small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ appt.patient.phone }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <div class="fw-semibold">{{ appt.specialist.get_full_name }}</div>
+                <small class="text-muted">{{ appt.service.name }}</small>
+                {% if appt.specialist.cabinet %}
+                <br><small class="text-muted"><i class="bi bi-door-open me-1"></i>Каб. {{ appt.specialist.cabinet }}</small>
+                {% endif %}
+              </td>
+              <td>
+                {% if appt.complaint %}
+                <small class="text-muted" title="{{ appt.complaint }}">
+                  {{ appt.complaint|truncatechars:50 }}
+                </small>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-{{ appt.get_status_badge_class }} fs-7">
+                  {{ appt.get_status_display }}
+                </span>
+              </td>
+              <td class="text-center">
+                {% if appt.status != 'completed' and appt.status != 'cancelled' %}
+                <div class="d-flex gap-1 justify-content-center flex-wrap">
+                  {% if appt.status == 'pending' %}
+                  <form method="post" action="{% url 'update_appointment_status' appt.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="confirmed">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="btn btn-sm btn-outline-primary" title="Подтвердить">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                  {% if appt.status == 'confirmed' %}
+                  <form method="post" action="{% url 'update_appointment_status' appt.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="completed">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="btn btn-sm btn-outline-success" title="Завершить">
+                      <i class="bi bi-check2-all"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                  <form method="post" action="{% url 'update_appointment_status' appt.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="cancelled">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="btn btn-sm btn-outline-danger" title="Отменить"
+                            onclick="return confirm('Отменить запись пациента {{ appt.patient.get_full_name }}?')">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </form>
+                </div>
+                {% else %}
+                <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Пагинация -->
+    {% if appointments.has_other_pages %}
+    <div class="card-footer bg-white py-3">
+      <nav>
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+          {% if appointments.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ appointments.previous_page_number }}&date={{ selected_date }}&specialist={{ selected_specialist }}&status={{ selected_status }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          {% endif %}
+          {% for num in appointments.paginator.page_range %}
+          <li class="page-item {% if appointments.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}&date={{ selected_date }}&specialist={{ selected_specialist }}&status={{ selected_status }}">{{ num }}</a>
+          </li>
+          {% endfor %}
+          {% if appointments.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ appointments.next_page_number }}&date={{ selected_date }}&specialist={{ selected_specialist }}&status={{ selected_status }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-calendar-x fs-1 text-muted"></i>
+    <p class="text-muted mt-3 fs-5">Записей не найдено для выбранных фильтров.</p>
+    <a href="{% url 'staff_panel' %}" class="btn btn-outline-primary">Сбросить фильтры</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
