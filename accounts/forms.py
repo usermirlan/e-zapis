@@ -32,7 +32,7 @@ class RegisterForm(UserCreationForm):
         label='Номер телефона',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '+7 (777) 123-45-67'
+            'placeholder': '+996 XXX XXXXXX'
         })
     )
     date_of_birth = forms.DateField(
@@ -117,7 +117,7 @@ class ProfileEditForm(forms.ModelForm):
             }),
             'phone': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '+7 (777) 123-45-67'
+                'placeholder': '+996 XXX XXXXXX'
             }),
             'date_of_birth': forms.DateInput(attrs={
                 'class': 'form-control',

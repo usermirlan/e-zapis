@@ -8,8 +8,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'specialist_detail' specialist.id %}">{{
-                        specialist.get_full_name }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'specialist_detail' specialist.id %}">{{ specialist.get_full_name }}</a></li>
                 <li class="breadcrumb-item active">Подтверждение записи</li>
             </ol>
         </nav>

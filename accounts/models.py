@@ -6,7 +6,7 @@ class CustomUser(AbstractUser):
     phone = models.CharField(
         max_length=20,
         verbose_name='Номер телефона',
-        help_text='Формат: +996 123-45-67'
+        help_text='Формат: +996 XXX XXXXXX'
     )
     date_of_birth = models.DateField(
         null=True,

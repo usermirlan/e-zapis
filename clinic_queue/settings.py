@@ -126,10 +126,11 @@ EMAIL_PORT = _cfg('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = _cfg('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = _cfg('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = _cfg('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = _cfg('DEFAULT_FROM_EMAIL', default='noreply@medzapis.kz')
+DEFAULT_FROM_EMAIL = _cfg('DEFAULT_FROM_EMAIL', default='noreply@medzapis.kg')
 
 # ─── Сообщения — маппинг тегов ────────────────────────────────────────────────
 from django.contrib.messages import constants as message_constants
 MESSAGE_TAGS = {
     message_constants.ERROR: 'danger',
 }
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000  
