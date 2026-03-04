@@ -29,6 +29,12 @@ urlpatterns = [
     path('staff/', views.staff_panel_view, name='staff_panel'),
     path('staff/appointments/<int:appointment_id>/status/', views.update_appointment_status_view, name='update_appointment_status'),
 
+    # ─── Новая Панель сотрудника (Dashboard CBVs) ──────────────────────────────
+    path('dashboard/', views.DashboardHomeView.as_view(), name='dashboard_home'),
+    path('dashboard/appointment/<int:pk>/status/', views.DashboardAppointmentUpdateView.as_view(), name='dashboard_appointment_status'),
+    path('dashboard/specialist/add/', views.DashboardSpecialistCreateView.as_view(), name='dashboard_specialist_add'),
+    path('dashboard/service/<int:pk>/edit/', views.DashboardServiceUpdateView.as_view(), name='dashboard_service_edit'),
+
     # ─── API-эндпоинты (JSON) ──────────────────────────────────────────────────
     path('api/services/', views.api_services, name='api_services'),
     path('api/specialists/', views.api_specialists, name='api_specialists'),

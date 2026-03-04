@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Панель управления (Dashboard) | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold mb-0">Панель управления</h1>
+        <div>
+            <span class="text-muted me-3">Сегодня: <strong>{{ today|date:"d.m.Y" }}</strong></span>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">На главную</a>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-3" style="border-left: 4px solid #0d6efd !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Всего записей</h6>
+                        <h2 class="mb-0 fw-bold">{{ total_appointments }}</h2>
+                    </div>
+                    <div class="text-primary fs-1">
+                        <i class="bi bi-journal-medical"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-3" style="border-left: 4px solid #198754 !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Активных врачей</h6>
+                        <h2 class="mb-0 fw-bold">{{ active_doctors }}</h2>
+                    </div>
+                    <div class="text-success fs-1">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-3" style="border-left: 4px solid #ffc107 !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Свободных слотов (сегодня)</h6>
+                        <h2 class="mb-0 fw-bold">{{ free_slots_today }}</h2>
+                    </div>
+                    <div class="text-warning fs-1">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
+    <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="appointments-tab" data-bs-toggle="tab"
+                data-bs-target="#appointments" type="button" role="tab" aria-controls="appointments"
+                aria-selected="true">
+                <i class="bi bi-calendar-check me-2"></i>Записи (Очередь)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="specialists-tab" data-bs-toggle="tab" data-bs-target="#specialists"
+                type="button" role="tab" aria-controls="specialists" aria-selected="false">
+                <i class="bi bi-person-badge me-2"></i>Специалисты
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="services-tab" data-bs-toggle="tab" data-bs-target="#services"
+                type="button" role="tab" aria-controls="services" aria-selected="false">
+                <i class="bi bi-heart-pulse me-2"></i>Услуги
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content bg-white p-4 shadow-sm rounded-bottom" id="dashboardTabsContent">
+
+        <!-- Вкладка Очередь (Записи) -->
+        <div class="tab-pane fade show active" id="appointments" role="tabpanel" aria-labelledby="appointments-tab">
+            <h5 class="mb-4">Последние записи</h5>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Пациент</th>
+                            <th scope="col">Специалист / Услуга</th>
+                            <th scope="col">Дата и Время</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in appointments %}
+                        <tr>
+                            <td><span class="badge bg-secondary">№{{ app.queue_number }}</span></td>
+                            <td>
+                                {{ app.patient.get_full_name|default:app.patient.username }}<br>
+                                <small class="text-muted">{{ app.patient.email }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ app.specialist.last_name }} {{ app.specialist.first_name }}</strong><br>
+                                <small class="text-muted">{{ app.service.name }}</small>
+                            </td>
+                            <td>
+                                {{ app.time_slot.date|date:"d.m.Y" }}<br>
+                                <strong>{{ app.time_slot.time|time:"H:i" }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ app.get_status_badge_class }}">
+                                    {{ app.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'dashboard_appointment_status' app.pk %}"
+                                    class="d-flex align-items-center gap-2">
+                                    {% csrf_token %}
+                                    <select name="status" class="form-select form-select-sm" style="width: 140px;">
+                                        {% for val, label in status_choices %}
+                                        <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label  }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">OK</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Нет ни одной записи.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Вкладка Специалисты -->
+        <div class="tab-pane fade" id="specialists" role="tabpanel" aria-labelledby="specialists-tab">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Специалисты</h5>
+                <a href="{% url 'dashboard_specialist_add' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>Добавить специалиста
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">ФИО</th>
+                            <th scope="col">Услуга</th>
+                            <th scope="col">Кабинет</th>
+                            <th scope="col">Часы работы</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for spec in specialists %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if spec.photo %}
+                                    <img src="{{ spec.photo.url }}" alt="{{ spec.last_name }}"
+                                        class="rounded-circle me-2"
+                                        style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2"
+                                        style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ spec.last_name }} {{ spec.first_name }}</strong>
+                                        {% if spec.middle_name %}<br><small class="text-muted">{{ spec.middle_name }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ spec.service.name }}</td>
+                            <td>{{ spec.cabinet|default:"-" }}</td>
+                            <td>{{ spec.work_start|time:"H:i" }} - {{ spec.work_end|time:"H:i" }}</td>
+                            <td>
+                                {% if spec.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                                {% else %}
+                                <span class="badge bg-danger">Неактивен</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'specialist_detail' spec.id %}" class="btn btn-outline-info btn-sm"
+                                    target="_blank" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <!-- Edit specialist is not strictly requested but can add edit URL later if needed. -->
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Специалисты не найдены.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Вкладка Услуги -->
+        <div class="tab-pane fade" id="services" role="tabpanel" aria-labelledby="services-tab">
+            <h5 class="mb-4">Услуги</h5>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Иконка</th>
+                            <th scope="col">Название</th>
+                            <th scope="col">Длительность</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td><i class="bi {{ service.icon }} fs-4 text-primary"></i></td>
+                            <td>
+                                <strong>{{ service.name }}</strong>
+                                <div class="small text-muted text-truncate" style="max-width: 250px;"
+                                    title="{{ service.description }}"> {{ service.description|default:"Нет описания" }}
+                                </div>
+                            </td>
+                            <td>{{ service.duration_minutes }} мин</td>
+                            <td>
+                                {% if service.is_active %}
+                                <span class="badge bg-success">Активна</span>
+                                {% else %}
+                                <span class="badge bg-danger">Неактивна</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'dashboard_service_edit' service.pk %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-pencil me-1"></i> Редактировать
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Услуги не найдены.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

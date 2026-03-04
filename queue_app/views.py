@@ -9,9 +9,13 @@ from django.core.paginator import Paginator
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
-from .models import Service, Specialist, TimeSlot, Appointment
-from .forms import BookingForm
+from django.views.generic import TemplateView, View, CreateView, UpdateView
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 
+from .models import Service, Specialist, TimeSlot, Appointment
+from .forms import BookingForm, ServiceForm, SpecialistForm
 
 # ─── Вспомогательная функция ──────────────────────────────────────────────────
 
@@ -395,3 +399,91 @@ def api_time_slots(request, specialist_id):
     ]
 
     return JsonResponse({'slots': data, 'specialist_id': specialist_id})
+
+
+# ─── Staff Dashboard (Class-Based Views) ──────────────────────────────────────
+
+class IsStaffMixin(UserPassesTestMixin):
+    """Миксин для проверки прав доступа к Dashboard."""
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and (self.request.user.is_staff or self.request.user.is_superuser)
+    
+    def handle_no_permission(self):
+        return redirect('home')
+
+
+class DashboardHomeView(IsStaffMixin, TemplateView):
+    """Главная страница Staff Dashboard."""
+    template_name = 'queue_app/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.now().date()
+        
+        # Статистика
+        context['total_appointments'] = Appointment.objects.count()
+        context['active_doctors'] = Specialist.objects.filter(is_active=True).count()
+        context['free_slots_today'] = TimeSlot.objects.filter(date=today, is_available=True).count()
+
+        # Данные для таблиц
+        context['appointments'] = Appointment.objects.select_related('patient', 'specialist', 'service', 'time_slot').order_by('-created_at')[:50] # Последние 50 записей для удобства
+        context['specialists'] = Specialist.objects.select_related('service').all()
+        context['services'] = Service.objects.all()
+        
+        context['status_choices'] = Appointment.STATUS_CHOICES
+        context['today'] = today
+        return context
+
+
+class DashboardAppointmentUpdateView(IsStaffMixin, View):
+    """Быстрая смена статуса записи через POST."""
+    
+    def post(self, request, pk, *args, **kwargs):
+        appointment = get_object_or_404(Appointment, pk=pk)
+        new_status = request.POST.get('status')
+        valid_statuses = [s[0] for s in Appointment.STATUS_CHOICES]
+
+        if new_status in valid_statuses:
+            old_status = appointment.status
+            appointment.status = new_status
+            appointment.save()
+
+            if new_status == 'cancelled' and old_status != 'cancelled':
+                appointment.time_slot.is_available = True
+                appointment.time_slot.save()
+                _send_appointment_email(appointment, action='cancelled')
+
+            status_labels = dict(Appointment.STATUS_CHOICES)
+            messages.success(
+                request,
+                f'Статус записи #{appointment.queue_number} изменён на «{status_labels.get(new_status, new_status)}».'
+            )
+        else:
+            messages.error(request, 'Неверный статус.')
+
+        return redirect('dashboard_home')
+
+
+class DashboardSpecialistCreateView(IsStaffMixin, CreateView):
+    """Добавление нового специалиста."""
+    model = Specialist
+    form_class = SpecialistForm
+    template_name = 'queue_app/specialist_form.html'
+    success_url = reverse_lazy('dashboard_home')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Специалист успешно добавлен.')
+        return super().form_valid(form)
+
+
+class DashboardServiceUpdateView(IsStaffMixin, UpdateView):
+    """Изменение существующей услуги."""
+    model = Service
+    form_class = ServiceForm
+    template_name = 'queue_app/service_form.html'
+    success_url = reverse_lazy('dashboard_home')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Услуга успешно обновлена.')
+        return super().form_valid(form)

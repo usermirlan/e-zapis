@@ -72,12 +72,10 @@
                         <div class="flex-grow-1">
                             <div class="fw-semibold small">{{ appointment.specialist.get_full_name }}</div>
                             <div class="text-muted" style="font-size:0.8rem;">
-                                {{ appointment.service.name }} · {{ appointment.time_slot.date|date:"d.m.Y" }} {{
-                                appointment.time_slot.time|time:"H:i" }}
+                             {{ appointment.service.name }} · {{ appointment.time_slot.date|date:"d.m.Y" }} {{ appointment.time_slot.time|time:"H:i" }}
                             </div>
                         </div>
-                        <span class="badge bg-{{ appointment.get_status_badge_class }}">{{
-                            appointment.get_status_display }}</span>
+                        <span class="badge bg-{{ appointment.get_status_badge_class }}">{{ appointment.get_status_display }}</span>
                     </div>
                 </div>
             </div>
