@@ -240,6 +240,22 @@ main { flex: 1; }
 }
 .detail-item i { font-size: 1rem; flex-shrink: 0; }
 
+/* Sticky Sidebar - Only on Desktop */
+@media (min-width: 992px) {
+    .sticky-sidebar {
+        position: sticky;
+        top: 100px;
+        z-index: 10;
+    }
+}
+
+@media (max-width: 991px) {
+    .sticky-sidebar {
+        position: static !important;
+        margin-bottom: 2rem;
+    }
+}
+
 /* ─── Страница специалиста ────────────────────────────────────────────────-- */
 .specialist-avatar-lg {
     width: 100px; height: 100px;
@@ -416,9 +432,17 @@ main { flex: 1; }
 /* ─── Page Header ────────────────────────────────────────────────────────── */
 .page-header {
     background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
-    color: white;
+    color: white !important;
 }
-.page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.25rem; }
+.page-header .page-title { color: white !important; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.25rem; }
+.page-header .text-muted { color: rgba(255,255,255,0.7) !important; }
+
+/* Breadcrumbs on dark/blue header */
+.page-header .breadcrumb-item, 
+.page-header .breadcrumb-item.active { color: white !important; opacity: 0.8; }
+.page-header .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.5); }
+.page-header .breadcrumb-item a { color: white; text-decoration: none; font-weight: 600; opacity: 1; }
+.page-header .breadcrumb-item a:hover { text-decoration: underline; }
 
 /* ─── How Section ────────────────────────────────────────────────────────── */
 .how-section { background: var(--primary-light); }
