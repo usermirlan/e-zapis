@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import RegisterForm, LoginForm, ProfileEditForm
+from .forms import RegisterForm, LoginForm, ProfileEditForm, DoctorRegisterForm
 
 
 def register_view(request):
@@ -24,6 +24,26 @@ def register_view(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
+def doctor_register_view(request):
+    """Регистрация врача — создаёт аккаунт + профиль специалиста."""
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = DoctorRegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, f'Добро пожаловать, доктор {user.get_full_name()}! Ваш кабинет готов.')
+            return redirect('doctor_dashboard')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+    else:
+        form = DoctorRegisterForm()
+
+    return render(request, 'accounts/doctor_register.html', {'form': form})
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -34,6 +54,9 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             messages.success(request, f'Добро пожаловать, {user.get_full_name()}!')
+            # Если врач — перенаправить в кабинет врача
+            if user.is_doctor:
+                return redirect('doctor_dashboard')
             next_url = request.GET.get('next', 'home')
             return redirect(next_url)
         else:
@@ -52,21 +75,16 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
+    if request.user.is_doctor:
+        return redirect('doctor_dashboard')
+        
+    """Единый профиль пользователя (с радактированием)."""
     appointments = request.user.appointments.select_related(
         'specialist', 'service', 'time_slot'
     ).order_by('-created_at')
 
-    return render(request, 'accounts/profile.html', {
-        'user': request.user,
-        'appointments': appointments,
-    })
-
-
-@login_required
-def profile_edit_view(request):
-    """Редактирование профиля пользователя."""
     if request.method == 'POST':
-        form = ProfileEditForm(request.POST, instance=request.user)
+        form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Профиль успешно обновлён!')
@@ -76,4 +94,8 @@ def profile_edit_view(request):
     else:
         form = ProfileEditForm(instance=request.user)
 
-    return render(request, 'accounts/profile_edit.html', {'form': form})
+    return render(request, 'accounts/profile.html', {
+        'user': request.user,
+        'appointments': appointments,
+        'form': form,
+    })

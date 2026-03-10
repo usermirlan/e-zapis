@@ -34,6 +34,15 @@ class Specialist(models.Model):
     last_name = models.CharField(max_length=50, verbose_name='Фамилия')
     middle_name = models.CharField(max_length=50, blank=True, verbose_name='Отчество')
 
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='specialist_profile',
+        verbose_name='Аккаунт пользователя'
+    )
+
     service = models.ForeignKey(
         Service,
         on_delete=models.CASCADE,
@@ -181,3 +190,45 @@ class Appointment(models.Model):
             'cancelled': 'danger',
         }
         return badge_map.get(self.status, 'secondary')
+
+
+class Notification(models.Model):
+    """Уведомления для врачей о записях пациентов."""
+
+    TYPE_CHOICES = [
+        ('new_appointment', 'Новая запись'),
+        ('cancelled', 'Отмена записи'),
+        ('reminder', 'Напоминание'),
+    ]
+
+    doctor = models.ForeignKey(
+        Specialist,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        verbose_name='Врач'
+    )
+    appointment = models.ForeignKey(
+        Appointment,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+        verbose_name='Запись'
+    )
+    notification_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default='new_appointment',
+        verbose_name='Тип'
+    )
+    message = models.TextField(verbose_name='Сообщение')
+    is_read = models.BooleanField(default=False, verbose_name='Прочитано')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата')
+
+    class Meta:
+        verbose_name = 'Уведомление'
+        verbose_name_plural = 'Уведомления'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.get_notification_type_display()} — {self.doctor.get_full_name()}'

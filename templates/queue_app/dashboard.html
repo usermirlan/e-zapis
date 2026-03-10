@@ -125,7 +125,7 @@
                                     {% csrf_token %}
                                     <select name="status" class="form-select form-select-sm" style="width: 140px;">
                                         {% for val, label in status_choices %}
-                                        <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label  }}</option>
+                                        <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>  {{ label  }}</option>
                                         {% endfor %}
                                     </select>
                                     <button type="submit" class="btn btn-primary btn-sm">OK</button>
@@ -188,7 +188,7 @@
                             </td>
                             <td>{{ spec.service.name }}</td>
                             <td>{{ spec.cabinet|default:"-" }}</td>
-                            <td>{{ spec.work_start|time:"H:i" }} - {{ spec.work_end|time:"H:i" }}</td>
+                            <td>{{ spec.work_start|time:"H:i" }} - {{ spec.work_end|time:"H:i" }} </td>
                             <td>
                                 {% if spec.is_active %}
                                 <span class="badge bg-success">Активен</span>

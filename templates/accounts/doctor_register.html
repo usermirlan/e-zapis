@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация врача — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="auth-page min-vh-100 d-flex align-items-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card auth-card border-0 shadow-lg">
+                    <div class="card-body p-4 p-md-5">
+
+                        <!-- Заголовок -->
+                        <div class="text-center mb-4">
+                            <div class="auth-icon-wrap mx-auto mb-3" style="background: #DCFCE7; color: #10B981;">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <h2 class="fw-bold mb-1">Регистрация врача</h2>
+                            <p class="text-muted">Создайте аккаунт для доступа к кабинету врача</p>
+                        </div>
+
+                        <form method="post" enctype="multipart/form-data" novalidate>
+                            {% csrf_token %}
+
+                            <div class="row g-3">
+                                <!-- Логин -->
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">{{ form.username.label }}</label>
+                                    {{ form.username }}
+                                    {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Имя / Фамилия -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.first_name.label }}</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.last_name.label }}</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Отчество -->
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">{{ form.middle_name.label }}</label>
+                                    {{ form.middle_name }}
+                                </div>
+
+                                <!-- Email / Телефон -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.email.label }}</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.phone.label }}</label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                    <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Специализация / Стаж / Кабинет -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">{{ form.service.label }}</label>
+                                    {{ form.service }}
+                                    {% if form.service.errors %}
+                                    <div class="text-danger small mt-1">{{ form.service.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">{{ form.experience_years.label }}</label>
+                                    {{ form.experience_years }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">{{ form.cabinet.label }}</label>
+                                    {{ form.cabinet }}
+                                </div>
+
+                                <!-- Рабочие часы -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.work_start.label }}</label>
+                                    {{ form.work_start }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.work_end.label }}</label>
+                                    {{ form.work_end }}
+                                </div>
+
+                                <!-- О себе -->
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">{{ form.bio.label }}</label>
+                                    {{ form.bio }}
+                                </div>
+
+                                <!-- Фото -->
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">{{ form.photo.label }}</label>
+                                    {{ form.photo }}
+                                    {% if form.photo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.photo.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Пароль -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.password1.label }}</label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ form.password2.label }}</label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 mt-4 py-2 fw-semibold">
+                                <i class="bi bi-person-check me-2"></i>Создать аккаунт врача
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <span class="text-muted">Уже есть аккаунт?</span>
+                            <a href="{% url 'login' %}" class="text-decoration-none fw-semibold ms-1">Войти</a>
+                        </div>
+                        <div class="text-center mt-2">
+                            <span class="text-muted">Вы пациент?</span>
+                            <a href="{% url 'register' %}" class="text-decoration-none fw-semibold ms-1">Регистрация пациента</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

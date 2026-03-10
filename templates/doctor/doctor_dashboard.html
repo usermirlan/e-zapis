@@ -1,0 +1,131 @@
+{% extends 'doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Главная — Кабинет врача{% endblock %}
+{% block header_title %}Главная панель{% endblock %}
+
+{% block doctor_content %}
+<div class="container-fluid px-0">
+    <!-- Статистика -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon mx-auto mb-2" style="background: #DBEAFE; color: #2563EB;">
+                        <i class="bi bi-calendar-day"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">{{ today_count }}</h3>
+                    <p class="text-muted small mb-0">Сегодня</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon mx-auto mb-2" style="background: #DCFCE7; color: #10B981;">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">{{ week_count }}</h3>
+                    <p class="text-muted small mb-0">За неделю</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon mx-auto mb-2" style="background: #FEF3C7; color: #F59E0B;">
+                        <i class="bi bi-calendar-month"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">{{ month_count }}</h3>
+                    <p class="text-muted small mb-0">За месяц</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon mx-auto mb-2" style="background: #EDE9FE; color: #7C3AED;">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">{{ total_count }}</h3>
+                    <p class="text-muted small mb-0">Всего</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Записи на сегодня -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Записи на сегодня</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if today_appointments %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>№</th>
+                            <th>Время</th>
+                            <th>Пациент</th>
+                            <th>Телефон</th>
+                            <th>Жалоба</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in today_appointments %}
+                        <tr>
+                            <td><span class="badge bg-primary">{{ appt.queue_number }}</span></td>
+                            <td class="fw-semibold">{{ appt.time_slot.time|time:"H:i" }}</td>
+                            <td>{{ appt.patient.get_full_name }}</td>
+                            <td><a href="tel:{{ appt.patient.phone }}" class="text-decoration-none">{{ appt.patient.phone }}</a></td>
+                            <td class="text-muted small">{{ appt.complaint|truncatechars:40|default:"—" }}</td>
+                            <td><span class="badge bg-{{ appt.get_status_badge_class }}">{{ appt.get_status_display }}</span></td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="bi bi-gear"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <form method="post" action="{% url 'doctor_update_status' appt.id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="confirmed">
+                                                <button class="dropdown-item text-primary"><i class="bi bi-check-circle me-2"></i>Подтвердить</button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form method="post" action="{% url 'doctor_update_status' appt.id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="completed">
+                                                <button class="dropdown-item text-success"><i class="bi bi-check2-all me-2"></i>Завершить</button>
+                                            </form>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="post" action="{% url 'doctor_update_status' appt.id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="cancelled">
+                                                <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i>Отменить</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x display-4"></i>
+                <p class="mt-2">На сегодня записей нет</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

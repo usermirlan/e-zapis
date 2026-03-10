@@ -13,6 +13,17 @@ class CustomUser(AbstractUser):
         blank=True,
         verbose_name='Дата рождения'
     )
+    is_doctor = models.BooleanField(
+        default=False,
+        verbose_name='Врач',
+        help_text='Отметьте, если пользователь является врачом'
+    )
+    photo = models.ImageField(
+        upload_to='users/',
+        blank=True,
+        null=True,
+        verbose_name='Фото профиля'
+    )
 
     email = models.EmailField(unique=True, verbose_name='Email')
 

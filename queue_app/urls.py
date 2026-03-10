@@ -39,4 +39,14 @@ urlpatterns = [
     path('api/services/', views.api_services, name='api_services'),
     path('api/specialists/', views.api_specialists, name='api_specialists'),
     path('api/specialists/<int:specialist_id>/slots/', views.api_time_slots, name='api_time_slots'),
+
+    # ─── Кабинет врача ────────────────────────────────────────────────────────
+    path('doctor/dashboard/', views.doctor_dashboard_view, name='doctor_dashboard'),
+    path('doctor/appointments/', views.doctor_appointments_view, name='doctor_appointments'),
+    path('doctor/appointments/<int:appointment_id>/status/', views.doctor_update_status_view, name='doctor_update_status'),
+    path('doctor/patients/', views.doctor_patients_view, name='doctor_patients'),
+    path('doctor/notifications/', views.doctor_notifications_view, name='doctor_notifications'),
+    path('doctor/notifications/<int:notification_id>/read/', views.doctor_mark_read_view, name='doctor_mark_read'),
+    path('doctor/notifications/read-all/', views.doctor_mark_all_read_view, name='doctor_mark_all_read'),
+    path('doctor/profile/', views.doctor_profile_view, name='doctor_profile'),
 ]

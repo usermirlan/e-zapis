@@ -14,7 +14,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 
-from .models import Service, Specialist, TimeSlot, Appointment
+from .models import Service, Specialist, TimeSlot, Appointment, Notification
 from .forms import BookingForm, ServiceForm, SpecialistForm
 
 # ─── Вспомогательная функция ──────────────────────────────────────────────────
@@ -26,6 +26,9 @@ def is_staff_user(user):
 # ─── Главная ──────────────────────────────────────────────────────────────────
 
 def home_view(request):
+    if request.user.is_authenticated and request.user.is_doctor:
+        return redirect('doctor_dashboard')
+        
     services = Service.objects.filter(is_active=True)
     specialists_count = Specialist.objects.filter(is_active=True).count()
     appointments_count = Appointment.objects.count()
@@ -40,6 +43,9 @@ def home_view(request):
 # ─── Услуги ───────────────────────────────────────────────────────────────────
 
 def services_view(request):
+    if request.user.is_authenticated and request.user.is_doctor:
+        return redirect('doctor_dashboard')
+        
     services = Service.objects.filter(is_active=True).prefetch_related('specialists')
     return render(request, 'queue_app/services.html', {'services': services})
 
@@ -47,6 +53,9 @@ def services_view(request):
 # ─── Специалисты ──────────────────────────────────────────────────────────────
 
 def specialists_view(request, service_id=None):
+    if request.user.is_authenticated and request.user.is_doctor:
+        return redirect('doctor_dashboard')
+        
     services = Service.objects.filter(is_active=True)
     search_query = request.GET.get('q', '').strip()
 
@@ -75,6 +84,9 @@ def specialists_view(request, service_id=None):
 
 
 def specialist_detail_view(request, specialist_id):
+    if request.user.is_authenticated and request.user.is_doctor:
+        return redirect('doctor_dashboard')
+        
     specialist = get_object_or_404(Specialist, pk=specialist_id, is_active=True)
 
     today = timezone.now().date()
@@ -141,6 +153,14 @@ def booking_view(request, slot_id):
                 complaint=form.cleaned_data['complaint'],
             )
 
+            # ── Уведомление врачу ──
+            Notification.objects.create(
+                doctor=specialist,
+                appointment=appointment,
+                notification_type='new_appointment',
+                message=f'Новая запись: {request.user.get_full_name()} на {slot.date.strftime("%d.%m.%Y")} в {slot.time.strftime("%H:%M")}',
+            )
+
             # ── Email-уведомление ──
             _send_appointment_email(appointment, action='created')
 
@@ -172,6 +192,9 @@ def appointment_success_view(request, appointment_id):
 
 @login_required
 def my_appointments_view(request):
+    if request.user.is_doctor:
+        return redirect('doctor_dashboard')
+        
     appointments_qs = Appointment.objects.filter(
         patient=request.user
     ).select_related('specialist', 'service', 'time_slot').order_by('-created_at')
@@ -487,3 +510,235 @@ class DashboardServiceUpdateView(IsStaffMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Услуга успешно обновлена.')
         return super().form_valid(form)
+
+
+# ─── Утилита: проверка "является ли врачом" ───────────────────────────────────
+
+def is_doctor(user):
+    return user.is_authenticated and user.is_doctor and hasattr(user, 'specialist_profile')
+
+
+def doctor_required(view_func):
+    """Декоратор: доступ только для врачей."""
+    from functools import wraps
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        if not is_doctor(request.user):
+            messages.error(request, 'У вас нет доступа к кабинету врача.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+# ─── Кабинет врача: Главная панель ────────────────────────────────────────────
+
+@doctor_required
+def doctor_dashboard_view(request):
+    specialist = request.user.specialist_profile
+    today = timezone.now().date()
+    week_ago = today - timezone.timedelta(days=7)
+    month_ago = today - timezone.timedelta(days=30)
+
+    all_appointments = Appointment.objects.filter(specialist=specialist)
+
+    # Статистика
+    today_count = all_appointments.filter(time_slot__date=today).count()
+    week_count = all_appointments.filter(time_slot__date__gte=week_ago).count()
+    month_count = all_appointments.filter(time_slot__date__gte=month_ago).count()
+    total_count = all_appointments.count()
+
+    # Записи на сегодня
+    today_appointments = all_appointments.filter(
+        time_slot__date=today
+    ).select_related('patient', 'service', 'time_slot').order_by('time_slot__time')
+
+    # Непрочитанные уведомления
+    unread_count = Notification.objects.filter(doctor=specialist, is_read=False).count()
+
+    return render(request, 'doctor/doctor_dashboard.html', {
+        'specialist': specialist,
+        'today_count': today_count,
+        'week_count': week_count,
+        'month_count': month_count,
+        'total_count': total_count,
+        'today_appointments': today_appointments,
+        'unread_count': unread_count,
+    })
+
+
+# ─── Кабинет врача: Все записи ───────────────────────────────────────────────
+
+@doctor_required
+def doctor_appointments_view(request):
+    specialist = request.user.specialist_profile
+    today = timezone.now().date()
+    filter_type = request.GET.get('filter', 'all')
+
+    appointments = Appointment.objects.filter(
+        specialist=specialist
+    ).select_related('patient', 'service', 'time_slot')
+
+    if filter_type == 'today':
+        appointments = appointments.filter(time_slot__date=today)
+    elif filter_type == 'week':
+        week_ago = today - timezone.timedelta(days=7)
+        appointments = appointments.filter(time_slot__date__gte=week_ago)
+    elif filter_type == 'month':
+        month_ago = today - timezone.timedelta(days=30)
+        appointments = appointments.filter(time_slot__date__gte=month_ago)
+    elif filter_type == 'upcoming':
+        appointments = appointments.filter(
+            time_slot__date__gte=today,
+            status__in=['pending', 'confirmed']
+        )
+
+    appointments = appointments.order_by('-time_slot__date', '-time_slot__time')
+
+    return render(request, 'doctor/doctor_appointments.html', {
+        'appointments': appointments,
+        'filter_type': filter_type,
+    })
+
+
+# ─── Кабинет врача: Обновить статус записи ───────────────────────────────────
+
+@doctor_required
+@require_POST
+def doctor_update_status_view(request, appointment_id):
+    specialist = request.user.specialist_profile
+    appointment = get_object_or_404(Appointment, pk=appointment_id, specialist=specialist)
+    new_status = request.POST.get('status')
+
+    if new_status in dict(Appointment.STATUS_CHOICES):
+        old_status = appointment.get_status_display()
+        appointment.status = new_status
+        appointment.save()
+
+        # Если отменена — вернуть слот
+        if new_status == 'cancelled':
+            appointment.time_slot.is_available = True
+            appointment.time_slot.save()
+
+        messages.success(
+            request,
+            f'Статус записи #{appointment.queue_number} изменён: {old_status} → {appointment.get_status_display()}'
+        )
+    else:
+        messages.error(request, 'Неверный статус.')
+
+    return redirect('doctor_appointments')
+
+
+# ─── Кабинет врача: Список пациентов ─────────────────────────────────────────
+
+@doctor_required
+def doctor_patients_view(request):
+    specialist = request.user.specialist_profile
+    search_query = request.GET.get('q', '').strip()
+
+    # Все уникальные пациенты этого врача
+    patient_ids = Appointment.objects.filter(
+        specialist=specialist
+    ).values_list('patient_id', flat=True).distinct()
+
+    from accounts.models import CustomUser
+    patients = CustomUser.objects.filter(id__in=patient_ids)
+
+    if search_query:
+        patients = patients.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+
+    # Для каждого пациента — кол-во визитов и последний визит
+    patient_data = []
+    for patient in patients:
+        appts = Appointment.objects.filter(
+            specialist=specialist, patient=patient
+        ).order_by('-time_slot__date')
+        patient_data.append({
+            'patient': patient,
+            'visit_count': appts.count(),
+            'last_visit': appts.first(),
+        })
+
+    return render(request, 'doctor/doctor_patients.html', {
+        'patient_data': patient_data,
+        'search_query': search_query,
+    })
+
+
+# ─── Кабинет врача: Уведомления ──────────────────────────────────────────────
+
+@doctor_required
+def doctor_notifications_view(request):
+    specialist = request.user.specialist_profile
+    notifications = Notification.objects.filter(
+        doctor=specialist
+    ).select_related('appointment').order_by('-created_at')[:50]
+
+    return render(request, 'doctor/doctor_notifications.html', {
+        'notifications': notifications,
+    })
+
+
+@doctor_required
+@require_POST
+def doctor_mark_read_view(request, notification_id):
+    specialist = request.user.specialist_profile
+    notification = get_object_or_404(Notification, pk=notification_id, doctor=specialist)
+    notification.is_read = True
+    notification.save()
+    return redirect('doctor_notifications')
+
+
+@doctor_required
+@require_POST
+def doctor_mark_all_read_view(request):
+    specialist = request.user.specialist_profile
+    Notification.objects.filter(doctor=specialist, is_read=False).update(is_read=True)
+    messages.success(request, 'Все уведомления отмечены как прочитанные.')
+    return redirect('doctor_notifications')
+
+
+# ─── Кабинет врача: Профиль ──────────────────────────────────────────────────
+
+@doctor_required
+def doctor_profile_view(request):
+    specialist = request.user.specialist_profile
+    user = request.user
+
+    if request.method == 'POST':
+        # Данные пользователя
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        user.phone = request.POST.get('phone', user.phone)
+        user.save()
+
+        # Данные специалиста
+        specialist.first_name = user.first_name
+        specialist.last_name = user.last_name
+        specialist.middle_name = request.POST.get('middle_name', specialist.middle_name)
+        
+        specialist.bio = request.POST.get('bio', specialist.bio)
+        specialist.cabinet = request.POST.get('cabinet', specialist.cabinet)
+        specialist.work_start = request.POST.get('work_start', '09:00')
+        specialist.work_end = request.POST.get('work_end', '18:00')
+        experience = request.POST.get('experience_years', 0)
+        specialist.experience_years = int(experience) if experience else 0
+
+        if 'photo' in request.FILES:
+            specialist.photo = request.FILES['photo']
+
+        specialist.save()
+        messages.success(request, 'Профиль успешно обновлён!')
+        return redirect('doctor_profile')
+
+    return render(request, 'doctor/doctor_profile.html', {
+        'specialist': specialist,
+        'user': user,
+    })

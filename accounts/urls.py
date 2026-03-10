@@ -9,6 +9,9 @@ urlpatterns = [
     # Регистрация нового пользователя
     path('register/', views.register_view, name='register'),
 
+    # Регистрация врача
+    path('register/doctor/', views.doctor_register_view, name='doctor_register'),
+
     # Вход в систему
     path('login/', views.login_view, name='login'),
 
@@ -17,7 +20,4 @@ urlpatterns = [
 
     # Профиль пользователя
     path('profile/', views.profile_view, name='profile'),
-
-    # Редактирование профиля
-    path('profile/edit/', views.profile_edit_view, name='profile_edit'),
 ]

@@ -7,8 +7,20 @@
 
 <!-- ─── ГЕРОЙ-СЕКЦИЯ ─────────────────────────────────────────────────────── -->
 <section class="hero-section">
-    <div class="hero-bg"></div>
-    <div class="container position-relative">
+    <!-- Animated floating particles -->
+    <div class="hero-particles">
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+    </div>
+    <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center min-vh-65">
             <div class="col-lg-6">
                 <div class="hero-badge mb-3">
@@ -28,7 +40,7 @@
                         <i class="bi bi-calendar-plus me-2"></i>
                         Записаться сейчас
                     </a>
-                    <a href="{% url 'specialists' %}" class="btn btn-outline-primary btn-lg px-4">
+                    <a href="{% url 'specialists' %}" class="btn btn-outline-light btn-lg px-4">
                         <i class="bi bi-people me-2"></i>
                         Наши врачи
                     </a>

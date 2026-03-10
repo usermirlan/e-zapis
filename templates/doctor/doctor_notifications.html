@@ -1,0 +1,73 @@
+{% extends 'doctor/base_doctor.html' %}
+
+{% block title %}Уведомления — Кабинет врача{% endblock %}
+{% block header_title %}Уведомления{% endblock %}
+
+{% block doctor_content %}
+<div class="container-fluid px-0">
+    <!-- Кнопка "Прочитать все" -->
+    {% if notifications %}
+    <div class="d-flex justify-content-end mb-3">
+        <form method="post" action="{% url 'doctor_mark_all_read' %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-check2-all me-1"></i>Отметить все как прочитанные
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Список уведомлений -->
+    {% if notifications %}
+    <div class="d-flex flex-column gap-2">
+        {% for notif in notifications %}
+        <div class="card border-0 shadow-sm {% if not notif.is_read %}border-start border-primary border-3{% endif %}">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <!-- Иконка типа -->
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 42px; height: 42px; 
+                     {% if notif.notification_type == 'new_appointment' %}background: #DCFCE7; color: #10B981;
+                     {% elif notif.notification_type == 'cancelled' %}background: #FEE2E2; color: #EF4444;
+                     {% else %}background: #DBEAFE; color: #2563EB;{% endif %}">
+                    <i class="bi {% if notif.notification_type == 'new_appointment' %}bi-calendar-plus
+                                 {% elif notif.notification_type == 'cancelled' %}bi-calendar-x
+                                 {% else %}bi-info-circle{% endif %}"></i>
+                </div>
+
+                <!-- Текст -->
+                <div class="flex-grow-1">
+                    <p class="mb-0 {% if not notif.is_read %}fw-semibold{% else %}text-muted{% endif %}">
+                        {{ notif.message }}
+                    </p>
+                    <small class="text-muted">{{ notif.created_at|timesince }} назад</small>
+                </div>
+
+                <!-- Кнопка прочитать -->
+                {% if not notif.is_read %}
+                <form method="post" action="{% url 'doctor_mark_read' notif.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-success" title="Прочитано">
+                        <i class="bi bi-check2"></i>
+                    </button>
+                </form>
+                {% else %}
+                <span class="text-muted small"><i class="bi bi-check2-all"></i></span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-bell-slash display-4"></i>
+        <p class="mt-2">Уведомлений пока нет</p>
+    </div>
+    {% endif %}
+
+    <div class="mt-3">
+        <a href="{% url 'doctor_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Вернуться в кабинет
+        </a>
+    </div>
+</div>
+{% endblock %}

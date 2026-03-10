@@ -15,8 +15,12 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm" style="border-radius: 16px;">
                 <div class="card-body p-4 text-center">
-                    <div class="auth-icon-wrap mx-auto mb-3" style="width:80px;height:80px;font-size:2.5rem;">
+                    <div class="auth-icon-wrap mx-auto mb-3" style="width:80px;height:80px;font-size:2.5rem; overflow:hidden;">
+                        {% if user.photo %}
+                        <img src="{{ user.photo.url }}" alt="Фото" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
                         <i class="bi bi-person-fill"></i>
+                        {% endif %}
                     </div>
                     <h2 class="h5 fw-bold mb-1">{{ user.get_full_name }}</h2>
                     <p class="text-muted small mb-3">@{{ user.username }}</p>
@@ -50,9 +54,36 @@
                     <a href="{% url 'my_appointments' %}" class="btn btn-primary w-100 mt-4 fw-semibold">
                         <i class="bi bi-calendar-check me-2"></i>Мои записи
                     </a>
+                    {% if not user.is_doctor %}
                     <a href="{% url 'services' %}" class="btn btn-outline-primary w-100 mt-2">
                         <i class="bi bi-plus-circle me-2"></i>Записаться к врачу
                     </a>
+                    {% endif %}
+
+                    <h3 class="h6 fw-bold mt-4 mb-3 text-start border-bottom pb-2">Редактировать профиль</h3>
+                    <form method="post" enctype="multipart/form-data" novalidate class="text-start">
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                        <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold small">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="form-text text-muted" style="font-size:0.75rem;">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                        <div class="text-danger mt-1" style="font-size:0.8rem;"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-2 fw-semibold">
+                            <i class="bi bi-check-lg me-1"></i>Сохранить изменения
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -87,7 +118,9 @@
             <div class="text-center py-4 text-muted">
                 <i class="bi bi-calendar-x" style="font-size:2.5rem;"></i>
                 <p class="mt-2">Записей пока нет</p>
+                {% if not user.is_doctor %}
                 <a href="{% url 'services' %}" class="btn btn-primary">Записаться к врачу</a>
+                {% endif %}
             </div>
             {% endif %}
         </div>
