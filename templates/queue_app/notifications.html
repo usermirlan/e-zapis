@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Уведомления — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h2 class="mb-0"><i class="bi bi-bell text-primary me-2"></i>Уведомления</h2>
+                {% if notifications %}
+                <form action="{% url 'patient_mark_all_read' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Отметить все как прочитанные</button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% if notifications %}
+            <div class="list-group shadow-sm">
+                {% for n in notifications %}
+                <div
+                    class="list-group-item list-group-item-action p-3 {% if not n.is_read %}bg-light-subtle border-start border-primary border-4{% endif %}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1 fw-bold">
+                            {% if n.notification_type == 'new_appointment' %}
+                            <i class="bi bi-calendar-plus text-success me-2"></i>Новая запись
+                            {% elif n.notification_type == 'cancelled' %}
+                            <i class="bi bi-calendar-x text-danger me-2"></i>Отмена записи
+                            {% elif n.notification_type == 'status_update' %}
+                            <i class="bi bi-info-circle text-primary me-2"></i>Обновление статуса
+                            {% else %}
+                            <i class="bi bi-bell text-secondary me-2"></i>Уведомление
+                            {% endif %}
+                        </h6>
+                        <small class="text-muted">{{ n.created_at|date:"d.m.Y H:i" }}</small>
+                    </div>
+                    <p class="mb-1 text-dark">{{ n.message }}</p>
+                    {% if n.appointment %}
+                    <a href="{% url 'my_appointments' %}" class="small text-decoration-none">
+                        Перейти к записям <i class="bi bi-arrow-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-bell-slash display-4 text-muted"></i>
+                    <h5 class="mt-3 text-muted">У вас нет уведомлений</h5>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{% url 'my_appointments' %}" class="btn btn-link text-decoration-none text-muted">
+                    <i class="bi bi-arrow-left me-1"></i>Вернуться в личный кабинет
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

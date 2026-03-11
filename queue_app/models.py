@@ -82,6 +82,14 @@ class Specialist(models.Model):
             parts.append(self.middle_name)
         return ' '.join(parts)
 
+    @property
+    def average_rating(self):
+        """Средний рейтинг специалиста."""
+        reviews = self.reviews.all()
+        if not reviews.exists():
+            return 0
+        return round(sum(r.rating for r in reviews) / reviews.count(), 1)
+
 
 class TimeSlot(models.Model):
 
@@ -198,14 +206,15 @@ class Notification(models.Model):
     TYPE_CHOICES = [
         ('new_appointment', 'Новая запись'),
         ('cancelled', 'Отмена записи'),
+        ('status_update', 'Обновление статуса'),
         ('reminder', 'Напоминание'),
     ]
 
-    doctor = models.ForeignKey(
-        Specialist,
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='notifications',
-        verbose_name='Врач'
+        verbose_name='Пользователь'
     )
     appointment = models.ForeignKey(
         Appointment,
@@ -231,4 +240,65 @@ class Notification(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.get_notification_type_display()} — {self.doctor.get_full_name()}'
+        return f'{self.get_notification_type_display()} — {self.user.get_full_name()}'
+
+
+class Review(models.Model):
+    """Отзывы пациентов о врачах."""
+    patient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Пациент'
+    )
+    specialist = models.ForeignKey(
+        Specialist,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Специалист'
+    )
+    appointment = models.OneToOneField(
+        Appointment,
+        on_delete=models.CASCADE,
+        related_name='review',
+        verbose_name='Запись',
+        null=True,
+        blank=True
+    )
+    rating = models.PositiveSmallIntegerField(
+        verbose_name='Рейтинг',
+        choices=[(i, i) for i in range(1, 6)],
+        default=5
+    )
+    comment = models.TextField(verbose_name='Комментарий', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        ordering = ['-created_at']
+        unique_together = ('patient', 'appointment')
+
+    def __str__(self):
+        return f'Отзыв от {self.patient.get_full_name()} для {self.specialist.last_name}'
+
+
+class MedicalRecord(models.Model):
+    """Медицинская запись по итогам приема."""
+    appointment = models.OneToOneField(
+        Appointment,
+        on_delete=models.CASCADE,
+        related_name='medical_record',
+        verbose_name='Запись на прием'
+    )
+    diagnosis = models.TextField(verbose_name='Диагноз')
+    recommendations = models.TextField(verbose_name='Рекомендации')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Медицинская запись'
+        verbose_name_plural = 'Медицинские записи'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Мед. запись для {self.appointment.patient.get_full_name()} ({self.appointment.time_slot.date})'

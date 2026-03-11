@@ -7,11 +7,11 @@
 <div class="container-fluid px-0">
     <!-- Кнопка "Прочитать все" -->
     {% if notifications %}
-    <div class="d-flex justify-content-end mb-3">
+    <div class="d-flex justify-content-end mb-4">
         <form method="post" action="{% url 'doctor_mark_all_read' %}">
             {% csrf_token %}
-            <button class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-check2-all me-1"></i>Отметить все как прочитанные
+            <button class="btn btn-sm btn-light border rounded-pill px-4 shadow-sm text-primary fw-bold">
+                <i class="bi bi-check2-all me-1"></i>Прочитать все
             </button>
         </form>
     </div>
@@ -19,16 +19,16 @@
 
     <!-- Список уведомлений -->
     {% if notifications %}
-    <div class="d-flex flex-column gap-2">
+    <div class="d-flex flex-column gap-3">
         {% for notif in notifications %}
-        <div class="card border-0 shadow-sm {% if not notif.is_read %}border-start border-primary border-3{% endif %}">
-            <div class="card-body d-flex align-items-center gap-3 py-3">
+        <div
+            class="glass-card p-0 overflow-hidden {% if not notif.is_read %}border-start border-primary border-4{% endif %} transition-all hover-shadow">
+            <div class="card-body d-flex align-items-center gap-4 py-3 px-4">
                 <!-- Иконка типа -->
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                     style="width: 42px; height: 42px; 
-                     {% if notif.notification_type == 'new_appointment' %}background: #DCFCE7; color: #10B981;
-                     {% elif notif.notification_type == 'cancelled' %}background: #FEE2E2; color: #EF4444;
-                     {% else %}background: #DBEAFE; color: #2563EB;{% endif %}">
+                <div class="stat-icon-sm rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                    style="{% if notif.notification_type == 'new_appointment' %}background: rgba(16, 185, 129, 0.1); color: #10B981;
+                     {% elif notif.notification_type == 'cancelled' %}background: rgba(239, 68, 68, 0.1); color: #EF4444;
+                     {% else %}background: rgba(99, 102, 241, 0.1); color: var(--primary-color);{% endif %}">
                     <i class="bi {% if notif.notification_type == 'new_appointment' %}bi-calendar-plus
                                  {% elif notif.notification_type == 'cancelled' %}bi-calendar-x
                                  {% else %}bi-info-circle{% endif %}"></i>
@@ -36,37 +36,49 @@
 
                 <!-- Текст -->
                 <div class="flex-grow-1">
-                    <p class="mb-0 {% if not notif.is_read %}fw-semibold{% else %}text-muted{% endif %}">
+                    <p class="mb-1 {% if not notif.is_read %}fw-bold text-dark{% else %}text-muted{% endif %}">
                         {{ notif.message }}
                     </p>
-                    <small class="text-muted">{{ notif.created_at|timesince }} назад</small>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ notif.created_at|timesince }}
+                            назад</span>
+                        {% if not notif.is_read %}
+                        <span class="badge bg-primary rounded-pill pb-1" style="font-size: 0.6rem;">Новое</span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- Кнопка прочитать -->
-                {% if not notif.is_read %}
-                <form method="post" action="{% url 'doctor_mark_read' notif.id %}">
-                    {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-success" title="Прочитано">
-                        <i class="bi bi-check2"></i>
-                    </button>
-                </form>
-                {% else %}
-                <span class="text-muted small"><i class="bi bi-check2-all"></i></span>
-                {% endif %}
+                <div class="ms-auto">
+                    {% if not notif.is_read %}
+                    <form method="post" action="{% url 'doctor_mark_read' notif.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-icon btn-light rounded-circle border shadow-sm"
+                            title="Отметить как прочитанное">
+                            <i class="bi bi-check2"></i>
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="text-success small opacity-50"><i class="bi bi-check2-all"
+                            style="font-size: 1.2rem;"></i></span>
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-bell-slash display-4"></i>
-        <p class="mt-2">Уведомлений пока нет</p>
+    <div class="text-center py-5">
+        <div class="bg-light rounded-circle d-inline-flex p-4 mb-3 border">
+            <i class="bi bi-bell-slash display-6 text-muted"></i>
+        </div>
+        <p class="text-muted fw-medium">Уведомлений пока нет</p>
     </div>
     {% endif %}
 
-    <div class="mt-3">
-        <a href="{% url 'doctor_dashboard' %}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Вернуться в кабинет
+    <div class="mt-5">
+        <a href="{% url 'doctor_dashboard' %}" class="btn btn-link link-secondary text-decoration-none small p-0">
+            <i class="bi bi-arrow-left me-1"></i> Вернуться в кабинет
         </a>
     </div>
 </div>

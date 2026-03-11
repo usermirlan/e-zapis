@@ -1,0 +1,122 @@
+{% extends 'doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Медицинский протокол | {{ appointment.patient.get_full_name }}{% endblock %}
+{% block header_title %}Оформление медицинского протокола{% endblock %}
+
+{% block doctor_content %}
+<div class="container-fluid px-0">
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="glass-card overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-file-earmark-medical me-2 text-primary"></i>Сведения о приеме
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4 mb-5 p-3 rounded-4 bg-light/50 border">
+                        <div class="col-sm-6">
+                            <div class="text-uppercase tracking-wider text-muted small fw-bold mb-2">Пациент</div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stat-icon-sm"
+                                    style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ appointment.patient.get_full_name }}</h6>
+                                    <a href="tel:{{ appointment.patient.phone }}"
+                                        class="text-muted small text-decoration-none">{{ appointment.patient.phone }}</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 text-sm-end border-sm-start">
+                            <div class="text-uppercase tracking-wider text-muted small fw-bold mb-2">Дата и время</div>
+                            <div class="fw-bold text-dark mb-2">
+                                <i class="bi bi-calendar3 me-1 text-primary"></i> {{ appointment.time_slot.date|date:"d  M Y" }}
+                                <span class="mx-2 text-muted opacity-25">|</span>
+                                <i class="bi bi-clock me-1 text-primary"></i> {{ appointment.time_slot.time|time:"H:i" }}
+                            </div>
+                            <span
+                                class="badge rounded-pill px-3 py-2 bg-{{ appointment.get_status_badge_class|default:'secondary' }}-subtle text-{{ appointment.get_status_badge_class|default:'secondary' }} border border-{{ appointment.get_status_badge_class|default:'secondary' }}-subtle">
+                                {{ appointment.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if appointment.complaint %}
+                    <div class="p-3 rounded-4 mb-4 border-start border-primary border-4 bg-primary-subtle/20">
+                        <div class="text-primary small fw-bold text-uppercase tracking-wider mb-2">Жалоба пациента</div>
+                        <p class="mb-0 text-dark font-serif italic" style="font-size: 1.1rem;">"{{ appointment.complaint }}"</p>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="{{ form.diagnosis.id_for_label }}"
+                                class="form-label small text-uppercase tracking-wider fw-bold text-muted mb-2">
+                                Диагноз / Заключение
+                            </label>
+                            {{ form.diagnosis }}
+                            {% if form.diagnosis.errors %}
+                            <div class="invalid-feedback d-block">{{ form.diagnosis.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="{{ form.recommendations.id_for_label }}"
+                                class="form-label small text-uppercase tracking-wider fw-bold text-muted mb-2">
+                                Рекомендации и лечение
+                            </label>
+                            {{ form.recommendations }}
+                            {% if form.recommendations.errors %}
+                            <div class="invalid-feedback d-block">{{ form.recommendations.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-3 pt-4 border-top">
+                            <button type="submit" class="btn btn-success px-5 rounded-pill shadow-sm py-2 fw-bold">
+                                <i class="bi bi-check2-circle me-1"></i> Сохранить и завершить
+                            </button>
+                            <a href="{% url 'doctor_appointments' %}"
+                                class="btn btn-light px-4 rounded-pill py-2 text-secondary fw-semibold">
+                                Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card p-4">
+                <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-info-circle me-2 text-primary"></i>Памятка</h6>
+                <div class="space-y-4">
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="stat-icon-sm rounded-circle bg-success/10 text-success">
+                            <i class="bi bi-check2"></i>
+                        </div>
+                        <p class="small text-muted mb-0">
+                            После сохранения протокола статус записи изменится на <strong>"Завершена"</strong>.
+                        </p>
+                    </div>
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="stat-icon-sm rounded-circle bg-primary/10 text-primary">
+                            <i class="bi bi-eye"></i>
+                        </div>
+                        <p class="small text-muted mb-0">
+                            Пациент мгновенно увидит это заключение в своем личном кабинете.
+                        </p>
+                    </div>
+                    <hr class="opacity-10 my-4">
+                    <div class="text-center py-2">
+                        <i class="bi bi-shield-lock-fill text-indigo-200" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

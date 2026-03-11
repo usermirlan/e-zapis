@@ -1,0 +1,109 @@
+{% extends 'doctor/base_doctor.html' %}
+
+{% block title %}Генерация слотов — Кабинет врача{% endblock %}
+{% block header_title %}Автоматическое создание расписания{% endblock %}
+
+{% block doctor_content %}
+<div class="container-fluid px-0">
+    <div class="row g-4 mb-5">
+        <div class="col-lg-7">
+            <div class="glass-card overflow-hidden h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-magic me-2 text-primary"></i>Параметры генерации
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="p-3 rounded-4 bg-indigo-50 border border-indigo-100 mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-info-circle-fill text-indigo-600"></i>
+                            <span class="fw-bold text-indigo-900 small text-uppercase tracking-wider">Ваши
+                                настройки</span>
+                        </div>
+                        <ul class="list-unstyled mb-0 small text-indigo-800">
+                            <li class="mb-2"><i class="bi bi-check2 me-2"></i>Рабочее время: <strong>{{ specialist.work_start }} – {{ specialist.work_end }}</strong></li>
+                            <li class="mb-2"><i class="bi bi-check2 me-2"></i>Длительность приема: <strong>{{ specialist.service.duration_minutes }} мин.</strong></li>
+                            <li><i class="bi bi-check2 me-2"></i>Выходной: <strong>Воскресенье</strong></li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-5">
+                            <label for="{{ form.days.id_for_label }}"
+                                class="form-label small text-uppercase tracking-wider fw-bold text-muted mb-2">
+                                {{ form.days.label }}
+                            </label>
+                            <div class="modern-select-wrapper">
+                                {{ form.days }}
+                            </div>
+                            {% if form.days.help_text %}
+                            <div class="form-text mt-2 small opacity-75">{{ form.days.help_text }}</div>
+                            {% endif %}
+                            {% if form.days.errors %}
+                            <div class="invalid-feedback d-block">{{ form.days.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-3 pt-4 border-top">
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill shadow-sm py-2 fw-bold">
+                                <i class="bi bi-magic me-1"></i> Сгенерировать
+                            </button>
+                            <a href="{% url 'doctor_dashboard' %}"
+                                class="btn btn-light px-4 rounded-pill py-2 text-secondary fw-semibold">
+                                Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="glass-card h-100">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-question-circle me-2 text-primary"></i>Как это
+                        работает?</h6>
+
+                    <div class="space-y-4 mb-5">
+                        <div class="d-flex gap-3 mb-4">
+                            <div class="stat-icon-sm rounded-circle bg-light text-primary">
+                                <i class="bi bi-search"></i>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Система проверяет каждый день. Если на какое-то время слот уже существует, он будет
+                                пропущен.
+                            </p>
+                        </div>
+                        <div class="d-flex gap-3 mb-4">
+                            <div class="stat-icon-sm rounded-circle bg-light text-success">
+                                <i class="bi bi-cloud-check"></i>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Новые слоты сразу станут доступны пациентам для онлайн-записи.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-light rounded-4">
+                        <div class="text-uppercase tracking-wider text-muted small fw-bold mb-3 border-bottom pb-2">
+                            Детализация</div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted small">Начало смены:</span>
+                            <span class="fw-bold text-dark">{{ specialist.work_start|time:"H:i" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted small">Конец смены:</span>
+                            <span class="fw-bold text-dark">{{ specialist.work_end|time:"H:i" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Интервал:</span>
+                            <span class="fw-bold text-dark">{{ specialist.service.duration_minutes }} мин.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

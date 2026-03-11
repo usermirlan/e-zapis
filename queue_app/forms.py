@@ -1,5 +1,5 @@
 from django import forms
-from .models import Service, Specialist
+from .models import Service, Specialist, Review, MedicalRecord
 
 
 class BookingForm(forms.Form):
@@ -57,3 +57,34 @@ class SpecialistForm(forms.ModelForm):
             'work_end': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.Select(attrs={'class': 'form-select'}),
+            'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Ваш отзыв...'}),
+        }
+
+
+class MedicalRecordForm(forms.ModelForm):
+    class Meta:
+        model = MedicalRecord
+        fields = ['diagnosis', 'recommendations']
+        widgets = {
+            'diagnosis': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Введите диагноз...'}),
+            'recommendations': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Введите рекомендации по лечению...'}),
+        }
+
+
+class SlotGenerationForm(forms.Form):
+    days = forms.IntegerField(
+        min_value=1,
+        max_value=31,
+        initial=7,
+        label='Количество дней',
+        help_text='На сколько дней вперёд сгенерировать слоты?',
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )

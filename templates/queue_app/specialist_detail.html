@@ -32,7 +32,22 @@
                     </div>
 
                     <h1 class="h4 fw-bold mb-1">{{ specialist.get_full_name }}</h1>
-                    <span class="badge bg-primary mb-3">{{ specialist.service.name }}</span>
+                    <span class="badge bg-primary mb-2">{{ specialist.service.name }}</span>
+
+                    <div class="rating-summary mb-3">
+                        <div class="text-warning mb-1">
+                            {% for i in "12345" %}
+                            {% if forloop.counter <= specialist.average_rating %} <i class="bi bi-star-fill"></i>
+                                {% elif forloop.counter <= specialist.average_rating|add:0.5 %} <i
+                                    class="bi bi-star-half"></i>
+                                    {% else %}
+                                    <i class="bi bi-star"></i>
+                                    {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-1 fw-bold text-dark">{{ specialist.average_rating }}</span>
+                        </div>
+                        <small class="text-muted">({{ specialist.reviews.count }} отзывов)</small>
+                    </div>
 
                     <!-- Детали -->
                     <div class="profile-details text-start">
@@ -86,7 +101,8 @@
                 <div class="card-body">
                     <i class="bi bi-person-badge text-primary mb-3" style="font-size: 3rem;"></i>
                     <h3 class="h5 fw-bold">Это ваша публичная страница</h3>
-                    <p class="text-muted mb-4">Здесь пациенты видят вашу информацию и могут записаться к вам на приём.</p>
+                    <p class="text-muted mb-4">Здесь пациенты видят вашу информацию и могут записаться к вам на приём.
+                    </p>
                     <a href="{% url 'doctor_dashboard' %}" class="btn btn-primary">
                         <i class="bi bi-speedometer2 me-2"></i>Перейти в кабинет врача
                     </a>
@@ -110,7 +126,7 @@
                     </div>
                     <div class="date-info">
                         <h3 class="h6 fw-bold mb-0">{{ date|date:"l, d E Y" }}</h3>
-                        <small class="text-muted">{{ slots|length }} свободн{{ slots|length|pluralize:"ый,ых,ых" }}
+                        <small class="text-muted">{{ slots|length }} свободн {{ slots|length|pluralize:"ый,ых,ых" }}
                             слот{{ slots|length|pluralize:",,а,ов" }}</small>
                     </div>
                 </div>
@@ -120,8 +136,7 @@
                     {% for slot in slots %}
                     <a href="{% if user.is_authenticated %}{% url 'booking' slot.id %}{% else %}{% url 'login' %}?next={% url 'booking' slot.id %}{% endif %}"
                         class="time-slot-btn">
-                        <i class="bi bi-clock me-1"></i>
-                        {{ slot.time|time:"H:i" }}
+                        <i class="bi bi-clock me-1"></i>{{ slot.time|time:"H:i" }}
                     </a>
                     {% endfor %}
                 </div>
@@ -145,9 +160,38 @@
                     ← Выбрать другого врача
                 </a>
             </div>
-            {% endif %}
-            
-            {% endif %}
+            {% endif %}  {% endif %} <div class="mt-5">
+                <h2 class="h5 fw-bold mb-4">
+                    <i class="bi bi-chat-left-dots me-2 text-primary"></i>
+                    Отзывы пациентов
+                {% if specialist.reviews.all %}
+                <div class="reviews-list">
+                    {% for review in specialist.reviews.all %}
+                    <div class="review-item card border-0 shadow-sm mb-3">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h4 class="h6 mb-0 fw-bold">{{ review.patient.get_full_name }}</h4>
+                                <small class="text-muted">{{ review.created_at|date:"d E Y" }}</small>
+                            </div>
+                            <div class="text-warning mb-2">
+                                {% for i in "12345" %}
+                                <i class="bi bi-star{% if forloop.counter <= review.rating %}-fill{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            {% if review.comment %}
+                            <p class="mb-0 text-secondary">{{ review.comment }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-chat-quote mb-2" style="font-size: 2rem;"></i>
+                    <p>У этого специалиста пока нет отзывов. Станьте первым!</p>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

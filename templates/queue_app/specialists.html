@@ -39,20 +39,48 @@
         </form>
     </div>
 
-    <!-- Фильтр по услугам -->
+    <!-- Фильтр и Сортировка -->
     <div class="mb-4">
-        <div class="d-flex flex-wrap gap-2 align-items-center">
-            <span class="text-muted small fw-semibold me-2">Фильтр:</span>
-            <a href="{% url 'specialists' %}"
-                class="btn btn-sm {% if not selected_service %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                Все врачи
-            </a>
-            {% for service in services %}
-            <a href="{% url 'specialists_by_service' service.id %}"
-                class="btn btn-sm {% if selected_service.id == service.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                <i class="bi {{ service.icon }} me-1"></i>{{ service.name }}
-            </a>
-            {% endfor %}
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted small fw-semibold me-2">Услуги:</span>
+                <a href="{% url 'specialists' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+                    class="btn btn-sm {% if not selected_service %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    Все врачи
+                </a>
+                {% for service in services %}
+                <a href="{% url 'specialists_by_service' service.id %}{% if search_query %}?q={{ search_query }}{% endif %}"
+                    class="btn btn-sm {% if selected_service.id == service.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    <i class="bi {{ service.icon }} me-1"></i>{{ service.name }}
+                </a>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small fw-semibold">Сортировка:</span>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        {% if order_by == 'rating' %}
+                        По рейтингу
+                        {% elif order_by == 'experience' %}
+                        По стажу
+                        {% else %}
+                        По алфавиту
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><a class="dropdown-item {% if order_by == 'name' %}active{% endif %}"
+                                href="?order=name{% if search_query %}&q={{ search_query }}{% endif %}">По алфавиту</a>
+                        </li>
+                        <li><a class="dropdown-item {% if order_by == 'rating' %}active{% endif %}"
+                                href="?order=rating{% if search_query %}&q={{ search_query }}{% endif %}">По
+                                рейтингу</a></li>
+                        <li><a class="dropdown-item {% if order_by == 'experience' %}active{% endif %}"
+                                href="?order=experience{% if search_query %}&q={{ search_query }}{% endif %}">По
+                                стажу</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -74,9 +102,16 @@
                         </div>
                         <div class="flex-grow-1">
                             <h2 class="h6 fw-bold mb-1">{{ specialist.get_full_name }}</h2>
-                            <span class="badge bg-primary-soft text-primary small">
-                                {{ specialist.service.name }}
-                            </span>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-primary-soft text-primary small">
+                                    {{ specialist.service.name }}
+                                </span>
+                                {% if specialist.avg_rating %}
+                                <div class="small text-warning">
+                                    <i class="bi bi-star-fill"></i> {{ specialist.avg_rating|floatformat:1 }}
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
 

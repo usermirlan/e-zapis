@@ -8,32 +8,37 @@
 
     <!-- Фильтры -->
     <div class="d-flex flex-wrap gap-2 mb-4">
-        <a href="?filter=all" class="btn btn-sm {% if filter_type == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <a href="?filter=all"
+            class="btn btn-sm px-3 rounded-pill {% if filter_type == 'all' %}btn-primary shadow-sm{% else %}btn-outline-secondary border-0 bg-white{% endif %}">
             <i class="bi bi-list me-1"></i>Все
         </a>
-        <a href="?filter=today" class="btn btn-sm {% if filter_type == 'today' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <a href="?filter=today"
+            class="btn btn-sm px-3 rounded-pill {% if filter_type == 'today' %}btn-primary shadow-sm{% else %}btn-outline-secondary border-0 bg-white{% endif %}">
             <i class="bi bi-calendar-day me-1"></i>Сегодня
         </a>
-        <a href="?filter=week" class="btn btn-sm {% if filter_type == 'week' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <a href="?filter=week"
+            class="btn btn-sm px-3 rounded-pill {% if filter_type == 'week' %}btn-primary shadow-sm{% else %}btn-outline-secondary border-0 bg-white{% endif %}">
             <i class="bi bi-calendar-week me-1"></i>Неделя
         </a>
-        <a href="?filter=month" class="btn btn-sm {% if filter_type == 'month' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <a href="?filter=month"
+            class="btn btn-sm px-3 rounded-pill {% if filter_type == 'month' %}btn-primary shadow-sm{% else %}btn-outline-secondary border-0 bg-white{% endif %}">
             <i class="bi bi-calendar-month me-1"></i>Месяц
         </a>
-        <a href="?filter=upcoming" class="btn btn-sm {% if filter_type == 'upcoming' %}btn-success{% else %}btn-outline-success{% endif %}">
+        <a href="?filter=upcoming"
+            class="btn btn-sm px-3 rounded-pill {% if filter_type == 'upcoming' %}btn-success shadow-sm text-white{% else %}btn-outline-secondary border-0 bg-white{% endif %}">
             <i class="bi bi-clock me-1"></i>Предстоящие
         </a>
     </div>
 
     <!-- Таблица записей -->
-    <div class="card border-0 shadow-sm">
+    <div class="glass-card overflow-hidden">
         <div class="card-body p-0">
             {% if appointments %}
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light/50 border-bottom">
                         <tr>
-                            <th>№</th>
+                            <th class="ps-4">№</th>
                             <th>Дата</th>
                             <th>Время</th>
                             <th>Пациент</th>
@@ -41,46 +46,69 @@
                             <th>Услуга</th>
                             <th>Жалоба</th>
                             <th>Статус</th>
-                            <th>Действия</th>
+                            <th class="pe-4 text-end">Действия</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="border-top-0">
                         {% for appt in appointments %}
                         <tr>
-                            <td><span class="badge bg-primary">{{ appt.queue_number }}</span></td>
-                            <td>{{ appt.time_slot.date|date:"d.m.Y" }}</td>
-                            <td class="fw-semibold">{{ appt.time_slot.time|time:"H:i" }}</td>
-                            <td>{{ appt.patient.get_full_name }}</td>
-                            <td><a href="tel:{{ appt.patient.phone }}" class="text-decoration-none small">{{ appt.patient.phone }}</a></td>
-                            <td class="small">{{ appt.service.name }}</td>
-                            <td class="text-muted small">{{ appt.complaint|truncatechars:30|default:"—" }}</td>
-                            <td><span class="badge bg-{{ appt.get_status_badge_class }}">{{ appt.get_status_display }}</span></td>
+                            <td class="ps-4"><span class="badge bg-indigo-50 text-primary border">{{ appt.queue_number }}</span></td>
+                            <td class="text-dark fw-medium small">{{ appt.time_slot.date|date:"d.m.Y" }}</td>
+                            <td class="fw-bold text-dark">{{ appt.time_slot.time|time:"H:i" }}</td>
                             <td>
+                                <div class="fw-semibold">{{ appt.patient.get_full_name }}</div>
+                            </td>
+                            <td>
+                                <a href="tel:{{ appt.patient.phone }}" class="text-muted small text-decoration-none">
+                                    <i class="bi bi-telephone-outbound me-1"></i> {{ appt.patient.phone }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border small fw-normal">{{ appt.service.name }}</span>
+                            </td>
+                            <td>
+                                <div class="text-truncate text-muted small" style="max-width: 150px;"
+                                    title="{{ appt.complaint }}">
+                                    {{ appt.complaint|default:"—" }}
+                                </div>
+                            </td>
+                            <td>
+                                <span
+                                    class="badge rounded-pill px-3 py-2 bg-{{ appt.get_status_badge_class|default:'secondary' }}-subtle text-{{ appt.get_status_badge_class|default:'secondary' }} border border-{{ appt.get_status_badge_class|default:'secondary' }}-subtle">
+                                    {{ appt.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="pe-4 text-end">
                                 <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i class="bi bi-gear"></i>
+                                    <button class="btn btn-icon btn-light rounded-circle border shadow-sm"
+                                        data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2">
                                         <li>
                                             <form method="post" action="{% url 'doctor_update_status' appt.id %}">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="status" value="confirmed">
-                                                <button class="dropdown-item text-primary"><i class="bi bi-check-circle me-2"></i>Подтвердить</button>
+                                                <button class="dropdown-item rounded-3 py-2"><i
+                                                        class="bi bi-check-circle me-2 text-primary"></i>Подтвердить</button>
                                             </form>
                                         </li>
                                         <li>
-                                            <form method="post" action="{% url 'doctor_update_status' appt.id %}">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="status" value="completed">
-                                                <button class="dropdown-item text-success"><i class="bi bi-check2-all me-2"></i>Завершить</button>
-                                            </form>
+                                            <a href="{% url 'doctor_add_medical_record' appt.id %}"
+                                                class="dropdown-item rounded-3 py-2">
+                                                <i class="bi bi-file-earmark-medical me-2 text-success"></i>Завершить с
+                                                протоколом
+                                            </a>
                                         </li>
-                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <hr class="dropdown-divider opacity-50">
+                                        </li>
                                         <li>
                                             <form method="post" action="{% url 'doctor_update_status' appt.id %}">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="status" value="cancelled">
-                                                <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i>Отменить</button>
+                                                <button class="dropdown-item rounded-3 py-2 text-danger"><i
+                                                        class="bi bi-x-circle me-2 text-danger"></i>Отменить</button>
                                             </form>
                                         </li>
                                     </ul>
@@ -92,17 +120,19 @@
                 </table>
             </div>
             {% else %}
-            <div class="text-center py-5 text-muted">
-                <i class="bi bi-inbox display-4"></i>
-                <p class="mt-2">Записей не найдено</p>
+            <div class="text-center py-5">
+                <div class="bg-light rounded-circle d-inline-flex p-4 mb-3 border">
+                    <i class="bi bi-inbox display-6 text-muted"></i>
+                </div>
+                <p class="text-muted fw-medium">Записей не найдено</p>
             </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="mt-3">
-        <a href="{% url 'doctor_dashboard' %}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Вернуться в кабинет
+    <div class="mt-4">
+        <a href="{% url 'doctor_dashboard' %}" class="btn btn-link link-secondary text-decoration-none small p-0">
+            <i class="bi bi-arrow-left me-1"></i> Вернуться в кабинет
         </a>
     </div>
 </div>

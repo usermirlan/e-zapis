@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Оставить отзыв — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="h4 fw-bold mb-4">Ваш отзыв о приеме</h2>
+
+                    <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded">
+                        <div class="specialist-avatar" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            {% if appointment.specialist.photo %}
+                            <img src="{{ appointment.specialist.photo.url }}" alt="" class="avatar-img">
+                            {% else %}
+                            <i class="bi bi-person-fill"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ appointment.specialist.get_full_name }}</div>
+                            <div class="text-muted small">{{ appointment.service.name }}</div>
+                            <div class="text-muted extra-small">{{ appointment.time_slot.date|date:"d.m.Y" }} в {{ appointment.time_slot.time|time:"H:i" }}</div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold py-2">
+                                Опубликовать отзыв
+                            </button>
+                            <a href="{% url 'my_appointments' %}" class="btn btn-outline-secondary">
+                                Назад к списку
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

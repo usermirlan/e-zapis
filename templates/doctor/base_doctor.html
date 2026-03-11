@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Кабинет врача — МедЗапись{% endblock %}</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -13,20 +14,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
-            --sidebar-width: 260px;
-            --primary-color: #2563EB;
+            --sidebar-width: 280px;
+            --primary-color: #6366F1;
+            /* Indigo 500 */
+            --primary-hover: #4F46E5;
+            /* Indigo 600 */
+            --accent-color: #8B5CF6;
+            /* Violet 500 */
             --secondary-color: #64748B;
-            --bg-body: #F8FAFC;
+            --bg-body: #F1F5F9;
+            --sidebar-bg: #1E293B;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
+            background: radial-gradient(circle at top right, #EEF2FF, #F1F5F9);
             color: #1E293B;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
         /* Sidebar Style */
@@ -36,36 +47,40 @@
             position: fixed;
             left: 0;
             top: 0;
-            background: #1E293B;
+            background: var(--sidebar-bg);
             color: #F8FAFC;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
-            padding: 1.5rem 0;
+            padding: 2rem 0;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
         }
 
         .doctor-sidebar .nav-link {
             color: #94A3B8;
-            padding: 0.8rem 1.5rem;
+            padding: 0.9rem 1.75rem;
+            margin: 0.2rem 1rem;
             display: flex;
             align-items: center;
-            gap: 12px;
-            transition: all 0.2s;
-            border-left: 4px solid transparent;
+            gap: 14px;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            font-weight: 500;
         }
 
         .doctor-sidebar .nav-link:hover {
             color: white;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
         }
 
         .doctor-sidebar .nav-link.active {
             color: white;
-            background: rgba(37, 99, 235, 0.1);
-            border-left-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
         }
 
         .doctor-sidebar .nav-link i {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
         }
 
         /* Content Area */
@@ -73,53 +88,85 @@
             margin-left: var(--sidebar-width);
             min-height: 100vh;
             padding: 2rem;
+            transition: margin-left 0.4s ease;
         }
 
         .doctor-header {
-            background: white;
-            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 1.25rem 2.5rem;
             margin-left: var(--sidebar-width);
-            border-bottom: 1px solid #E2E8F0;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 99;
+            transition: margin-left 0.4s ease;
         }
 
         .brand-name {
-            font-weight: 700;
-            font-size: 1.25rem;
-            padding: 0 1.5rem 2rem;
+            font-weight: 800;
+            font-size: 1.5rem;
+            padding: 0 1.75rem 2.5rem;
             color: white;
             display: block;
             text-decoration: none;
+            letter-spacing: -0.025em;
+        }
+
+        .brand-name i {
+            background: linear-gradient(135deg, #818CF8, #C084FC);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .badge-notif {
-            font-size: 0.6rem;
-            padding: 2px 5px;
+            font-size: 0.65rem;
+            padding: 4px 7px;
+            filter: drop-shadow(0 4px 6px rgba(239, 68, 68, 0.3));
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
         /* Stat Icon */
         .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.75rem;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
         }
 
         @media (max-width: 991.98px) {
             .doctor-sidebar {
                 transform: translateX(-100%);
             }
-            .doctor-content, .doctor-header {
+
+            .doctor-content,
+            .doctor-header {
                 margin-left: 0;
             }
+
             .doctor-sidebar.active {
                 transform: translateX(0);
             }
@@ -127,6 +174,7 @@
     </style>
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
 
     <!-- Sidebar -->
@@ -135,28 +183,33 @@
             <i class="bi bi-heart-pulse-fill text-primary me-2"></i>МедЗапись <br>
             <small class="text-white-50 fw-normal" style="font-size: 0.7rem;">ПОРТАЛ ВРАЧА</small>
         </a>
-        
+
         <nav class="nav flex-column mt-4">
-            <a href="{% url 'doctor_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+            <a href="{% url 'doctor_dashboard' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
                 <i class="bi bi-grid-1x2"></i> Главная
             </a>
-            <a href="{% url 'doctor_appointments' %}" class="nav-link {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
+            <a href="{% url 'doctor_appointments' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
                 <i class="bi bi-calendar-event"></i> Записи
             </a>
-            <a href="{% url 'doctor_patients' %}" class="nav-link {% if request.resolver_match.url_name == 'doctor_patients' %}active{% endif %}">
+            <a href="{% url 'doctor_patients' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'doctor_patients' %}active{% endif %}">
                 <i class="bi bi-people"></i> Пациенты
             </a>
-            <a href="{% url 'doctor_notifications' %}" class="nav-link {% if request.resolver_match.url_name == 'doctor_notifications' %}active{% endif %}">
+            <a href="{% url 'doctor_notifications' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'doctor_notifications' %}active{% endif %}">
                 <i class="bi bi-bell"></i> Уведомления
-                {% if unread_count %}
-                <span class="badge bg-danger rounded-pill badge-notif ms-auto">{{ unread_count }}</span>
+                {% if unread_notifications_count %}
+                <span class="badge bg-danger rounded-pill badge-notif ms-auto">{{ unread_notifications_count }}</span>
                 {% endif %}
             </a>
-            <a href="{% url 'doctor_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'doctor_profile' %}active{% endif %}">
+            <a href="{% url 'doctor_profile' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'doctor_profile' %}active{% endif %}">
                 <i class="bi bi-person-circle"></i> Профиль
             </a>
         </nav>
-        
+
         <div class="mt-auto p-3 pt-5 border-top border-secondary">
             <a href="{% url 'logout' %}" class="nav-link text-danger">
                 <i class="bi bi-box-arrow-left"></i> Выйти
@@ -172,16 +225,18 @@
             </button>
             <span class="fw-semibold d-none d-md-inline">{% block header_title %}Панель управления{% endblock %}</span>
         </div>
-        
+
         <div class="d-flex align-items-center gap-3">
             <div class="text-end d-none d-sm-block">
                 <div class="fw-bold small">{{ user.get_full_name }}</div>
                 <div class="text-muted" style="font-size: 0.75rem;">{{ user.specialist_profile.service.name }}</div>
             </div>
             {% if user.specialist_profile.photo %}
-            <img src="{{ user.specialist_profile.photo.url }}" class="rounded-circle border" width="40" height="40" style="object-fit: cover;">
+            <img src="{{ user.specialist_profile.photo.url }}" class="rounded-circle border" width="40" height="40"
+                style="object-fit: cover;">
             {% else %}
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border" width="40" height="40" style="width:40px;height:40px;">
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border" width="40"
+                height="40" style="width:40px;height:40px;">
                 <i class="bi bi-person text-secondary"></i>
             </div>
             {% endif %}
@@ -193,7 +248,8 @@
         {% if messages %}
         <div class="container-fluid px-0 mb-4">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm"
+                role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -206,13 +262,13 @@
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Sidebar Toggle for Mobile
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('sidebar');
-        
-        if(sidebarToggle) {
+
+        if (sidebarToggle) {
             sidebarToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('active');
             });
@@ -220,4 +276,5 @@
     </script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
