@@ -24,7 +24,7 @@
         <div class="row align-items-center min-vh-65">
             <div class="col-lg-6">
                 <div class="hero-badge mb-3">
-                    <i class="bi bi-patch-check-fill me-2 text-success"></i>
+                    <i class="bi bi-patch-check-fill me-2 text-success" aria-hidden="true"></i>
                     Быстро, удобно, онлайн
                 </div>
                 <h1 class="hero-title">
@@ -37,11 +37,11 @@
                 </p>
                 <div class="d-flex flex-wrap gap-3 mt-4">
                     <a href="{% url 'services' %}" class="btn btn-primary btn-lg px-4 fw-semibold">
-                        <i class="bi bi-calendar-plus me-2"></i>
+                        <i class="bi bi-calendar-plus me-2" aria-hidden="true"></i>
                         Записаться сейчас
                     </a>
                     <a href="{% url 'specialists' %}" class="btn btn-outline-light btn-lg px-4">
-                        <i class="bi bi-people me-2"></i>
+                        <i class="bi bi-people me-2" aria-hidden="true"></i>
                         Наши врачи
                     </a>
                 </div>
@@ -102,7 +102,7 @@
                 <div class="service-card card border-0 h-100">
                     <div class="card-body p-4">
                         <div class="service-icon-wrap mb-3">
-                            <i class="bi {{ service.icon }}"></i>
+                            <i class="bi {{ service.icon }}" aria-hidden="true"></i>
                         </div>
                         <h3 class="h5 fw-bold mb-2">{{ service.name }}</h3>
                         <p class="text-muted small mb-3">
@@ -110,9 +110,9 @@
                         </p>
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted small">
-                                <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} мин
+                                <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ service.duration_minutes }} мин
                                 &nbsp;·&nbsp;
-                                <i class="bi bi-people me-1"></i>
+                                <i class="bi bi-people me-1" aria-hidden="true"></i>
                                 {{ service.specialists.count }} врач{{ service.specialists.count|pluralize:",,а,ей" }}
                             </span>
                             <a href="{% url 'specialists_by_service' service.id %}" class="btn btn-primary btn-sm">
