@@ -1,9 +1,5 @@
 @charset "UTF-8";
 
-/* =========================================================
-   MedZapis — Главный CSS файл
-   Профессиональный дизайн системы онлайн-записи в поликлинику
-   ========================================================= */
 
 :root {
     --primary:       #2563EB;
@@ -61,10 +57,9 @@ main { flex: 1; }
     z-index: 1030;
 }
 
-/* Эффект при скролле (синее стекло) */
 #mainNavbar.navbar-scrolled {
     padding: 0.6rem 0;
-    background: rgba(15, 23, 42, 0.9) !important; /* Очень темный синий/черный для контраста */
+    background: rgba(15, 23, 42, 0.9) !important; 
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
