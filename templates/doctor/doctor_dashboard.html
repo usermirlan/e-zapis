@@ -12,7 +12,7 @@
                 <div class="col-6 col-md-3">
                     <div class="glass-card p-4 text-center">
                         <div class="stat-icon mx-auto mb-3"
-                            style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">
+                            style="background: rgba(37, 99, 235, 0.1); color: var(--primary-color);">
                             <i class="bi bi-people"></i>
                         </div>
                         <h3 class="fw-bold mb-1">{{ today_count }}</h3>
@@ -22,7 +22,7 @@
                 <div class="col-6 col-md-3">
                     <div class="glass-card p-4 text-center">
                         <div class="stat-icon mx-auto mb-3"
-                            style="background: rgba(139, 92, 246, 0.1); color: var(--accent-color);">
+                            style="background: rgba(59, 130, 246, 0.1); color: var(--accent-color);">
                             <i class="bi bi-calendar-week"></i>
                         </div>
                         <h3 class="fw-bold mb-1">{{ week_count }}</h3>
@@ -96,7 +96,7 @@
     <div class="glass-card overflow-hidden">
         <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
             <h5 class="fw-bold mb-0">
-                <span class="p-2 bg-indigo-50 rounded-3 me-2 border">
+                <span class="p-2 bg-primary-soft rounded-3 me-2 border">
                     <i class="bi bi-clock-history text-primary"></i>
                 </span>
                 Записи на сегодня
@@ -124,7 +124,7 @@
                     <tbody class="border-top-0">
                         {% for appt in today_appointments %}
                         <tr>
-                            <td class="ps-4"><span class="badge bg-indigo-50 text-primary border">{{ appt.queue_number }}</span></td>
+                            <td class="ps-4"><span class="badge bg-primary-soft text-primary border">{{ appt.queue_number }}</span></td>
                             <td class="fw-bold text-dark">{{ appt.time_slot.time|time:"H:i" }}</td>
                             <td>
                                 <div class="fw-semibold">{{ appt.patient.get_full_name }}</div>
@@ -214,11 +214,11 @@
         datasets: [{
             label: 'Приемы',
             data: {{ counts_list| safe }},
-        borderColor: '#6366F1',
-        backgroundColor: 'rgba(99, 102, 241, 0.15)',
+        borderColor: '#2563EB',
+        backgroundColor: 'rgba(37, 99, 235, 0.15)',
         borderWidth: 3,
         pointBackgroundColor: '#fff',
-        pointBorderColor: '#6366F1',
+        pointBorderColor: '#2563EB',
         pointHoverRadius: 6,
         fill: true,
         tension: 0.45
@@ -251,7 +251,7 @@
                     {{ status_data.cancelled|default:"0" }}
                 ],
 
-        backgroundColor: ['#F59E0B', '#6366F1', '#10B981', '#EF4444'],
+        backgroundColor: ['#F59E0B', '#2563EB', '#10B981', '#EF4444'],
         hoverOffset: 12,
         borderWidth: 0
             }]

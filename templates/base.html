@@ -157,90 +157,85 @@
     {% endif %}
 
     <!-- ─── ОСНОВНОЙ КОНТЕНТ ──────────────────────────────────────────────────── -->
-    <main id="main-content">
+    <main id="main-content" class="fade-in-up">
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Кнопка Наверх -->
+    <button id="backToTop" title="Наверх">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
     <!-- ─── ПОДВАЛ ───────────────────────────────────────────────────────────────  -->
     <!-- ─── ПОДВАЛ ───────────────────────────────────────────────────────────────  -->
-    <footer class="footer mt-auto py-5 bg-dark text-light">
+    <footer class="footer mt-auto py-5 bg-dark">
         <div class="container">
-            <div class="row g-4 mb-4">
+            <div class="row g-4 mb-5">
                 <!-- Бренд и описание -->
                 <div class="col-lg-4 col-md-6 text-md-start text-center">
-                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-3">
-                        <div class="brand-icon-footer">
-                            <i class="bi bi-hospital text-primary"></i>
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 mb-4">
+                        <div class="brand-icon-footer" style="width: 45px; height: 45px; background: rgba(37,99,235,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-hospital-fill text-primary" style="font-size: 1.5rem;"></i>
                         </div>
-                        <span class="fw-bold fs-4 text-white">МедЗапись</span>
+                        <span class="fw-bold fs-3 text-white letter-spacing-1">МедЗапись</span>
                     </div>
-                    <p class="text-secondary small mb-3 mb-md-0"
-                        style="max-width:300px; margin:0 auto; margin-inline-start:0;">
-                        Современная платформа для быстрой и удобной онлайн-записи к ведущим специалистам нашей клиники.
-                        Заботимся о вашем здоровье 24/7.
+                    <p class="text-white-50 small mb-4" style="line-height: 1.8; max-width: 320px;">
+                        Интеллектуальная система управления очередями и онлайн-записи. Мы объединяем современные технологии и заботу о пациентах, делая медицину доступнее.
                     </p>
+                    <div class="d-flex gap-3 justify-content-center justify-content-md-start">
+                        <a href="#" class="social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="social-icon" title="Telegram"><i class="bi bi-telegram"></i></a>
+                        <a href="#" class="social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    </div>
                 </div>
 
                 <!-- Быстрые ссылки -->
-                <div class="col-lg-2 col-md-6 text-md-start text-center">
-                    <h5 class="text-white fw-bold mb-3 fs-6 letter-spacing-1 text-uppercase">Навигация</h5>
-                    <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                <div class="col-lg-2 col-md-3 col-6 text-md-start text-center">
+                    <h5 class="text-white fw-bold mb-4 fs-6 text-uppercase letter-spacing-1">Навигация</h5>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
                         <li><a href="{% url 'home' %}" class="footer-link">Главная</a></li>
-                        <li><a href="{% url 'services' %}" class="footer-link">Услуги клиники</a></li>
-                        <li><a href="{% url 'specialists' %}" class="footer-link">Наши врачи</a></li>
+                        <li><a href="{% url 'services' %}" class="footer-link">Услуги</a></li>
+                        <li><a href="{% url 'specialists' %}" class="footer-link">Врачи</a></li>
                         {% if user.is_authenticated %}
                         <li><a href="{% url 'my_appointments' %}" class="footer-link">Мои записи</a></li>
                         {% endif %}
                     </ul>
                 </div>
 
-                <!-- Контакты -->
-                <div class="col-lg-3 col-md-6 text-md-start text-center">
-                    <h5 class="text-white fw-bold mb-3 fs-6 letter-spacing-1 text-uppercase">Контакты</h5>
-                    <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
-                        <li class="text-secondary small">
-                            <i class="bi bi-geo-alt me-2 text-primary"></i> ул. Советская, д. 15, Бишкек
-                        </li>
-                        <li class="text-secondary small mt-1">
-                            <i class="bi bi-telephone me-2 text-primary"></i> +996 550 00-33-34
-                        </li>
-                        <li class="text-secondary small mt-1">
-                            <i class="bi bi-envelope me-2 text-primary"></i> info@medzapis.kg
-                        </li>
-                        <li class="text-secondary small mt-1">
-                            <i class="bi bi-clock me-2 text-primary"></i> Пн-Вс: 08:00 – 20:00
-                        </li>
+                <!-- Информация -->
+                <div class="col-lg-2 col-md-3 col-6 text-md-start text-center">
+                    <h5 class="text-white fw-bold mb-4 fs-6 text-uppercase letter-spacing-1">Помощь</h5>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                        <li><a href="#" class="footer-link">О системе</a></li>
+                        <li><a href="#" class="footer-link">Как это работает</a></li>
+                        <li><a href="#" class="footer-link">Вопросы и ответы</a></li>
+                        <li><a href="#" class="footer-link">Контакты</a></li>
                     </ul>
                 </div>
 
-                <!-- Соцсети -->
-                <div class="col-lg-3 col-md-6 text-md-start text-center">
-                    <h5 class="text-white fw-bold mb-3 fs-6 letter-spacing-1 text-uppercase">Мы в соцсетях</h5>
-                    <p class="text-secondary small mb-3">Следите за новостями и акциями нашей клиники в социальных
-                        сетях.</p>
-                    <div class="d-flex gap-2 justify-content-center justify-content-md-start">
-                        <a href="#" class="social-icon" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="social-icon" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="social-icon" aria-label="Telegram"><i class="bi bi-telegram"></i></a>
-                        <a href="#" class="social-icon" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                <!-- Контакты -->
+                <div class="col-lg-4 col-md-6 text-md-start text-center">
+                    <h5 class="text-white fw-bold mb-4 fs-6 text-uppercase letter-spacing-1">Поддержка</h5>
+                    <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="d-flex align-items-center justify-content-center justify-content-md-start mb-3">
+                            <i class="bi bi-telephone-fill text-primary me-3"></i>
+                            <div class="text-white fw-bold">+996 (312) 00-00-00</div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                            <i class="bi bi-envelope-at-fill text-primary me-3"></i>
+                            <div class="text-white-50">support@medzapis.kg</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <hr class="border-secondary opacity-25 my-4">
-
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="text-secondary small mb-0">&copy; {% now "Y" %} Цифровая поликлиника «МедЗапись». Все
-                        права защищены.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
-                    <a href="#"
-                        class="text-secondary small text-decoration-none me-3 hover-white transition-colors">Политика
-                        конфиденциальности</a>
-                    <a href="#"
-                        class="text-secondary small text-decoration-none hover-white transition-colors">Пользовательское
-                        соглашение</a>
+            <div class="pt-5 border-top border-secondary border-opacity-10 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <p class="text-white-50 small mb-0">
+                    &copy; {% now "Y" %} МедЗапись. Платформа для современной медицины.
+                </p>
+                <div class="d-flex gap-4">
+                    <a href="#" class="text-white-50 small text-decoration-none hover-white transition-colors">Конфиденциальность</a>
+                    <a href="#" class="text-white-50 small text-decoration-none hover-white transition-colors">Оферта</a>
                 </div>
             </div>
         </div>
@@ -248,6 +243,66 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Hide Navbar on Scroll -->
+    <script>
+        (function() {
+            let lastScroll = window.scrollY;
+            const navbar = document.getElementById('mainNavbar');
+            const threshold = 5; // Более чувствительный порог
+            const scrolledThreshold = 20;
+
+            window.addEventListener('scroll', () => {
+                const currentScroll = window.scrollY;
+                
+                // Toggle navbar-scrolled class for visual feedback
+                if (currentScroll > scrolledThreshold) {
+                    navbar.classList.add('navbar-scrolled');
+                } else {
+                    navbar.classList.remove('navbar-scrolled');
+                }
+
+                // Hide/Show on scroll logic
+                if (Math.abs(currentScroll - lastScroll) < threshold) return;
+
+                if (currentScroll <= 0) {
+                    navbar.classList.remove('navbar-hidden');
+                    lastScroll = currentScroll;
+                    return;
+                }
+
+                if (currentScroll > lastScroll && currentScroll > 150) {
+                    // Scroll Down - hide
+                    if (!navbar.classList.contains('navbar-hidden')) {
+                        navbar.classList.add('navbar-hidden');
+                    }
+                } else if (currentScroll < lastScroll) {
+                    // Scroll Up - show
+                    if (navbar.classList.contains('navbar-hidden')) {
+                        navbar.classList.remove('navbar-hidden');
+                    }
+                }
+                lastScroll = currentScroll;
+            });
+
+            // Кнопка "Наверх"
+            const backToTop = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 400) {
+                    backToTop.classList.add('show');
+                } else {
+                    backToTop.classList.remove('show');
+                }
+            });
+
+            backToTop.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        })();
+    </script>
     {% block extra_js %}{% endblock %}
 
 </body>

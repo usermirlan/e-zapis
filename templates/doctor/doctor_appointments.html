@@ -52,7 +52,7 @@
                     <tbody class="border-top-0">
                         {% for appt in appointments %}
                         <tr>
-                            <td class="ps-4"><span class="badge bg-indigo-50 text-primary border">{{ appt.queue_number }}</span></td>
+                            <td class="ps-4"><span class="badge bg-primary-soft text-primary border">{{ appt.queue_number }}</span></td>
                             <td class="text-dark fw-medium small">{{ appt.time_slot.date|date:"d.m.Y" }}</td>
                             <td class="fw-bold text-dark">{{ appt.time_slot.time|time:"H:i" }}</td>
                             <td>

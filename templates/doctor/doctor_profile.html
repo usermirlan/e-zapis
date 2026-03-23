@@ -17,7 +17,7 @@
                         style="width: 140px; height: 140px; object-fit: cover;">
                     {% else %}
                     <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto shadow-sm border border-white border-4"
-                        style="width: 140px; height: 140px; background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">
+                        style="width: 140px; height: 140px; background: rgba(37, 99, 235, 0.1); color: var(--primary-color);">
                         <i class="bi bi-person-fill" style="font-size: 4rem;"></i>
                     </div>
                     {% endif %}
@@ -30,7 +30,7 @@
                 <p class="text-primary fw-medium mb-3">{{ specialist.service.name }}</p>
 
                 <div class="d-flex justify-content-center gap-2 mb-4">
-                    <span class="badge rounded-pill bg-indigo-50 text-indigo-600 border border-indigo-100 px-3 py-2">
+                    <span class="badge rounded-pill bg-primary-soft text-primary border border-primary-subtle px-3 py-2">
                         <i class="bi bi-briefcase me-1"></i>Стаж: {{ specialist.experience_years }} лет
                     </span>
                     {% if specialist.cabinet %}

@@ -1,9 +1,10 @@
+@charset "UTF-8";
+
 /* =========================================================
-   МедЗапись — Главный CSS файл
+   MedZapis — Главный CSS файл
    Профессиональный дизайн системы онлайн-записи в поликлинику
    ========================================================= */
 
-/* ─── Переменные ─────────────────────────────────────────────────────────── */
 :root {
     --primary:       #2563EB;
     --primary-dark:  #1D4ED8;
@@ -21,7 +22,18 @@
     --shadow:        0 4px 20px rgba(0,0,0,0.08);
     --shadow-md:     0 8px 32px rgba(37,99,235,0.12);
     --font:          'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --transition:    all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ─── Кастомный скроллбар ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--body-bg); }
+::-webkit-scrollbar-thumb { 
+    background: #CBD5E1; 
+    border-radius: 10px; 
+    border: 2px solid var(--body-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
 /* ─── Базовые стили ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -45,6 +57,22 @@ main { flex: 1; }
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
     box-shadow: 0 2px 20px rgba(37,99,235,0.3);
     padding: 0.75rem 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1030;
+}
+
+/* Эффект при скролле (синее стекло) */
+#mainNavbar.navbar-scrolled {
+    padding: 0.6rem 0;
+    background: rgba(15, 23, 42, 0.9) !important; /* Очень темный синий/черный для контраста */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.navbar-hidden {
+    transform: translateY(-100%);
+    box-shadow: none !important;
 }
 
 .brand-icon {
@@ -175,13 +203,13 @@ main { flex: 1; }
 }
 
 .hero-illustration {
-    width: 280px; height: 280px;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.15);
+    width: 320px; height: 320px;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 8rem;
-    color: rgba(255,255,255,0.3);
+    font-size: 10rem;
+    color: rgba(255,255,255,0.6);
     backdrop-filter: blur(10px);
     animation: floatAnim 4s ease-in-out infinite;
 }
@@ -250,8 +278,12 @@ main { flex: 1; }
     background: white;
 }
 .service-card:hover, .hover-lift:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.hover-lift {
+    transition: var(--transition);
 }
 
 .service-icon-wrap {
@@ -600,14 +632,61 @@ main { flex: 1; }
     background: var(--primary);
     border-color: var(--primary);
 }
-.btn-primary:hover {
+.btn-primary:hover, .btn-premium-glow:hover {
     background: var(--primary-dark);
     border-color: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37,99,235,0.35), 0 0 0 1px rgba(255,255,255,0.1);
+    filter: brightness(1.1);
 }
 .btn-outline-primary { border-color: var(--primary); color: var(--primary); }
-.btn-outline-primary:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-1px); }
+.btn-outline-primary:hover { 
+    background: var(--primary); 
+    color: white; 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+}
+
+/* ─── Анимации появления ─────────────────────────────────────────────────── */
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* ─── Кнопка Наверх ──────────────────────────────────────────────────────── */
+#backToTop {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+    z-index: 1000;
+    border: none;
+}
+#backToTop.show {
+    opacity: 1;
+    visibility: visible;
+}
+#backToTop:hover {
+    background: var(--primary-dark);
+    transform: translateY(-5px);
+}
 
 /* ─── Адаптивность ───────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
