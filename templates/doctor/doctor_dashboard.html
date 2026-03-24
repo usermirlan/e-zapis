@@ -4,90 +4,159 @@
 {% block title %}Главная — Кабинет врача{% endblock %}
 {% block header_title %}Главная панель{% endblock %}
 
+{% block extra_css %}
+<style>
+    .stat-icon-mini {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .stat-card:hover {
+        border-color: var(--primary-color) !important;
+        background: white !important;
+    }
+    .avatar-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+    .xs-text { font-size: 0.75rem; }
+    .bg-primary-soft { background: rgba(37, 99, 235, 0.05); }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .transition-all { transition: all 0.3s ease; }
+</style>
+{% endblock %}
+
 {% block doctor_content %}
-<div class="container-fluid px-0">
-    <div class="row g-4 mb-5">
-        <div class="col-md-9">
-            <div class="row g-4">
-                <div class="col-6 col-md-3">
-                    <div class="glass-card p-4 text-center">
-                        <div class="stat-icon mx-auto mb-3"
-                            style="background: rgba(37, 99, 235, 0.1); color: var(--primary-color);">
-                            <i class="bi bi-people"></i>
+    <!-- Welcome Hero -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4 p-md-5 position-relative overflow-hidden" 
+                 style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border: none;">
+                <!-- Decorative Glows -->
+                <div class="position-absolute top-0 start-0 w-100 h-100 opacity-20" 
+                     style="background: radial-gradient(circle at 20% 30%, var(--primary-color) 0%, transparent 50%); z-index: 0;"></div>
+                
+                <div class="position-relative z-1 d-md-flex align-items-center justify-content-between">
+                    <div>
+                        <h2 class="text-white fw-bold mb-2">Добрый день, {{ user.first_name }}! 👋</h2>
+                        <p class="text-white-50 mb-0">Сегодня у вас <span class="text-primary fw-bold">{{ today_count }}</span> записей. Из них <span class="text-warning fw-bold">{{ status_data.pending|default:0 }}</span> ожидают подтверждения.</p>
+                        <div class="d-flex gap-3 mt-4">
+                            <div class="px-3 py-2 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-10">
+                                <span class="text-white-50 small d-block">Текущее время</span>
+                                <span class="text-white fw-bold fs-5" id="realtime-clock">00:00:00</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-10">
+                                <span class="text-white-50 small d-block">Дата</span>
+                                <span class="text-white fw-bold fs-5">{% now "d F, Y" %}</span>
+                            </div>
                         </div>
-                        <h3 class="fw-bold mb-1">{{ today_count }}</h3>
-                        <p class="text-muted small mb-0 text-uppercase tracking-wider">На сегодня</p>
                     </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="glass-card p-4 text-center">
-                        <div class="stat-icon mx-auto mb-3"
-                            style="background: rgba(59, 130, 246, 0.1); color: var(--accent-color);">
-                            <i class="bi bi-calendar-week"></i>
+                    <div class="mt-4 mt-md-0 d-none d-lg-block">
+                        <div class="p-4 rounded-circle bg-primary bg-opacity-10 border border-primary border-opacity-20">
+                            <i class="bi bi-shield-check text-primary display-4"></i>
                         </div>
-                        <h3 class="fw-bold mb-1">{{ week_count }}</h3>
-                        <p class="text-muted small mb-0 text-uppercase tracking-wider">За неделю</p>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="glass-card p-4 text-center">
-                        <div class="stat-icon mx-auto mb-3"
-                            style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
-                            <i class="bi bi-calendar-month"></i>
-                        </div>
-                        <h3 class="fw-bold mb-1">{{ month_count }}</h3>
-                        <p class="text-muted small mb-0 text-uppercase tracking-wider">За месяц</p>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="glass-card p-4 text-center">
-                        <div class="stat-icon mx-auto mb-3"
-                            style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
-                            <i class="bi bi-check2-circle"></i>
-                        </div>
-                        <h3 class="fw-bold mb-1">{{ total_count }}</h3>
-                        <p class="text-muted small mb-0 text-uppercase tracking-wider">Всего</p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card h-100 p-4 d-flex flex-column justify-content-center text-center"
-                style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); color: white;">
-                <div class="mb-3">
-                    <i class="bi bi-magic fs-1 opacity-75"></i>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="glass-card stat-card p-4 transition-all">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon-mini bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success border-0 px-2 py-1">+12%</span>
                 </div>
-                <h5 class="fw-bold mb-2">Расписание</h5>
-                <p class="small mb-4 opacity-90">Автоматическая генерация новых слотов для записи.</p>
-                <a href="{% url 'doctor_generate_slots' %}" class="btn btn-light fw-bold py-2 shadow-sm rounded-pill">
-                    Генерировать
-                </a>
+                <h3 class="fw-bold mb-1">{{ today_count }}</h3>
+                <p class="text-muted small mb-0 font-monospace">НА СЕГОДНЯ</p>
+                <div class="progress mt-3" style="height: 4px; background: rgba(0,0,0,0.05);">
+                    <div class="progress-bar bg-primary" style="width: 70%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card stat-card p-4 transition-all">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon-mini bg-accent bg-opacity-10 text-accent">
+                        <i class="bi bi-calendar-event-fill"></i>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border-0 px-2 py-1">АКТИВНО</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ week_count }}</h3>
+                <p class="text-muted small mb-0 font-monospace">ЗА НЕДЕЛЮ</p>
+                <div class="progress mt-3" style="height: 4px; background: rgba(0,0,0,0.05);">
+                    <div class="progress-bar bg-accent" style="width: 55%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card stat-card p-4 transition-all">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon-mini bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success border-0 px-2 py-1">ВЫПОЛНЕНО</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ month_count }}</h3>
+                <p class="text-muted small mb-0 font-monospace">ЗА МЕСЯЦ</p>
+                <div class="progress mt-3" style="height: 4px; background: rgba(0,0,0,0.05);">
+                    <div class="progress-bar bg-success" style="width: 85%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card stat-card p-4 transition-all">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon-mini bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning border-0 px-2 py-1">LIFETIME</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ total_count }}</h3>
+                <p class="text-muted small mb-0 font-monospace">ВСЕГО ПАЦИЕНТОВ</p>
+                <div class="progress mt-3" style="height: 4px; background: rgba(0,0,0,0.05);">
+                    <div class="progress-bar bg-warning" style="width: 100%"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-md-8">
-            <div class="glass-card h-100">
-                <div
-                    class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0">Динамика приемов (7 дней)</h6>
-                    <span class="badge bg-light text-primary border rounded-pill">Последняя неделя</span>
+        <div class="col-md-5">
+            <div class="glass-card h-100 p-4 text-center bg-primary text-white border-0 shadow-lg d-flex flex-column justify-content-center">
+                <div class="stat-icon-mini bg-white bg-opacity-20 border border-white border-opacity-10 mx-auto mb-3 text-white">
+                    <i class="bi bi-lightning-charge-fill"></i>
                 </div>
-                <div class="card-body px-4 pb-4">
-                    <canvas id="volumeChart" style="max-height: 280px;"></canvas>
-                </div>
+                <h5 class="fw-bold mb-2">Быстрое действие</h5>
+                <p class="xs-text mb-4 opacity-75">Автоматическая генерация новых слотов для записи пациентов на завтрашний день.</p>
+                <a href="{% url 'doctor_generate_slots' %}" class="btn btn-light rounded-pill fw-bold py-2 px-4 shadow-sm mx-auto">
+                    Сгенерировать слоты
+                </a>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="glass-card h-100">
-                <div
-                    class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0">Статусы записей</h6>
-                    <i class="bi bi-pie-chart text-accent"></i>
+        <div class="col-md-7">
+            <div class="glass-card h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                    <h6 class="fw-bold mb-0">Статистика статусов</h6>
+                    <span class="badge bg-primary-soft text-primary border rounded-pill small">Сегодня</span>
                 </div>
-                <div class="card-body px-4 pb-4">
-                    <canvas id="statusChart" style="max-height: 280px;"></canvas>
+                <div style="height: 220px;">
+                    <canvas id="statusChart"></canvas>
                 </div>
             </div>
         </div>
@@ -127,15 +196,23 @@
                             <td class="ps-4"><span class="badge bg-primary-soft text-primary border">{{ appt.queue_number }}</span></td>
                             <td class="fw-bold text-dark">{{ appt.time_slot.time|time:"H:i" }}</td>
                             <td>
-                                <div class="fw-semibold">{{ appt.patient.get_full_name }}</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10">
+                                        {{ appt.patient.first_name|first }}{{ appt.patient.last_name|first }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ appt.patient.get_full_name }}</div>
+                                        <div class="xs-text text-muted">ID: #{{ appt.patient.id|stringformat:"04d" }}</div>
+                                    </div>
+                                </div>
                             </td>
                             <td>
-                                <a href="tel:{{ appt.patient.phone }}" class="text-muted small text-decoration-none">
-                                    <i class="bi bi-telephone-outbound me-1"></i> {{ appt.patient.phone }}
+                                <a href="tel:{{ appt.patient.phone }}" class="btn btn-sm btn-light border p-2 rounded-3 text-muted" title="Позвонить">
+                                    <i class="bi bi-telephone-outbound"></i>
                                 </a>
                             </td>
                             <td>
-                                <div class="text-truncate text-muted small" style="max-width: 200px;"
+                                <div class="text-truncate text-muted small" style="max-width: 150px;"
                                     title="{{ appt.complaint }}">
                                     {{ appt.complaint|default:"—" }}
                                 </div>
@@ -205,37 +282,16 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // График динамики (Line Chart)
-    const volumeCtx = document.getElementById('volumeChart').getContext('2d');
-    new Chart(volumeCtx, {
-        type: 'line',
-        data: {
-            labels: {{ days_list| safe }},
-        datasets: [{
-            label: 'Приемы',
-            data: {{ counts_list| safe }},
-        borderColor: '#2563EB',
-        backgroundColor: 'rgba(37, 99, 235, 0.15)',
-        borderWidth: 3,
-        pointBackgroundColor: '#fff',
-        pointBorderColor: '#2563EB',
-        pointHoverRadius: 6,
-        fill: true,
-        tension: 0.45
-            }]
-        },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
-            x: { grid: { display: false } }
+    // Real-time Clock
+    function updateClock() {
+        const now = new Date();
+        const clock = document.getElementById('realtime-clock');
+        if (clock) {
+            clock.textContent = now.toLocaleTimeString('ru-RU', { hour12: false });
         }
     }
-    });
+    setInterval(updateClock, 1000);
+    updateClock();
 
     // График статусов (Doughnut Chart)
     const statusCtx = document.getElementById('statusChart').getContext('2d');
@@ -245,25 +301,29 @@
             labels: ['Ожидание', 'Подтверждено', 'Завершено', 'Отменено'],
             datasets: [{
                 data: [
-                    {{ status_data.pending|default:"0" }},
-                    {{ status_data.confirmed|default:"0" }},
-                    {{ status_data.completed|default:"0" }},
-                    {{ status_data.cancelled|default:"0" }}
+                    {{ status_data.pending|default:0 }},
+                    {{ status_data.confirmed|default:0 }},
+                    {{ status_data.completed|default:0 }},
+                    {{ status_data.cancelled|default:0 }}
                 ],
-
-        backgroundColor: ['#F59E0B', '#2563EB', '#10B981', '#EF4444'],
-        hoverOffset: 12,
-        borderWidth: 0
+                backgroundColor: ['#F59E0B', '#2563EB', '#10B981', '#EF4444'],
+                hoverOffset: 12,
+                borderWidth: 4,
+                borderColor: '#fff'
             }]
         },
         options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '75%',
+        cutout: '80%',
         plugins: {
             legend: {
                 position: 'bottom',
-                labels: { usePointStyle: true, padding: 20 }
+                labels: { 
+                    usePointStyle: true, 
+                    padding: 20,
+                    font: { size: 12, family: "'Inter', sans-serif" }
+                }
             }
         }
     }

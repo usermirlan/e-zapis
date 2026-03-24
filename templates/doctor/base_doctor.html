@@ -82,7 +82,19 @@
         .doctor-sidebar .nav-link.active {
             color: white;
             background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+            position: relative;
+        }
+
+        .doctor-sidebar .nav-link.active::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 15%;
+            height: 70%;
+            width: 4px;
+            background: white;
+            border-radius: 4px 0 0 4px;
         }
 
         .doctor-sidebar .nav-link i {

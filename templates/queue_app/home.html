@@ -36,14 +36,14 @@
                     Никаких звонков — только несколько кликов.
                 </p>
                 <div class="d-flex flex-wrap gap-3 mt-4">
-                    <a href="{% url 'services' %}" class="btn btn-primary btn-lg px-4 fw-semibold">
+                    <a href="{% url 'services' %}" class="btn btn-primary btn-lg px-4 fw-semibold shadow-sm">
                         <i class="bi bi-calendar-plus me-2" aria-hidden="true"></i>
                         Записаться сейчас
                     </a>
-                    <a href="{% url 'specialists' %}" class="btn btn-outline-light btn-lg px-4">
-                        <i class="bi bi-people me-2" aria-hidden="true"></i>
-                        Наши врачи
-                    </a>
+                    <button type="button" class="btn btn-outline-light btn-lg px-4 video-hero-btn" data-bs-toggle="modal" data-bs-target="#videoGuideModal">
+                        <i class="bi bi-play-circle me-2"></i>
+                        Как это работает
+                    </button>
                 </div>
             </div>
             <div class="col-lg-6 d-none d-lg-flex justify-content-center">
@@ -179,6 +179,86 @@
                 </div>
             </div>
         </div>
+
+        <!-- Premium Video Guide Card -->
+        <div class="mt-5 max-w-900 mx-auto fade-in-up" style="max-width: 900px; margin: 4rem auto 0;">
+            <div class="glass-card border-0 rounded-5 overflow-hidden shadow-lg p-1" 
+                 style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <div class="p-2 h-100 rounded-5" style="background: white;">
+                    <div class="row g-0 align-items-center h-100">
+                        <!-- Video Preview Area -->
+                        <div class="col-md-5">
+                            <div class="position-relative cursor-pointer m-2 rounded-4 overflow-hidden group shadow-sm video-card-hover" 
+                                 data-bs-toggle="modal" data-bs-target="#videoGuideModal"
+                                 style="min-height: 240px; background: linear-gradient(45deg, #0F172A, #1E293B);">
+                                
+                                <!-- Decorative Gradient Overlay -->
+                                <div class="position-absolute top-0 start-0 w-100 h-100 opacity-25" 
+                                     style="background: radial-gradient(circle at center, var(--primary-color), transparent 70%);"></div>
+                                
+                                <!-- Pulse Play Button -->
+                                <div class="position-absolute top-50 start-50 translate-middle z-index-2">
+                                    <div class="play-pulse-wrapper">
+                                        <div class="play-pulse"></div>
+                                        <div class="play-pulse" style="animation-delay: 1s;"></div>
+                                        <div class="play-icon-box bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
+                                             style="width: 70px; height: 70px;">
+                                            <i class="bi bi-play-fill fs-1 ms-1"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="position-absolute bottom-0 start-0 p-3 w-100">
+                                    <span class="badge bg-dark bg-opacity-75 blur-sm px-3 py-2 rounded-pill font-monospace" style="backdrop-filter: blur(10px);">
+                                        <i class="bi bi-clock me-1"></i> 2:15 МИН
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Content Area -->
+                        <div class="col-md-7">
+                            <div class="card-body p-4 p-md-5 text-start">
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-3 py-2 rounded-pill fw-bold mb-3">ОБУЧЕНИЕ</span>
+                                <h3 class="display-6 fw-bold mb-3 text-dark">Видео-инструкция</h3>
+                                <p class="text-secondary mb-4 lead" style="font-size: 1.1rem; opacity: 0.8;">
+                                    Узнайте всё о системе за 2 минуты: от регистрации до получения талона на прием.
+                                </p>
+                                <div class="d-flex flex-wrap gap-3 align-items-center">
+                                    <button class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-lg" 
+                                            data-bs-toggle="modal" data-bs-target="#videoGuideModal"
+                                            style="transition: all 0.3s ease;">
+                                        Смотреть сейчас <i class="bi bi-play-circle ms-2"></i>
+                                    </button>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Понятно и быстро
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .video-card-hover { transition: all 0.4s ease; transform-origin: center; }
+            .video-card-hover:hover { transform: scale(1.02); }
+            
+            .play-pulse-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
+            .play-pulse {
+                position: absolute;
+                width: 70px;
+                height: 70px;
+                background: rgba(37, 99, 235, 0.4);
+                border-radius: 50%;
+                animation: pulse-ring 2s infinite;
+            }
+            @keyframes pulse-ring {
+                0% { transform: scale(1); opacity: 0.8; }
+                100% { transform: scale(2.2); opacity: 0; }
+            }
+            .blur-sm { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); }
+        </style>
     </div>
 </section>
 

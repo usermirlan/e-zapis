@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 
@@ -610,6 +611,40 @@ main { flex: 1; }
     .time-slots-grid { gap: 0.4rem; }
     .time-slot-btn { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
 }
+    .footer-help-icon {
+        width: 32px; height: 32px;
+        background: rgba(37,99,235,0.1);
+        color: var(--primary);
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center; justify-content: center;
+        margin-right: 12px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    .footer-link:hover .footer-help-icon {
+        background: var(--primary);
+        color: white;
+        transform: scale(1.1);
+    }
+    /* Video Modal Styling */
+    .video-modal .modal-content {
+        background: #0F172A;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+    .video-hero-btn {
+        background: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        color: white !important;
+        backdrop-filter: blur(8px);
+    }
+    .video-hero-btn:hover {
+        background: rgba(255,255,255,0.2) !important;
+        color: white !important;
+        transform: translateY(-2px);
+    }
     </style>
 
     {% block extra_css %}{% endblock %}
@@ -803,10 +838,30 @@ main { flex: 1; }
                 <div class="col-lg-2 col-md-3 col-6 text-md-start text-center">
                     <h3 class="text-white fw-bold mb-4 fs-6 text-uppercase letter-spacing-1">Помощь</h3>
                     <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
-                        <li><a href="#" class="footer-link">О системе</a></li>
-                        <li><a href="#" class="footer-link">Как это работает</a></li>
-                        <li><a href="#" class="footer-link">Вопросы и ответы</a></li>
-                        <li><a href="#" class="footer-link">Контакты</a></li>
+                        <li>
+                            <a href="#" class="footer-link d-flex align-items-center justify-content-center justify-content-md-start">
+                                <span class="footer-help-icon"><i class="bi bi-info-circle"></i></span>
+                                О системе
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="footer-link d-flex align-items-center justify-content-center justify-content-md-start" data-bs-toggle="modal" data-bs-target="#videoGuideModal">
+                                <span class="footer-help-icon"><i class="bi bi-lightbulb"></i></span>
+                                Как это работает
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="footer-link d-flex align-items-center justify-content-center justify-content-md-start">
+                                <span class="footer-help-icon"><i class="bi bi-patch-question"></i></span>
+                                Вопросы и ответы
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="footer-link d-flex align-items-center justify-content-center justify-content-md-start">
+                                <span class="footer-help-icon"><i class="bi bi-headset"></i></span>
+                                Контакты
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -914,6 +969,77 @@ main { flex: 1; }
             }
         })();
     </script>
+    <!-- Video Guide Modal -->
+    <div class="modal fade video-modal" id="videoGuideModal" tabindex="-1" aria-labelledby="videoGuideModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2" id="videoGuideModalLabel">
+                        <i class="bi bi-play-circle text-primary"></i> Как это работает
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <!-- Video Panel (Left) -->
+                        <div class="col-lg-7">
+                            <div class="ratio ratio-16x9 rounded-4 overflow-hidden border border-secondary border-opacity-25 shadow-sm mb-3">
+                                <video class="w-100 h-100" style="object-fit: contain; background: #000;" controls preload="metadata">
+                                    <source src="{% static 'video/guide.mp4' %}" type="video/mp4">
+                                    Ваш браузер не поддерживает тег видео.
+                                </video>
+                            </div>
+                            <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                                <p class="text-white-50 small mb-0">
+                                    <i class="bi bi-stars me-2 text-primary"></i> 
+                                    Посмотрите короткое видео выше, чтобы узнать, как за 2 минуты начать пользоваться системой.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Steps Panel (Right) -->
+                        <div class="col-lg-5">
+                            <h6 class="text-white fw-bold mb-4 px-2 text-uppercase letter-spacing-1 fs-xs opacity-75">Шаги процесса:</h6>
+                            <div class="d-flex flex-column gap-3 ps-2">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="step-blob flex-shrink-0">1</div>
+                                    <div>
+                                        <h6 class="text-white small fw-bold mb-1">Регистрация</h6>
+                                        <p class="text-white-50 xs-text mb-0">Создайте аккаунт по номеру телефона.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="step-blob flex-shrink-0">2</div>
+                                    <div>
+                                        <h6 class="text-white small fw-bold mb-1">Выбор врача</h6>
+                                        <p class="text-white-50 xs-text mb-0">Найдите нужного специалиста в списке.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="step-blob flex-shrink-0">3</div>
+                                    <div>
+                                        <h6 class="text-white small fw-bold mb-1">Запись на время</h6>
+                                        <p class="text-white-50 xs-text mb-0">Выберите удобное «окно» в календаре.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3 align-items-start bg-primary bg-opacity-10 border-start border-primary border-4 ps-3 py-2 rounded-end" style="margin-left: -1rem;">
+                                    <div class="step-blob flex-shrink-0 bg-primary">4</div>
+                                    <div>
+                                        <h6 class="text-primary small fw-bold mb-1">Ваш талон</h6>
+                                        <p class="text-white-50 xs-text mb-0">Следите за очередью онлайн в реальном времени.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 justify-content-center">
+                    <button type="button" class="btn btn-primary px-5 fw-bold" data-bs-dismiss="modal">Понятно, спасибо!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% block extra_js %}{% endblock %}
 
 </body>
