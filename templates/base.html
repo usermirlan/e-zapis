@@ -830,6 +830,9 @@ main { flex: 1; }
                         <li><a href="{% url 'specialists' %}" class="footer-link">Врачи</a></li>
                         {% if user.is_authenticated %}
                         <li><a href="{% url 'my_appointments' %}" class="footer-link">Мои записи</a></li>
+                        {% if user.is_staff or user.is_superuser %}
+                        <li><a href="{% url 'staff_panel' %}" class="footer-link text-primary fw-bold border-top pt-2 mt-2">Панель управления</a></li>
+                        {% endif %}
                         {% endif %}
                     </ul>
                 </div>
