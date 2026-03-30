@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
 
 {% block title %}Регистрация — МедЗапись{% endblock %}
 
@@ -108,7 +109,6 @@
                                 </div>
                             </div>
 
-                            <!-- Кнопка -->
                             <div class="d-grid mt-4">
                                 <button type="submit" class="btn btn-primary btn-lg fw-semibold">
                                     <i class="bi bi-check-circle me-2"></i>
@@ -116,6 +116,18 @@
                                 </button>
                             </div>
                         </form>
+
+                        <!-- Google OAuth -->
+                        <div class="text-center my-4 position-relative">
+                            <hr class="text-muted">
+                            <span class="text-muted px-3 bg-white position-absolute top-50 start-50 translate-middle" style="font-size: 0.9rem;">Или через</span>
+                        </div>
+                        
+                        <div class="d-grid mb-4">
+                            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark btn-lg fw-semibold d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-google text-danger"></i> Зарегистрироваться через Google
+                            </a>
+                        </div>
 
                         <!-- Ссылка на вход -->
                         <hr class="my-4">

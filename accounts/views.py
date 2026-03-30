@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import RegisterForm, LoginForm, ProfileEditForm, DoctorRegisterForm
+from .forms import RegisterForm, LoginForm, ProfileEditForm
 
 
 def register_view(request):
@@ -23,25 +23,6 @@ def register_view(request):
 
     return render(request, 'accounts/register.html', {'form': form})
 
-
-def doctor_register_view(request):
-    """Регистрация врача — создаёт аккаунт + профиль специалиста."""
-    if request.user.is_authenticated:
-        return redirect('home')
-
-    if request.method == 'POST':
-        form = DoctorRegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, f'Добро пожаловать, доктор {user.get_full_name()}! Ваш кабинет готов.')
-            return redirect('doctor_dashboard')
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        form = DoctorRegisterForm()
-
-    return render(request, 'accounts/doctor_register.html', {'form': form})
 
 
 def login_view(request):

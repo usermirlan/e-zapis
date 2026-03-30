@@ -33,12 +33,21 @@ ALLOWED_HOSTS = ['*']
 
 # ─── Приложения ───────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
+    'daphne',  # Must be FIRST for ASGI
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Required by allauth
+
+    # Third-party
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'channels',
 
     # Наши приложения
     'accounts',   # Аутентификация и пользователи
@@ -48,9 +57,11 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # i18n
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -87,6 +98,43 @@ DATABASES = {
 # ─── Кастомная модель пользователя ────────────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
+# ─── Authentication backends (allauth) ───────────────────────────────────────
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# ─── Django Sites Framework ───────────────────────────────────────────────────
+SITE_ID = 1
+
+# ─── Allauth Configuration ────────────────────────────────────────────────────
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for now
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': _cfg('GOOGLE_CLIENT_ID', default=''),
+            'secret': _cfg('GOOGLE_CLIENT_SECRET', default=''),
+            'key': ''
+        }
+    }
+}
+
+# ─── Channels (WebSockets Real-Time) ─────────────────────────────────────────
+ASGI_APPLICATION = 'clinic_queue.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
+
 # ─── Пароли ───────────────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -96,10 +144,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ─── Локализация ──────────────────────────────────────────────────────────────
-LANGUAGE_CODE = 'ru-ru'
-TIME_ZONE = 'Asia/Almaty'
+LANGUAGE_CODE = 'ru'
+TIME_ZONE = 'Asia/Bishkek'
 USE_I18N = True
 USE_TZ = True
+LANGUAGES = [
+    ('ru', 'Русский'),
+    ('ky', 'Кыргызча'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 # ─── Статические файлы ────────────────────────────────────────────────────────
 STATIC_URL = '/static/'

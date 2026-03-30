@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Добавить врача — МедЗапись{% endblock %}
+
+{% block extra_css %}
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 0.8rem 1.2rem;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'staff_panel' %}" class="btn btn-light rounded-circle p-2 me-3 shadow-sm border" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-arrow-left text-primary fw-bold" style="font-size: 1.2rem;"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0">Добавление специалиста</h2>
+                    <p class="text-muted small mb-0">Заполните профиль врача, регистрация и слоты будут созданы автоматически.</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 p-md-5">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-person-vcard me-2"></i> Личные данные</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">{{ form.last_name.label }}</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">{{ form.first_name.label }}</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">{{ form.middle_name.label }}</label>
+                            {{ form.middle_name }}
+                            {% if form.middle_name.errors %}<div class="text-danger small mt-1">{{ form.middle_name.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-briefcase me-2"></i> Специализация</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.service.label }}</label>
+                            {{ form.service }}
+                            {% if form.service.errors %}<div class="text-danger small mt-1">{{ form.service.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">{{ form.experience_years.label }}</label>
+                            {{ form.experience_years }}
+                            {% if form.experience_years.errors %}<div class="text-danger small mt-1">{{ form.experience_years.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">{{ form.cabinet.label }}</label>
+                            {{ form.cabinet }}
+                            {% if form.cabinet.errors %}<div class="text-danger small mt-1">{{ form.cabinet.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.work_start.label }}</label>
+                            {{ form.work_start }}
+                            {% if form.work_start.errors %}<div class="text-danger small mt-1">{{ form.work_start.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.work_end.label }}</label>
+                            {{ form.work_end }}
+                            {% if form.work_end.errors %}<div class="text-danger small mt-1">{{ form.work_end.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">{{ form.bio.label }}</label>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}<div class="text-danger small mt-1">{{ form.bio.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label small fw-bold text-muted">{{ form.photo.label }}</label>
+                        {{ form.photo }}
+                        {% if form.photo.errors %}<div class="text-danger small mt-1">{{ form.photo.errors }}</div>{% endif %}
+                    </div>
+
+                    <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-shield-lock me-2"></i> Доступ (Логин и Пароль)</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.username.label }}</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.password1.label }}</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ form.password2.label }}</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3">
+                            <i class="bi bi-check2-circle me-2"></i> Создать профиль врача и расписание
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

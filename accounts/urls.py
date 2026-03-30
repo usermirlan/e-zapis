@@ -9,9 +9,6 @@ urlpatterns = [
     # Регистрация нового пользователя
     path('register/', views.register_view, name='register'),
 
-    # Регистрация врача
-    path('register/doctor/', views.doctor_register_view, name='doctor_register'),
-
     # Вход в систему
     path('login/', views.login_view, name='login'),
 

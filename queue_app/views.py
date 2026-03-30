@@ -16,6 +16,7 @@ from django.utils.decorators import method_decorator
 
 from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification
 from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm
+from accounts.forms import DoctorRegisterForm
 
 # ─── Вспомогательная функция ──────────────────────────────────────────────────
 
@@ -348,6 +349,24 @@ def staff_panel_view(request):
         'today': str(today),
     })
 
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def staff_add_doctor_view(request):
+    """Страница для добавления новых врачей (Доступна только Администраторам)."""
+    if request.method == 'POST':
+        form = DoctorRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            # Добавляем специалиста в группу и тд, но форма сама всё делает.
+            messages.success(request, f'Врач {user.get_full_name()} успешно добавлен! Расписание сгенерировано.')
+            return redirect('staff_panel')
+        else:
+            messages.error(request, 'Пожалуйста, проверьте правильность заполнения формы.')
+    else:
+        form = DoctorRegisterForm()
+
+    return render(request, 'queue_app/staff_add_doctor.html', {'form': form})
+
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
@@ -631,6 +650,22 @@ def doctor_update_status_view(request, appointment_id):
             appointment=appointment,
             notification_type='status_update',
             message=status_msg
+        )
+
+        # ── Real-Time WebSocket broadcast ──
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        channel_layer = get_channel_layer()
+        group_name = f'queue_{specialist.id}'
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'queue_update',
+                'appointment_id': appointment.id,
+                'status': appointment.status,
+                'status_display': appointment.get_status_display(),
+                'queue_number': appointment.queue_number,
+            }
         )
     else:
         messages.error(request, 'Неверный статус.')

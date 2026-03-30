@@ -30,6 +30,7 @@ urlpatterns = [
 
     # ─── Панель сотрудника ─────────────────────────────────────────────────────
     path('staff/', views.staff_panel_view, name='staff_panel'),
+    path('staff/doctor/add/', views.staff_add_doctor_view, name='staff_add_doctor'),
     path('staff/appointments/<int:appointment_id>/status/', views.update_appointment_status_view, name='update_appointment_status'),
 
 
