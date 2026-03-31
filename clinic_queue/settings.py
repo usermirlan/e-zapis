@@ -29,7 +29,8 @@ SECRET_KEY = _cfg(
 
 DEBUG = _cfg('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['ezapis.pythonanywhere.com', 'localhost', '127.0.0.1', '*']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ─── Приложения ───────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -111,7 +112,9 @@ SITE_ID = 1
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for now
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'  # Force HTTPS in OAuth redirects
+ACCOUNT_EMAIL_SUBJECT_PREFIX = '[MedZapis] '
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
@@ -174,10 +177,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # ─── Email (консоль для разработки) ───────────────────────────────────────────
-EMAIL_BACKEND = _cfg(
-    'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend'
-)
+EMAIL_BACKEND = _cfg('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = _cfg('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = _cfg('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = _cfg('EMAIL_USE_TLS', default=True, cast=bool)
