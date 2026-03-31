@@ -15,7 +15,7 @@ from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 
 from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification
-from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm
+from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm, ManualSlotForm
 from accounts.forms import DoctorRegisterForm
 
 # ─── Вспомогательная функция ──────────────────────────────────────────────────
@@ -832,6 +832,7 @@ def doctor_generate_slots_view(request):
         form = SlotGenerationForm(request.POST)
         if form.is_valid():
             days = form.cleaned_data['days']
+            working_days = form.cleaned_data['working_days']
             duration = specialist.service.duration_minutes
             work_start = specialist.work_start
             work_end = specialist.work_end
@@ -844,8 +845,8 @@ def doctor_generate_slots_view(request):
             for day_offset in range(days):
                 current_date = today + timedelta(days=day_offset)
                 
-                # Пропускаем воскресенье
-                if current_date.weekday() == 6:
+                # Проверяем, является ли день рабочим (0-Пн, 6-Вс)
+                if str(current_date.weekday()) not in working_days:
                     continue
                     
                 current_time_dt = datetime.combine(current_date, work_start)
@@ -872,5 +873,132 @@ def doctor_generate_slots_view(request):
         
     return render(request, 'doctor/generate_slots.html', {
         'form': form,
-        'specialist': specialist
     })
+
+@doctor_required
+def doctor_manage_slots_view(request):
+    """Страница управления всеми доступными слотами врача (просмотр и удаление)."""
+    specialist = request.user.specialist_profile
+    # Показываем только свободные слоты на сегодня и будущее
+    today = timezone.now().date()
+    slots = TimeSlot.objects.filter(
+        specialist=specialist,
+        date__gte=today,
+        is_available=True
+    ).order_by('date', 'time')
+    
+    return render(request, 'doctor/doctor_manage_slots.html', {
+        'slots': slots,
+    })
+
+@doctor_required
+def doctor_delete_slot_view(request, slot_id):
+    """Удаление конкретного свободного слота врачом."""
+    specialist = request.user.specialist_profile
+    slot = get_object_or_404(TimeSlot, pk=slot_id, specialist=specialist, is_available=True)
+    
+    # Можно удалять только те слоты, на которые никто не записан
+    # (Хотя is_available=True уже это гарантирует в нашей логике)
+    slot.delete()
+    messages.success(request, 'Временной слот успешно удален.')
+    return redirect('doctor_manage_slots')
+
+@doctor_required
+def doctor_bulk_actions_view(request):
+    """Групповые действия над слотами (удаление, изменение даты)."""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        slot_ids = request.POST.getlist('slot_ids')
+        specialist = request.user.specialist_profile
+        
+        if not slot_ids:
+            messages.warning(request, 'Ни один слот не выбран.')
+            return redirect('doctor_manage_slots')
+            
+        slots = TimeSlot.objects.filter(pk__in=slot_ids, specialist=specialist, is_available=True)
+        count = slots.count()
+        
+        if action == 'delete':
+            slots.delete()
+            messages.success(request, f'Успешно удалено {count} слотов.')
+            
+        elif action == 'change_date':
+            new_date = request.POST.get('new_date')
+            if not new_date:
+                messages.error(request, 'Дата для переноса не указана.')
+                return redirect('doctor_manage_slots')
+            
+            updated_count = 0
+            skipped_count = 0
+            for slot in slots:
+                # Проверяем на конфликт перед перемещением
+                if TimeSlot.objects.filter(specialist=specialist, date=new_date, time=slot.time).exclude(pk=slot.id).exists():
+                    skipped_count += 1
+                else:
+                    slot.date = new_date
+                    slot.save()
+                    updated_count += 1
+            
+            msg = f'Перенесено {updated_count} слотов на {new_date}.'
+            if skipped_count:
+                msg += f' Пропущено {skipped_count} из-за конфликтов времени.'
+            messages.success(request, msg)
+            
+    return redirect('doctor_manage_slots')
+
+@doctor_required
+def doctor_edit_slot_view(request, slot_id):
+    """Редактирование существующего свободного слота (изменение даты или времени)."""
+    specialist = request.user.specialist_profile
+    slot = get_object_or_404(TimeSlot, pk=slot_id, specialist=specialist, is_available=True)
+    
+    if request.method == 'POST':
+        form = ManualSlotForm(request.POST)
+        if form.is_valid():
+            new_date = form.cleaned_data['date']
+            new_time = form.cleaned_data['time']
+            
+            # Проверяем на конфликт (чтобы не было двух одинаковых слотов)
+            if TimeSlot.objects.filter(specialist=specialist, date=new_date, time=new_time).exclude(pk=slot.id).exists():
+                messages.error(request, f'Слот на {new_date} {new_time} уже существует!')
+            else:
+                slot.date = new_date
+                slot.time = new_time
+                slot.save()
+                messages.success(request, 'Время слота успешно изменено!')
+                return redirect('doctor_manage_slots')
+    else:
+        form = ManualSlotForm(initial={'date': slot.date, 'time': slot.time})
+        
+    return render(request, 'doctor/doctor_edit_slot.html', {'form': form, 'slot': slot})
+
+@doctor_required
+def doctor_add_manual_slot_view(request):
+    """Страница для ручного добавления единичного свободного слота врачом."""
+    specialist = request.user.specialist_profile
+    
+    if request.method == 'POST':
+        form = ManualSlotForm(request.POST)
+        if form.is_valid():
+            slot_date = form.cleaned_data['date']
+            slot_time = form.cleaned_data['time']
+            
+            slot, created = TimeSlot.objects.get_or_create(
+                specialist=specialist,
+                date=slot_date,
+                time=slot_time,
+                defaults={'is_available': True}
+            )
+            
+            if created:
+                messages.success(request, f'Свободное время на {slot_date} {slot_time} успешно добавлено!')
+            else:
+                messages.warning(request, f'Слот на {slot_date} {slot_time} уже существует.')
+                
+            return redirect('doctor_dashboard')
+    else:
+        # Default to today
+        import datetime
+        form = ManualSlotForm(initial={'date': datetime.date.today(), 'time': '12:00'})
+        
+    return render(request, 'doctor/doctor_add_manual_slot.html', {'form': form})

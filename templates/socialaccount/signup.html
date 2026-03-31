@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Завершение регистрации — МедЗапись{% endblock %}
+
+{% block extra_css %}
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    }
+    .auth-icon-wrap {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(59,130,246,0.1) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* Стилизация django-форм */
+    .signup-form input,
+    .signup-form select,
+    .signup-form textarea {
+        display: block;
+        width: 100%;
+        padding: 0.8rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #f8fafc;
+        background-clip: padding-box;
+        border: 1px solid #e2e8f0;
+        appearance: none;
+        border-radius: 12px;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        margin-bottom: 1rem;
+    }
+    .signup-form input:focus {
+        color: #212529;
+        background-color: #fff;
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+    .signup-form label {
+        display: inline-block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    .signup-form ul.errorlist {
+        color: #dc3545;
+        font-size: 0.875rem;
+        padding-left: 0;
+        list-style: none;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+    }
+    .signup-form .helptext {
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: block;
+        margin-top: -0.8rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center auth-page pb-5" style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%); margin-top: -80px; padding-top: 120px;">
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
+                
+                <div class="glass-card shadow-lg border-0 overflow-hidden">
+                    <div class="card-body p-4 p-md-5">
+
+                        <!-- Заголовок -->
+                        <div class="text-center mb-4">
+                            <div class="auth-icon-wrap mx-auto mb-3 shadow-sm">
+                                <i class="bi bi-google fs-1 text-primary"></i>
+                            </div>
+                            <h1 class="h3 fw-bold text-dark">Завершение регистрации</h1>
+                            <p class="text-muted small">Вы авторизуетесь через Google. Чтобы завершить создание аккаунта, проверьте ваши данные.</p>
+                        </div>
+
+                        <!-- Форма Allauth -->
+                        <form class="signup signup-form" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+                            {% csrf_token %}
+                            
+                            {{ form.as_p }}
+
+                            {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                            {% endif %}
+                            
+                            <div class="d-grid mt-4 pt-2">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3">
+                                    <i class="bi bi-person-check-fill me-2"></i> Зарегистрироваться
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                    
+                    <div class="card-footer bg-light bg-opacity-75 border-top-0 text-center py-3">
+                        <a href="{% url 'login' %}" class="text-decoration-none text-muted small fw-medium">
+                            <i class="bi bi-arrow-left me-1"></i> На главную
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

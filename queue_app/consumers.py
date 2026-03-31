@@ -45,3 +45,45 @@ class QueueConsumer(AsyncWebsocketConsumer):
             'status_display': event['status_display'],
             'queue_number': event['queue_number'],
         }))
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for real-time user-specific notifications.
+    Each user (doctor/patient) connects to their unique group to receive events.
+    """
+    async def connect(self):
+        if self.scope["user"].is_anonymous:
+            await self.close()
+            return
+            
+        self.user_id = self.scope["user"].id
+        self.group_name = f'user_notifications_{self.user_id}'
+
+        # Join personal user's notification group
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'group_name'):
+            await self.channel_layer.group_discard(
+                self.group_name,
+                self.channel_name
+            )
+
+    async def notification_message(self, event):
+        """
+        Called when a new Notification is saved (via signal).
+        Sends the data to the connected user's WebSocket.
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'notification',
+            'id': event['id'],
+            'notification_type': event['notification_type'],
+            'notification_type_display': event['notification_type_display'],
+            'message': event['message'],
+            'created_at': event['created_at'],
+            'is_read': event['is_read'],
+        }))

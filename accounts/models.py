@@ -5,6 +5,8 @@ from django.db import models
 class CustomUser(AbstractUser):
     phone = models.CharField(
         max_length=20,
+        blank=True,
+        null=True,
         verbose_name='Номер телефона',
         help_text='Формат: +996 XXX XXXXXX'
     )

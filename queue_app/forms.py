@@ -85,6 +85,32 @@ class SlotGenerationForm(forms.Form):
         max_value=31,
         initial=7,
         label='Количество дней',
-        help_text='На сколько дней вперёд сгенерировать слоты?',
-        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    
+    WORKING_DAYS_CHOICES = [
+        ('0', 'Понедельник'),
+        ('1', 'Вторник'),
+        ('2', 'Среда'),
+        ('3', 'Четверг'),
+        ('4', 'Пятница'),
+        ('5', 'Суббота'),
+        ('6', 'Воскресенье'),
+    ]
+    
+    working_days = forms.MultipleChoiceField(
+        choices=WORKING_DAYS_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        initial=['0', '1', '2', '3', '4'],  # По умолчанию Пн-Пт
+        label='Рабочие дни',
+        required=True
+    )
+
+class ManualSlotForm(forms.Form):
+    date = forms.DateField(
+        label='Дата',
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    time = forms.TimeField(
+        label='Время',
+        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'})
     )

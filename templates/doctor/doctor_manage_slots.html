@@ -1,0 +1,254 @@
+{% extends 'doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Управление временем — Кабинет врача{% endblock %}
+{% block header_title %}Моё свободное время{% endblock %}
+
+{% block extra_css %}
+<style>
+    .slot-row {
+        transition: all 0.2s ease;
+    }
+    .slot-row:hover {
+        background-color: rgba(37, 99, 235, 0.05);
+    }
+    .btn-delete-slot, .btn-edit-slot {
+        opacity: 0.6;
+        transition: all 0.2s ease;
+    }
+    .btn-delete-slot:hover {
+        opacity: 1;
+        color: #dc3545 !important;
+        transform: scale(1.1);
+    }
+    .btn-edit-slot:hover {
+        opacity: 1;
+        color: var(--primary-color) !important;
+        transform: scale(1.1);
+    }
+    /* Bulk Actions Bar */
+    .bulk-actions-bar {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1rem 2rem;
+        border-radius: 100px;
+        z-index: 1060;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        opacity: 0;
+        visibility: hidden;
+    }
+    .bulk-actions-bar.active {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block doctor_content %}
+<div class="row g-4">
+    <!-- Header Actions -->
+    <div class="col-12">
+        <div class="glass-card p-4 d-md-flex align-items-center justify-content-between">
+            <div>
+                <h4 class="fw-bold mb-1">Свободные окна</h4>
+                <p class="text-muted small mb-0">Здесь вы можете видеть и удалять время, на которое пациенты могут записаться.</p>
+            </div>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="{% url 'doctor_generate_slots' %}" class="btn btn-outline-primary rounded-pill px-4">
+                    <i class="bi bi-robot me-2"></i>Авто-генерация
+                </a>
+                <a href="{% url 'doctor_add_manual_slot' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    <i class="bi bi-plus-lg me-2"></i>Добавить вручную
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slots Table -->
+    <div class="col-12">
+        <form id="bulkActionForm" method="post" action="{% url 'doctor_bulk_actions' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="bulkActionInput" value="">
+            <input type="hidden" name="new_date" id="bulkNewDateInput" value="">
+            
+            <div class="glass-card overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0" id="slotsTable">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-4 py-3" style="width: 40px;">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </th>
+                                <th class="py-3 text-muted small fw-bold text-uppercase tracking-wider">Дата</th>
+                                <th class="py-3 text-muted small fw-bold text-uppercase tracking-wider">Время</th>
+                                <th class="py-3 text-muted small fw-bold text-uppercase tracking-wider">Статус</th>
+                                <th class="pe-4 py-3 text-end text-muted small fw-bold text-uppercase tracking-wider">Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for slot in slots %}
+                            <tr class="slot-row" data-id="{{ slot.id }}">
+                                <td class="ps-4">
+                                    <input class="form-check-input slot-checkbox" type="checkbox" name="slot_ids" value="{{ slot.id }}">
+                                </td>
+                                <td class="fw-medium text-dark">{{ slot.date|date:"d E, Y" }}</td>
+                                <td><span class="badge bg-primary-soft text-primary border px-3 py-2 fs-6">{{ slot.time|time:"H:i" }}</span></td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-10 text-success border-0 px-2 py-1 small">СВОБОДНО</span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="{% url 'doctor_edit_slot' slot.id %}" class="btn btn-link btn-edit-slot p-0 text-muted">
+                                            <i class="bi bi-pencil fs-5"></i>
+                                        </a>
+                                        <a href="javascript:void(0)" onclick="confirmDelete('{% url 'doctor_delete_slot' slot.id %}')" class="btn btn-link btn-delete-slot p-0 text-muted">
+                                            <i class="bi bi-trash3 fs-5"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="opacity-50 mb-3">
+                                        <i class="bi bi-calendar-x display-4"></i>
+                                    </div>
+                                    <h6 class="text-muted fw-bold">Свободных окон не найдено</h6>
+                                    <p class="text-muted small mb-0">Используйте кнопки сверху, чтобы добавить время для приема.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div class="bulk-actions-bar shadow-lg" id="bulkActionsBar">
+    <div class="text-white small fw-bold">
+        <i class="bi bi-check2-circle me-1 text-primary"></i> 
+        Выбрано: <span id="selectedCount">0</span>
+    </div>
+    <div class="vr bg-white opacity-25" style="height: 20px;"></div>
+    <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-pill px-3" onclick="submitBulkAction('delete')">
+        <i class="bi bi-trash3 me-1"></i> Удалить
+    </button>
+    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#moveSlotsModal">
+        <i class="bi bi-calendar-range me-1"></i> Перенести на дату
+    </button>
+</div>
+
+<!-- Modal: Move Slots -->
+<div class="modal fade" id="moveSlotsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold">Перенос слотов</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small">Выберите новую дату для всех выбранных временных окон.</p>
+                <div class="mb-3">
+                    <label class="form-label small text-uppercase tracking-wider fw-bold text-muted">Новая дата</label>
+                    <input type="date" id="newDateInput" class="form-control rounded-3" min="{{ today|date:'Y-m-d' }}">
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitBulkAction('change_date')">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const selectAll = document.getElementById('selectAll');
+    const slotCheckboxes = document.querySelectorAll('.slot-checkbox');
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const bulkActionForm = document.getElementById('bulkActionForm');
+    const bulkActionInput = document.getElementById('bulkActionInput');
+    const bulkNewDateInput = document.getElementById('bulkNewDateInput');
+    const newDateInput = document.getElementById('newDateInput');
+
+    function updateBulkBar() {
+        const checkedCount = document.querySelectorAll('.slot-checkbox:checked').length;
+        selectedCountSpan.textContent = checkedCount;
+        
+        if (checkedCount > 0) {
+            bulkActionsBar.classList.add('active');
+        } else {
+            bulkActionsBar.classList.remove('active');
+        }
+    }
+
+    selectAll.addEventListener('change', function() {
+        slotCheckboxes.forEach(cb => {
+            cb.checked = selectAll.checked;
+        });
+        updateBulkBar();
+    });
+
+    slotCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            updateBulkBar();
+            // Update Select All checkbox state
+            const allChecked = Array.from(slotCheckboxes).every(c => c.checked);
+            selectAll.checked = allChecked;
+            selectAll.indeterminate = !allChecked && Array.from(slotCheckboxes).some(c => c.checked);
+        });
+    });
+
+    function submitBulkAction(action) {
+        if (action === 'delete') {
+            if (!confirm(`Вы уверены, что хотите удалить ${document.querySelectorAll('.slot-checkbox:checked').length} слотов?`)) {
+                return;
+            }
+        }
+        
+        if (action === 'change_date') {
+            const date = newDateInput.value;
+            if (!date) {
+                alert('Пожалуйста, выберите дату.');
+                return;
+            }
+            bulkNewDateInput.value = date;
+        }
+
+        bulkActionInput.value = action;
+        bulkActionForm.submit();
+    }
+
+    function confirmDelete(url) {
+        if (confirm('Вы уверены, что хотите удалить этот слот?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

@@ -269,6 +269,10 @@
                 class="nav-link {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
                 <i class="bi bi-calendar-event"></i> Записи
             </a>
+            <a href="{% url 'doctor_manage_slots' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'doctor_manage_slots' %}active{% endif %}">
+                <i class="bi bi-clock-history"></i> Управление временем
+            </a>
             <a href="{% url 'doctor_patients' %}"
                 class="nav-link {% if request.resolver_match.url_name == 'doctor_patients' %}active{% endif %}">
                 <i class="bi bi-people"></i> Пациенты
@@ -349,6 +353,10 @@
             <i class="bi bi-calendar-event"></i>
             <span>Записи</span>
         </a>
+        <a href="{% url 'doctor_manage_slots' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_manage_slots' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i>
+            <span>Время</span>
+        </a>
         <a href="{% url 'doctor_notifications' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_notifications' %}active{% endif %}">
             <i class="bi bi-bell"></i>
             <span>Уведомления</span>
@@ -420,7 +428,106 @@
                 }
             });
         })();
+
+        // Real-time Notifications Setup
+        (function() {
+            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const wsUrl = protocol + window.location.host + '/ws/notifications/';
+            const notificationSocket = new WebSocket(wsUrl);
+            
+            const notificationBadge = document.getElementById('notification-count');
+            const toastContainer = document.getElementById('toast-container');
+
+            notificationSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                if (data.type === 'notification') {
+                    // 1. Update Badge
+                    if (notificationBadge) {
+                        let currentCount = parseInt(notificationBadge.textContent) || 0;
+                        notificationBadge.textContent = currentCount + 1;
+                        notificationBadge.classList.remove('d-none');
+                        
+                        // Animation effect
+                        notificationBadge.classList.add('pulse-animation');
+                        setTimeout(() => notificationBadge.classList.remove('pulse-animation'), 2000);
+                    }
+
+                    // 2. Show Toast
+                    showRealTimeToast(data);
+                    
+                    // 3. Play Sound (Optional, but makes it "feel" real-time)
+                    try {
+                        const audio = new Audio('/static/sounds/notification.mp3');
+                        audio.play();
+                    } catch (err) {
+                        console.log('Audio playback failed');
+                    }
+                }
+            };
+
+            notificationSocket.onclose = function(e) {
+                console.error('Notification socket closed unexpectedly. Reconnecting in 5s...');
+                setTimeout(() => window.location.reload(), 5000);
+            };
+
+            function showRealTimeToast(data) {
+                const toastId = 'toast-' + Date.now();
+                const toastHtml = `
+                    <div id="${toastId}" class="toast show glass-card border-0 shadow-lg mb-3" role="alert" aria-live="assertive" aria-atomic="true" style="min-width: 300px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);">
+                        <div class="toast-header bg-transparent border-0 pt-3 px-3 pb-0">
+                            <i class="bi bi-bell-fill text-primary me-2"></i>
+                            <strong class="me-auto text-primary">Новое уведомление</strong>
+                            <small class="text-muted">${data.created_at}</small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body p-3 fw-medium">
+                            ${data.message}
+                        </div>
+                        <div class="px-3 pb-3">
+                            <a href="/doctor/notifications/" class="btn btn-primary-soft btn-sm w-100 rounded-pill">Посмотреть</a>
+                        </div>
+                    </div>
+                `;
+                
+                if (toastContainer) {
+                    toastContainer.insertAdjacentHTML('afterbegin', toastHtml);
+                    
+                    // Auto-remove after 8 seconds
+                    setTimeout(() => {
+                        const toastElement = document.getElementById(toastId);
+                        if (toastElement) {
+                            toastElement.classList.remove('show');
+                            setTimeout(() => toastElement.remove(), 500);
+                        }
+                    }, 8000);
+                }
+            }
+        })();
     </script>
+
+    <!-- Toast Container for Real-time alerts -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;"></div>
+
+    <style>
+        .pulse-animation {
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .btn-primary-soft {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-primary-soft:hover {
+            background-color: #2563eb;
+            color: white;
+        }
+    </style>
     {% block extra_js %}{% endblock %}
 </body>
 

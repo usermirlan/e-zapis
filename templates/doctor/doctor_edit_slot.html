@@ -1,0 +1,45 @@
+{% extends 'doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Изменить время — Кабинет врача{% endblock %}
+{% block header_title %}Редактирование слота{% endblock %}
+
+{% block doctor_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card mt-4 border-0 shadow-sm overflow-hidden text-center p-5">
+            <div class="stat-icon-mini bg-warning bg-opacity-10 text-warning mx-auto mb-3" style="width: 70px; height: 70px;">
+                <i class="bi bi-pencil-square fs-2"></i>
+            </div>
+            <h3 class="fw-bold mb-3">Изменить время</h3>
+            <p class="text-muted mb-4 small">
+                Вы редактируете свободное окно для записи. Укажите новые данные ниже.
+            </p>
+
+            <form method="post" class="bg-light p-4 rounded-4 text-start shadow-sm border">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small text-uppercase tracking-wider">{{ form.date.label }}</label>
+                    {{ form.date }}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small text-uppercase tracking-wider">{{ form.time.label }}</label>
+                    {{ form.time }}
+                </div>
+                
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                        <i class="bi bi-check-lg me-2"></i>Сохранить изменения
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-4">
+                <a href="{% url 'doctor_manage_slots' %}" class="btn btn-link link-secondary text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Отмена
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'doctor/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Добавить слот вручную — Кабинет врача{% endblock %}
+{% block header_title %}Добавление слота{% endblock %}
+
+{% block doctor_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card mt-4 border-0 shadow-sm overflow-hidden text-center p-5">
+            <div class="stat-icon-mini bg-primary bg-opacity-10 text-primary mx-auto mb-3" style="width: 70px; height: 70px;">
+                <i class="bi bi-calendar-plus fs-2"></i>
+            </div>
+            <h3 class="fw-bold mb-3">Свободное окно</h3>
+            <p class="text-muted mb-4 small">
+                Укажите точную дату и время, когда вы готовы принять пациента вне стандартного графика.
+            </p>
+
+            <form method="post" action="{% url 'doctor_add_manual_slot' %}" class="bg-light p-4 rounded-4 text-start">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted small">{{ form.date.label }}</label>
+                    {{ form.date }}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-muted small">{{ form.time.label }}</label>
+                    {{ form.time }}
+                </div>
+                
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold">
+                        <i class="bi bi-plus-lg me-2"></i>Добавить окно
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-4">
+                <a href="{% url 'doctor_dashboard' %}" class="btn btn-link link-secondary text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Назад в панель
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
