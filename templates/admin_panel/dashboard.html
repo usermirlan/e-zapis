@@ -1,0 +1,365 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Дашборд — Админ-панель{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+{% block breadcrumb %}Главная / Дашборд{% endblock %}
+
+{% block extra_css %}
+<style>
+.chart-container { position: relative; height: 240px; }
+.quick-action {
+    display: flex; align-items: center; gap: 0.875rem;
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+    background: white;
+}
+.quick-action:hover { border-color: var(--accent); color: var(--accent); transform: translateX(4px); }
+.quick-action-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.specialist-item {
+    display: flex; align-items: center; gap: 0.875rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.specialist-item:last-child { border-bottom: none; }
+.status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+/* Activity Feed Styles */
+.activity-feed { position: relative; padding-left: 1.5rem; }
+.activity-feed::before {
+    content: ''; position: absolute; left: 7px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+}
+.activity-item { position: relative; margin-bottom: 1.5rem; }
+.activity-item:last-child { margin-bottom: 0.5rem; }
+.activity-icon {
+    position: absolute; left: -1.5rem; top: 0;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: white; border: 2px solid var(--accent);
+    z-index: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem;
+}
+.activity-content { font-size: 0.8rem; }
+.activity-time { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.activity-title { font-weight: 700; color: var(--text); margin-bottom: 1px; }
+.activity-badge { font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── Stats Grid ── -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card blue">
+            <div class="stat-icon blue"><i class="bi bi-calendar2-check"></i></div>
+            <div class="stat-value">{{ today_count }}</div>
+            <div class="stat-label">Записей сегодня</div>
+            <div class="stat-trend up"><i class="bi bi-arrow-up-short"></i> Активные</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card green">
+            <div class="stat-icon green"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-value">{{ total_patients }}</div>
+            <div class="stat-label">Всего пациентов</div>
+            <div class="stat-trend up"><i class="bi bi-person-plus"></i> Зарегистрировано</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card orange">
+            <div class="stat-icon orange"><i class="bi bi-person-badge-fill"></i></div>
+            <div class="stat-value">{{ total_specialists }}</div>
+            <div class="stat-label">Специалистов</div>
+            <div class="stat-trend neutral"><i class="bi bi-dot"></i> {{ active_specialists }} активных</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card purple">
+            <div class="stat-icon purple"><i class="bi bi-bar-chart-fill"></i></div>
+            <div class="stat-value">{{ total_appointments }}</div>
+            <div class="stat-label">Всего записей</div>
+            <div class="stat-trend up"><i class="bi bi-arrow-up-short"></i> За всё время</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Charts & Activity Row ── -->
+<div class="row g-3 mb-4">
+    <!-- Line chart: appointments per day -->
+    <div class="col-lg-8">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-graph-up text-primary me-2"></i>Записи за последние 7 дней</div>
+                <span class="badge-status badge-confirmed">{{ week_total }} за неделю</span>
+            </div>
+            <div class="panel-card-body">
+                <div class="chart-container">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doughnut: status breakdown -->
+    <div class="col-lg-4">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-pie-chart text-primary me-2"></i>По статусам</div>
+            </div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:180px;">
+                    <canvas id="donutChart"></canvas>
+                </div>
+                <div class="mt-3" style="font-size:0.8rem;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><span class="status-dot d-inline-block me-1" style="background:#f59e0b;"></span>Ожидает</span>
+                        <strong>{{ status_data.pending|default:0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><span class="status-dot d-inline-block me-1" style="background:#3b82f6;"></span>Подтверждена</span>
+                        <strong>{{ status_data.confirmed|default:0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><span class="status-dot d-inline-block me-1" style="background:#10b981;"></span>Завершена</span>
+                        <strong>{{ status_data.completed|default:0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><span class="status-dot d-inline-block me-1" style="background:#ef4444;"></span>Отменена</span>
+                        <strong>{{ status_data.cancelled|default:0 }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Table + Sidebar Row ── -->
+<div class="row g-3">
+    <!-- Recent Appointments -->
+    <div class="col-lg-8">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-clock-history text-primary me-2"></i>Последние записи</div>
+                <a href="{% url 'admin_appointments' %}" class="btn-admin btn-admin-outline" style="font-size:0.78rem; padding:0.35rem 0.75rem; text-decoration:none;">Все записи →</a>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Пациент</th>
+                            <th>Врач</th>
+                            <th>Дата / Время</th>
+                            <th>Статус</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in recent_appointments %}
+                        <tr>
+                            <td><span style="font-weight:700; color:var(--accent);">№{{ appt.queue_number }}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar" style="width:30px;height:30px;font-size:0.75rem;">
+                                        {{ appt.patient.first_name|first|upper }}{{ appt.patient.last_name|first|upper }}
+                                    </div>
+                                    <span>{{ appt.patient.get_full_name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ appt.specialist.last_name }} {{ appt.specialist.first_name|first }}.</td>
+                            <td style="white-space:nowrap;">
+                                {{ appt.time_slot.date|date:"d.m.Y" }}
+                                <span class="text-muted" style="font-size:0.78rem;">{{ appt.time_slot.time|time:"H:i" }}</span>
+                            </td>
+                            <td>
+                                <span class="badge-status badge-{{ appt.status }}">{{ appt.get_status_display }}</span>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'update_appointment_status' appt.pk %}" class="d-flex gap-1">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'admin_dashboard' %}">
+                                    {% if appt.status == 'pending' %}
+                                    <button name="status" value="confirmed" class="btn-admin btn-admin-success" style="padding:0.25rem 0.6rem;font-size:0.72rem;" title="Подтвердить"><i class="bi bi-check2"></i></button>
+                                    {% endif %}
+                                    {% if appt.status not in 'completed cancelled' %}
+                                    <button name="status" value="cancelled" class="btn-admin btn-admin-danger" style="padding:0.25rem 0.6rem;font-size:0.72rem;" title="Отменить"><i class="bi bi-x"></i></button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-4">Нет записей</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="col-lg-4 d-flex flex-column gap-3">
+        <!-- Quick Actions -->
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-lightning text-warning me-2"></i>Быстрые действия</div>
+            </div>
+            <div class="panel-card-body d-flex flex-column gap-2">
+                <a href="{% url 'staff_add_doctor' %}" class="quick-action">
+                    <div class="quick-action-icon" style="background:rgba(59,130,246,0.1);color:var(--accent);">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    Добавить врача
+                    <i class="bi bi-chevron-right ms-auto" style="font-size:0.75rem;"></i>
+                </a>
+                <a href="{% url 'admin_appointments' %}" class="quick-action">
+                    <div class="quick-action-icon" style="background:rgba(16,185,129,0.1);color:var(--success);">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    Все записи
+                    <i class="bi bi-chevron-right ms-auto" style="font-size:0.75rem;"></i>
+                </a>
+                <a href="{% url 'admin_users' %}" class="quick-action">
+                    <div class="quick-action-icon" style="background:rgba(139,92,246,0.1);color:var(--purple);">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    Список пациентов
+                    <i class="bi bi-chevron-right ms-auto" style="font-size:0.75rem;"></i>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Top Specialists -->
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-trophy text-warning me-2"></i>Топ врачей</div>
+                <a href="{% url 'admin_specialists' %}" style="font-size:0.78rem; color:var(--accent); text-decoration:none;">Все →</a>
+            </div>
+            <div class="panel-card-body">
+                {% for item in top_specialists %}
+                <div class="specialist-item">
+                    <div class="user-avatar" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                        {{ item.specialist.last_name|first|upper }}
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:0.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            {{ item.specialist.get_full_name }}
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--muted);">{{ item.specialist.service.name }}</div>
+                        <div class="mini-bar mt-1">
+                            <div class="mini-bar-fill" style="width:{{ item.pct }}%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--accent); flex-shrink:0;">{{ item.count }}</div>
+                </div>
+                {% empty %}
+                <div class="empty-state" style="padding:1.5rem;"><i class="bi bi-person-badge"></i>Нет данных</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- RECENT ACTIVITIES (Notification Center) -->
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-bell-fill text-primary me-2"></i>Центр событий</div>
+                <span class="badge-status badge-confirmed" style="font-size:0.65rem;">Живая лента</span>
+            </div>
+            <div class="panel-card-body" style="max-height: 480px; overflow-y: auto;">
+                <div class="activity-feed">
+                    {% for act in activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon" style="border-color: var(--{{ act.color }});">
+                            <i class="bi bi-circle-fill" style="color: var(--{{ act.color }}); font-size: 6px;"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="d-flex align-items-start">
+                                <span class="activity-title">{{ act.title }}</span>
+                                {% if act.status %}
+                                <span class="activity-badge badge-{{ act.type }}" style="background: rgba(var(--{{ act.color }}-rgb), 0.1); color: var(--{{ act.color }});">
+                                    {{ act.status }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div style="color: var(--muted); margin-top: 2px;">{{ act.text }}</div>
+                            <div class="activity-time">
+                                <i class="bi bi-clock me-1"></i>{{ act.time|timesince }} назад
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state" style="padding: 1rem 0;">Пока событий нет</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const lineData = {
+    labels: {{ days_list|safe }},
+    datasets: [{
+        label: 'Записи',
+        data: {{ counts_list|safe }},
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#3b82f6',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        tension: 0.4,
+    }]
+};
+new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: lineData,
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+            x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+        }
+    }
+});
+
+new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Ожидает','Подтверждена','Завершена','Отменена'],
+        datasets: [{
+            data: [
+                {{ status_data.pending|default:0 }},
+                {{ status_data.confirmed|default:0 }},
+                {{ status_data.completed|default:0 }},
+                {{ status_data.cancelled|default:0 }}
+            ],
+            backgroundColor: ['#f59e0b','#3b82f6','#10b981','#ef4444'],
+            borderWidth: 0,
+            hoverOffset: 6,
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+{% endblock %}

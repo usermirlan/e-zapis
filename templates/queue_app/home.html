@@ -33,7 +33,7 @@
                 </h1>
                 <p class="hero-subtitle">
                     Выберите специалиста, удобное время и получите номер очереди прямо сейчас.
-                    Никаких звонков — только несколько кликов.
+                    Никаких звонков — только несколько кликов
                 </p>
                 <div class="d-flex flex-wrap gap-3 mt-4">
                     <a href="{% url 'services' %}" class="btn btn-primary btn-lg px-4 fw-semibold shadow-sm">
@@ -79,7 +79,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="stat-card text-center">
-                    <div class="stat-num">0</div>
+                    <div class="stat-num">{{ wait_time|default:0 }}</div>
                     <div class="stat-label">Минут ожидания</div>
                 </div>
             </div>
@@ -113,7 +113,7 @@
                                 <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ service.duration_minutes }} мин
                                 &nbsp;·&nbsp;
                                 <i class="bi bi-people me-1" aria-hidden="true"></i>
-                                {{ service.specialists.count }} врач{{ service.specialists.count|pluralize:",,а,ей" }}
+                                {{ service.specialists.count }} врач {{ service.specialists.count|pluralize:",,а,ей" }}
                             </span>
                             <a href="{% url 'specialists_by_service' service.id %}" class="btn btn-primary btn-sm">
                                 Записаться <i class="bi bi-arrow-right ms-1"></i>
@@ -125,7 +125,7 @@
             {% empty %}
             <div class="col-12 text-center py-4">
                 <i class="bi bi-hospital text-muted" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-2">Услуги ещё не добавлены. Зайдите позже.</p>
+                <p class="text-muted mt-2">Услуги ещё не добавлены. Зайдите позже</p>
             </div>
             {% endfor %}
         </div>

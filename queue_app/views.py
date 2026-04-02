@@ -14,7 +14,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 
-from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification
+from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification, SpecialistAbsence
 from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm, ManualSlotForm
 from accounts.forms import DoctorRegisterForm
 
@@ -34,10 +34,24 @@ def home_view(request):
     specialists_count = Specialist.objects.filter(is_active=True).count()
     appointments_count = Appointment.objects.count()
 
+    # Динамический расчет времени ожидания
+    today = timezone.now().date()
+    active_appointments = Appointment.objects.filter(
+        time_slot__date=today,
+        status__in=['pending', 'confirmed']
+    ).count()
+
+    if specialists_count > 0:
+        # Примерный расчет: (количество активных записей / кол-во врачей) * 10 минут
+        wait_time = (active_appointments // specialists_count) * 10
+    else:
+        wait_time = 0
+
     return render(request, 'queue_app/home.html', {
         'services': services,
         'specialists_count': specialists_count,
         'appointments_count': appointments_count,
+        'wait_time': wait_time,
     })
 
 
@@ -168,12 +182,13 @@ def booking_view(request, slot_id):
             )
 
             # ── Уведомление врачу ──
-            Notification.objects.create(
-                user=specialist.user,
-                appointment=appointment,
-                notification_type='new_appointment',
-                message=f'Новая запись: {request.user.get_full_name()} на {slot.date.strftime("%d.%m.%Y")} в {slot.time.strftime("%H:%M")}',
-            )
+            if specialist.user:
+                Notification.objects.create(
+                    user=specialist.user,
+                    appointment=appointment,
+                    notification_type='new_appointment',
+                    message=f'Новая запись: {request.user.get_full_name()} на {slot.date.strftime("%d.%m.%Y")} в {slot.time.strftime("%H:%M")}',
+                )
 
             # ── Email-уведомление ──
             _send_appointment_email(appointment, action='created')
@@ -303,69 +318,29 @@ def add_review_view(request, appointment_id):
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
 def staff_panel_view(request):
-    """Панель для сотрудников: просмотр и управление записями."""
-    today = timezone.now().date()
+    """Перенаправление со старой панели на современную админку."""
+    return redirect('admin_dashboard')
 
-    # Фильтры
-    selected_date = request.GET.get('date', str(today))
-    specialist_id = request.GET.get('specialist', '')
-    status_filter = request.GET.get('status', '')
 
-    appointments_qs = Appointment.objects.select_related(
-        'patient', 'specialist', 'service', 'time_slot'
-    )
 
-    # Фильтр по дате
-    try:
-        from datetime import date as date_type
-        import datetime
-        filter_date = datetime.date.fromisoformat(selected_date)
-        appointments_qs = appointments_qs.filter(time_slot__date=filter_date)
-    except (ValueError, TypeError):
-        filter_date = today
-        appointments_qs = appointments_qs.filter(time_slot__date=today)
-
-    if specialist_id:
-        appointments_qs = appointments_qs.filter(specialist_id=specialist_id)
-
-    if status_filter:
-        appointments_qs = appointments_qs.filter(status=status_filter)
-
-    appointments_qs = appointments_qs.order_by('time_slot__time', 'queue_number')
-
-    paginator = Paginator(appointments_qs, 20)
-    page = request.GET.get('page', 1)
-    appointments = paginator.get_page(page)
-
-    specialists = Specialist.objects.filter(is_active=True).select_related('service')
-
-    return render(request, 'queue_app/staff_panel.html', {
-        'appointments': appointments,
-        'specialists': specialists,
-        'selected_date': str(filter_date),
-        'selected_specialist': specialist_id,
-        'selected_status': status_filter,
-        'status_choices': Appointment.STATUS_CHOICES,
-        'today': str(today),
-    })
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
 def staff_add_doctor_view(request):
-    """Страница для добавления новых врачей (Доступна только Администраторам)."""
+    """Добавление нового врача через форму в новой админке."""
     if request.method == 'POST':
         form = DoctorRegisterForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
-            # Добавляем специалиста в группу и тд, но форма сама всё делает.
-            messages.success(request, f'Врач {user.get_full_name()} успешно добавлен! Расписание сгенерировано.')
-            return redirect('staff_panel')
+            messages.success(request, f'Врач {user.get_full_name()} успешно добавлен в систему! Расписание на 30 дней создано автоматически.')
+            return redirect('admin_specialists')
         else:
-            messages.error(request, 'Пожалуйста, проверьте правильность заполнения формы.')
+            messages.error(request, 'Ошибка при добавлении врача. Пожалуйста, проверьте поля формы.')
     else:
         form = DoctorRegisterForm()
 
-    return render(request, 'queue_app/staff_add_doctor.html', {'form': form})
+    return render(request, 'admin_panel/specialist_add.html', {'form': form})
+
 
 
 @login_required
@@ -379,7 +354,8 @@ def update_appointment_status_view(request, appointment_id):
 
     if new_status not in valid_statuses:
         messages.error(request, 'Неверный статус.')
-        return redirect('staff_panel')
+        return redirect('admin_dashboard')
+
 
     old_status = appointment.status
     appointment.status = new_status
@@ -401,7 +377,8 @@ def update_appointment_status_view(request, appointment_id):
         request,
         f'Статус записи #{appointment.queue_number} изменён на «{status_labels.get(new_status, new_status)}».'
     )
-    return redirect(request.POST.get('next', 'staff_panel'))
+    return redirect(request.POST.get('next', 'admin_dashboard'))
+
 
 
 # ─── Email-уведомления ────────────────────────────────────────────────────────
@@ -1002,3 +979,489 @@ def doctor_add_manual_slot_view(request):
         form = ManualSlotForm(initial={'date': datetime.date.today(), 'time': '12:00'})
         
     return render(request, 'doctor/doctor_add_manual_slot.html', {'form': form})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ─── ADMIN PANEL VIEWS ───────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def is_admin_user(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def admin_required(view_func):
+    """Декоратор: доступ только для is_staff / superuser."""
+    from functools import wraps
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        if not is_admin_user(request.user):
+            messages.error(request, 'У вас нет доступа к панели администратора.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@admin_required
+def admin_dashboard_view(request):
+    """Главный дашборд администратора."""
+    from accounts.models import CustomUser
+    today = timezone.now().date()
+    week_ago = today - timezone.timedelta(days=7)
+
+    # ── Stats ──
+    today_count = Appointment.objects.filter(time_slot__date=today).count()
+    total_patients = CustomUser.objects.filter(is_doctor=False, is_staff=False, is_superuser=False).count()
+    total_specialists = Specialist.objects.count()
+    active_specialists = Specialist.objects.filter(is_active=True).count()
+    total_appointments = Appointment.objects.count()
+    week_total = Appointment.objects.filter(time_slot__date__gte=week_ago).count()
+
+    # ── Status breakdown ──
+    status_stats = list(Appointment.objects.values('status').annotate(count=Count('status')))
+    status_data = {item['status']: item['count'] for item in status_stats}
+
+    # ── Recent appointments ──
+    recent_appointments = Appointment.objects.select_related(
+        'patient', 'specialist', 'service', 'time_slot'
+    ).order_by('-created_at')[:10]
+
+    # ── Line chart: last 7 days ──
+    days_list = []
+    counts_list = []
+    for i in range(6, -1, -1):
+        d = today - timezone.timedelta(days=i)
+        days_list.append(f'"{d.strftime("%d.%m")}"')
+        counts_list.append(Appointment.objects.filter(time_slot__date=d).count())
+
+    # ── Top specialists by appointment count ──
+    top_raw = (
+        Specialist.objects.filter(is_active=True)
+        .annotate(appt_count=Count('appointments'))
+        .order_by('-appt_count')[:5]
+    )
+    max_count = top_raw[0].appt_count if top_raw else 1
+    top_specialists = [
+        {
+            'specialist': s,
+            'count': s.appt_count,
+            'pct': int(s.appt_count / max_count * 100) if max_count else 0,
+        }
+        for s in top_raw
+    ]
+
+    # ── ЛЕНТА СОБЫТИЙ (Notification Center) ──
+    activities = []
+    
+    # 1. Последние записи
+    recent_apps = Appointment.objects.select_related('patient', 'specialist', 'service', 'time_slot').order_by('-created_at')[:10]
+    for app in recent_apps:
+        activities.append({
+            'type': 'appointment',
+            'icon': 'bi-calendar-plus',
+            'color': 'primary',
+            'title': 'Новая запись',
+            'text': f'Пациент {app.patient.get_full_name()} записался к врачу {app.specialist.last_name} ({app.service.name})',
+            'time': app.created_at,
+            'status': app.get_status_display()
+        })
+        
+    # 2. Последние отзывы
+    recent_reviews = Review.objects.select_related('patient', 'specialist').order_by('-created_at')[:5]
+    for rev in recent_reviews:
+        activities.append({
+            'type': 'review',
+            'icon': 'bi-star-fill',
+            'color': 'warning',
+            'title': 'Новый отзыв',
+            'text': f'Пациент {rev.patient.get_full_name()} оставил отзыв врачу {rev.specialist.last_name}: "{rev.comment[:50]}..." ({rev.rating}★)',
+            'time': rev.created_at
+        })
+        
+    # 3. Последние отпуска/отсутствия
+    recent_absences = SpecialistAbsence.objects.select_related('specialist').order_by('-created_at')[:5]
+    for abs_obj in recent_absences:
+        activities.append({
+            'type': 'absence',
+            'icon': 'bi-calendar-x',
+            'color': 'danger',
+            'title': 'Отсутствие врача',
+            'text': f'Врач {abs_obj.specialist.get_full_name()} будет отсутствовать с {abs_obj.start_date.strftime("%d.%m")} по {abs_obj.end_date.strftime("%d.%m")} (Причина: {abs_obj.reason or "Не указана"})',
+            'time': abs_obj.created_at
+        })
+
+    # Сортируем всё по времени (от новых к старым)
+    activities.sort(key=lambda x: x['time'], reverse=True)
+    activities = activities[:15]
+
+    return render(request, 'admin_panel/dashboard.html', {
+        'today_count': today_count,
+        'total_patients': total_patients,
+        'total_specialists': total_specialists,
+        'active_specialists': active_specialists,
+        'total_appointments': total_appointments,
+        'week_total': week_total,
+        'status_data': status_data,
+        'recent_appointments': recent_appointments,
+        'days_list': '[' + ','.join(days_list) + ']',
+        'counts_list': counts_list,
+        'top_specialists': top_specialists,
+        'activities': activities,
+    })
+
+
+@admin_required
+def admin_appointments_view(request):
+    """Все записи с фильтрацией."""
+    today = timezone.now().date()
+    selected_date = request.GET.get('date', '')
+    specialist_id = request.GET.get('specialist', '')
+    status_filter = request.GET.get('status', '')
+
+    qs = Appointment.objects.select_related('patient', 'specialist', 'service', 'time_slot')
+
+    if selected_date:
+        import datetime
+        try:
+            filter_date = datetime.date.fromisoformat(selected_date)
+            qs = qs.filter(time_slot__date=filter_date)
+        except ValueError:
+            selected_date = ''
+    if specialist_id:
+        qs = qs.filter(specialist_id=specialist_id)
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+
+    qs = qs.order_by('-time_slot__date', 'time_slot__time')
+    paginator = Paginator(qs, 25)
+    appointments = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'admin_panel/appointments.html', {
+        'appointments': appointments,
+        'specialists': Specialist.objects.filter(is_active=True),
+        'selected_date': selected_date,
+        'selected_specialist': specialist_id,
+        'selected_status': status_filter,
+        'status_choices': Appointment.STATUS_CHOICES,
+    })
+
+@admin_required
+@require_POST
+def admin_delete_appointment_view(request, appointment_id):
+    """Физическое удаление записи из базы данных."""
+    appointment = get_object_or_404(Appointment, pk=appointment_id)
+    
+    # Если запись еще не отменена и не завершена, освобождаем слот
+    if appointment.status in ['pending', 'confirmed']:
+        appointment.time_slot.is_available = True
+        appointment.time_slot.save()
+        
+    num = appointment.queue_number
+    appointment.delete()
+    
+    messages.success(request, f'Запись #{num} была полностью удалена из базы.')
+    return redirect(request.POST.get('next', 'admin_appointments'))
+
+
+@admin_required
+def admin_specialists_view(request):
+    """Управление врачами."""
+    specialists = Specialist.objects.select_related('service').prefetch_related('appointments', 'reviews').all()
+    return render(request, 'admin_panel/specialists.html', {'specialists': specialists})
+
+
+@admin_required
+def admin_toggle_specialist_view(request, specialist_id):
+    """Активировать / деактивировать врача."""
+    specialist = get_object_or_404(Specialist, pk=specialist_id)
+    specialist.is_active = not specialist.is_active
+    specialist.save()
+    state = 'активирован' if specialist.is_active else 'деактивирован'
+    messages.success(request, f'Врач {specialist.get_full_name()} {state}.')
+    return redirect('admin_specialists')
+
+@admin_required
+def admin_edit_specialist_view(request, specialist_id):
+    """Редактирование профиля врача."""
+    specialist = get_object_or_404(Specialist, pk=specialist_id)
+    if request.method == 'POST':
+        form = SpecialistForm(request.POST, request.FILES, instance=specialist)
+        if form.is_valid():
+            form.save()
+            # Обновляем CustomUser если он есть
+            if specialist.user:
+                specialist.user.first_name = specialist.first_name
+                specialist.user.last_name = specialist.last_name
+                specialist.user.save()
+            messages.success(request, f'Данные врача «{specialist.get_full_name()}» успешно обновлены!')
+            return redirect('admin_specialists')
+    else:
+        form = SpecialistForm(instance=specialist)
+    
+    return render(request, 'admin_panel/specialist_edit.html', {'form': form, 'specialist': specialist})
+
+@admin_required
+@require_POST
+def admin_delete_specialist_view(request, specialist_id):
+    """Удаление врача и его аккаунта."""
+    specialist = get_object_or_404(Specialist, pk=specialist_id)
+    name = specialist.get_full_name()
+    user = specialist.user
+    specialist.delete()
+    if user:
+        user.delete()
+    messages.success(request, f'Врач «{name}» и его аккаунт пользователя удалены.')
+    return redirect('admin_specialists')
+
+
+@admin_required
+def admin_services_view(request):
+    """Управление услугами."""
+    services = Service.objects.prefetch_related('specialists', 'appointments').order_by('name')
+    return render(request, 'admin_panel/services.html', {'services': services})
+
+@admin_required
+def admin_add_service_view(request):
+    """Добавление новой услуги."""
+    if request.method == 'POST':
+        form = ServiceForm(request.POST)
+        if form.is_valid():
+            service = form.save()
+            messages.success(request, f'Услуга «{service.name}» успешно добавлена!')
+            return redirect('admin_services')
+    else:
+        form = ServiceForm(initial={'icon': 'bi-asterisk', 'duration_minutes': 30})
+    
+    return render(request, 'admin_panel/service_add.html', {'form': form, 'edit_mode': False})
+
+@admin_required
+def admin_edit_service_view(request, service_id):
+    """Редактирование услуги."""
+    service = get_object_or_404(Service, pk=service_id)
+    if request.method == 'POST':
+        form = ServiceForm(request.POST, instance=service)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Услуга «{service.name}» успешно обновлена!')
+            return redirect('admin_services')
+    else:
+        form = ServiceForm(instance=service)
+    
+    return render(request, 'admin_panel/service_add.html', {'form': form, 'edit_mode': True})
+
+@admin_required
+@require_POST
+def admin_delete_service_view(request, service_id):
+    """Удаление услуги."""
+    service = get_object_or_404(Service, pk=service_id)
+    name = service.name
+    service.delete()
+    messages.success(request, f'Услуга «{name}» удалена.')
+    return redirect('admin_services')
+
+
+@admin_required
+def admin_toggle_service_view(request, service_id):
+    """Показать / скрыть услугу."""
+    service = get_object_or_404(Service, pk=service_id)
+    service.is_active = not service.is_active
+    service.save()
+    state = 'активирована' if service.is_active else 'скрыта'
+    messages.success(request, f'Услуга «{service.name}» {state}.')
+    return redirect('admin_services')
+
+
+@admin_required
+def admin_users_view(request):
+    """Список пациентов."""
+    from accounts.models import CustomUser
+    search_query = request.GET.get('q', '').strip()
+
+    qs = CustomUser.objects.filter(
+        is_doctor=False, is_staff=False, is_superuser=False
+    ).prefetch_related('appointments').order_by('-date_joined')
+
+    if search_query:
+        qs = qs.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+
+    paginator = Paginator(qs, 20)
+    users = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'admin_panel/users.html', {
+        'users': users,
+        'search_query': search_query,
+    })
+
+
+@admin_required
+def admin_toggle_user_view(request, user_id):
+    """Блокировка / разблокировка пользователя."""
+    from accounts.models import CustomUser
+    user = get_object_or_404(CustomUser, pk=user_id)
+    
+    # Не даем админу заблокировать самого себя
+    if user == request.user:
+        messages.error(request, 'Вы не можете заблокировать самого себя!')
+        return redirect('admin_users')
+        
+    user.is_active = not user.is_active
+    user.save()
+    
+    status = 'разблокирован' if user.is_active else 'заблокирован'
+    messages.success(request, f'Пользователь {user.get_full_name()} успешно {status}.')
+    return redirect('admin_users')
+
+
+@admin_required
+@require_POST
+def admin_delete_user_view(request, user_id):
+    """Полное удаление пользователя из базы."""
+    from accounts.models import CustomUser
+    user = get_object_or_404(CustomUser, pk=user_id)
+    
+    if user == request.user:
+        messages.error(request, 'Вы не можете удалить самого себя!')
+        return redirect('admin_users')
+        
+    name = user.get_full_name()
+    user.delete()
+    
+    messages.success(request, f'Пользователь {name} удален из системы.')
+    return redirect('admin_users')
+
+
+@admin_required
+def admin_user_change_password_view(request, user_id):
+    """Смена пароля пользователя администратором."""
+    from accounts.models import CustomUser
+    from django.contrib.auth.forms import SetPasswordForm
+    
+    user = get_object_or_404(CustomUser, pk=user_id)
+    
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Пароль для пользователя {user.get_full_name()} (ЛОГИН: {user.username}) успешно изменен!')
+            return redirect('admin_users')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+    else:
+        form = SetPasswordForm(user)
+    
+    return render(request, 'admin_panel/user_password_change.html', {
+        'form': form,
+        'target_user': user
+    })
+
+
+@admin_required
+def admin_specialist_absence_view(request, specialist_id):
+    """Управление отсутствием специалиста (отпуск, больничный)."""
+    specialist = get_object_or_404(Specialist, pk=specialist_id)
+    absences = SpecialistAbsence.objects.filter(specialist=specialist).order_by('-start_date')
+    
+    if request.method == 'POST':
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        reason = request.POST.get('reason', '')
+        
+        if start_date and end_date:
+            # Создаем запись об отсутствии
+            absence = SpecialistAbsence.objects.create(
+                specialist=specialist,
+                start_date=start_date,
+                end_date=end_date,
+                reason=reason
+            )
+            
+            # БЛОКИРОВКА СЛОТОВ И ОТМЕНА ЗАПИСЕЙ
+            # Находим затронутые слоты
+            slots = TimeSlot.objects.filter(
+                specialist=specialist,
+                date__range=[start_date, end_date]
+            )
+            
+            affected_appointments = 0
+            for slot in slots:
+                if not slot.is_available:
+                   # Если есть запись на этот слот - отменяем её
+                   if hasattr(slot, 'appointment'):
+                       app = slot.appointment
+                       app.status = 'cancelled'
+                       app.save()
+                       affected_appointments += 1
+                
+                slot.is_available = False
+                slot.save()
+            
+            msg = f'Отсутствие врача успешно добавлено. Заблокировано слотов: {slots.count()}.'
+            if affected_appointments > 0:
+                msg += f' Автоматически отменено записей: {affected_appointments}.'
+            
+            messages.success(request, msg)
+            return redirect('admin_specialist_absence', specialist_id=specialist_id)
+        else:
+            messages.error(request, 'Необходимо указать обе даты.')
+            
+    return render(request, 'admin_panel/specialist_absence.html', {
+        'specialist': specialist,
+        'absences': absences
+    })
+
+
+@admin_required
+@require_POST
+def admin_delete_absence_view(request, absence_id):
+    """Удаление записи об отсутствии и восстановление слотов."""
+    absence = get_object_or_404(SpecialistAbsence, pk=absence_id)
+    specialist = absence.specialist
+    
+    # Восстанавливаем слоты (только те, на которых нет отмененных записей, 
+    # чтобы не запутаться, либо просто все делаем доступными)
+    slots = TimeSlot.objects.filter(
+        specialist=specialist,
+        date__range=[absence.start_date, absence.end_date]
+    )
+    
+    for slot in slots:
+        # Если на слоте есть запись (даже отмененная), не делаем его доступным автоматически
+        if not hasattr(slot, 'appointment'):
+            slot.is_available = True
+            slot.save()
+            
+    absence.delete()
+    messages.success(request, 'Запись об отсутствии удалена. Свободные слоты восстановлены.')
+    return redirect('admin_specialist_absence', specialist_id=specialist.id)
+
+
+@admin_required
+def admin_reviews_view(request):
+    """Все отзывы."""
+    reviews = Review.objects.select_related('patient', 'specialist').order_by('-created_at')
+    total_reviews = reviews.count()
+    avg_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+    five_star_count = reviews.filter(rating=5).count()
+
+    return render(request, 'admin_panel/reviews.html', {
+        'reviews': reviews,
+        'total_reviews': total_reviews,
+        'avg_rating': avg_rating,
+        'five_star_count': five_star_count,
+    })
+
+
+@admin_required
+@require_POST
+def admin_delete_review_view(request, review_id):
+    """Удалить отзыв."""
+    review = get_object_or_404(Review, pk=review_id)
+    review.delete()
+    messages.success(request, 'Отзыв удалён.')
+    return redirect('admin_reviews')

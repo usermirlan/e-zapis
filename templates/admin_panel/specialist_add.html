@@ -1,0 +1,145 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Добавление врача — Админ-панель{% endblock %}
+{% block page_title %}Новый специалист{% endblock %}
+{% block breadcrumb %}Главная / Врачи / Добавить{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+    }
+    .form-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.875rem;
+        border: 1px solid var(--border);
+        background-color: white;
+        transition: var(--transition);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-9">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="panel-card mb-4">
+                <div class="panel-card-header">
+                    <div class="panel-card-title"><i class="bi bi-person-badge text-primary me-2"></i>Основная информация</div>
+                </div>
+                <div class="p-4">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Фамилия</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Имя</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Отчество</label>
+                            {{ form.middle_name }}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Основная услуга</label>
+                            {{ form.service }}
+                            {% if form.service.errors %}<div class="text-danger small mt-1">{{ form.service.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Стаж (лет)</label>
+                            {{ form.experience_years }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Номер кабинета</label>
+                            {{ form.cabinet }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Начало работы</label>
+                            {{ form.work_start }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Конец работы</label>
+                            {{ form.work_end }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Биография и квалификация</label>
+                            {{ form.bio }}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Фотография специалиста</label>
+                            {{ form.photo }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-card mb-4">
+                <div class="panel-card-header">
+                    <div class="panel-card-title"><i class="bi bi-shield-lock text-primary me-2"></i>Учетные данные (для входа)</div >
+                </div>
+                <div class="p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Логин (username)</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">E-mail</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Пароль</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Подтвердите пароль</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-4 mb-5">
+                <button type="submit" class="btn-admin btn-admin-primary px-5 py-3" style="font-size: 1rem;">
+                    <i class="bi bi-check-lg pe-2"></i> Создать профиль врача
+                </button>
+                <a href="{% url 'admin_specialists' %}" class="btn-admin btn-admin-outline px-4 py-3 text-center" style="text-decoration:none;">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

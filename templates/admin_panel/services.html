@@ -1,0 +1,75 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Услуги — Админ-панель{% endblock %}
+{% block page_title %}Услуги клиники{% endblock %}
+{% block breadcrumb %}Главная / Услуги{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div style="font-size:0.875rem; color:var(--muted);">Всего услуг: <strong>{{ services|length }}</strong></div>
+    <a href="{% url 'admin_add_service' %}" class="btn-admin btn-admin-primary" style="text-decoration:none;">
+        <i class="bi bi-plus-lg"></i> Добавить услугу
+    </a>
+</div>
+
+<div class="row g-3">
+    {% for service in services %}
+    <div class="col-sm-6 col-xl-4">
+        <div class="panel-card" style="height:100%;">
+            <div style="padding:1.25rem;">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="stat-icon blue" style="margin:0; flex-shrink:0;">
+                        <i class="bi {{ service.icon }}"></i>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:700; font-size:0.95rem;">{{ service.name }}</div>
+                        <div style="font-size:0.78rem; color:var(--muted);">{{ service.duration_minutes }} мин / приём</div>
+                    </div>
+                    <span class="badge-status {% if service.is_active %}badge-completed{% else %}badge-cancelled{% endif %}">
+                        {% if service.is_active %}Активна{% else %}Скрыта{% endif %}
+                    </span>
+                </div>
+
+                {% if service.description %}
+                <p style="font-size:0.825rem; color:var(--muted); margin-bottom:1rem; line-height:1.5;">
+                    {{ service.description|truncatechars:100 }}
+                </p>
+                {% endif %}
+
+                <div class="d-flex gap-3 mb-3" style="font-size:0.8rem; color:var(--muted);">
+                    <div><i class="bi bi-person-badge me-1" style="color:var(--accent);"></i>
+                        <strong>{{ service.specialists.count }}</strong> врачей
+                    </div>
+                    <div><i class="bi bi-calendar-check me-1" style="color:var(--success);"></i>
+                        <strong>{{ service.appointments.count }}</strong> записей
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_edit_service' service.pk %}" class="btn-admin btn-admin-outline flex-fill" style="padding:0.4rem; justify-content:center; text-decoration:none; font-size:0.75rem;">
+                        <i class="bi bi-pencil"></i> Изменить
+                    </a>
+                    <a href="{% url 'admin_toggle_service' service.pk %}" class="btn-admin {% if service.is_active %}btn-admin-danger{% else %}btn-admin-success{% endif %} flex-fill" style="padding:0.4rem; justify-content:center; text-decoration:none; font-size:0.75rem;" title="{% if service.is_active %}Скрыть{% else %}Показать{% endif %}">
+                        {% if service.is_active %}<i class="bi bi-eye-slash"></i>{% else %}<i class="bi bi-eye"></i>{% endif %}
+                    </a>
+                    <form method="post" action="{% url 'admin_delete_service' service.pk %}" class="flex-fill d-flex">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-admin btn-admin-danger w-100" style="padding:0.4rem; justify-content:center; font-size:0.75rem; border:none;" onclick="return confirm('Вы уверены, что хотите удалить эту услугу?')">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="panel-card">
+            <div class="empty-state">
+                <i class="bi bi-grid-3x3-gap"></i>
+                <p>Нет услуг. <a href="{% url 'admin_add_service' %}">Добавить первую услугу →</a></p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

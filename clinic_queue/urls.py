@@ -1,4 +1,8 @@
 from django.contrib import admin
+
+# Отключаем ссылку "ОТКРЫТЬ САЙТ" в Django Admin
+admin.site.site_url = None
+
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static

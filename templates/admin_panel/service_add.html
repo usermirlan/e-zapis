@@ -1,0 +1,74 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}{% if edit_mode %}Редактировать{% else %}Добавить{% endif %} услугу — Админ-панель{% endblock %}
+{% block page_title %}{% if edit_mode %}Редактировать услугу{% else %}Добавить услугу{% endif %}{% endblock %}
+{% block breadcrumb %}Главная / Услуги / {% if edit_mode %}Редактировать{% else %}Добавить{% endif %}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="panel-card">
+        <div class="panel-card-header">
+            <div class="panel-card-title">
+                <i class="bi {% if edit_mode %}bi-pencil-square{% else %}bi-plus-circle{% endif %} text-primary me-2"></i>
+                {% if edit_mode %}Редактировать услугу{% else %}Новая услуга{% endif %}
+            </div>
+        </div>
+        <div class="panel-card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert-admin alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Название услуги <span class="text-danger">*</span></label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger mt-1" style="font-size:0.75rem;">{{ form.name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Описание</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger mt-1" style="font-size:0.75rem;">{{ form.description.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label">Иконка (класс <a href="https://icons.getbootstrap.com/" target="_blank">Bootstrap Icons</a>)</label>
+                        {{ form.icon }}
+                        {% if form.icon.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.75rem;">{{ form.icon.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Продолжительность (мин) <span class="text-danger">*</span></label>
+                        {{ form.duration_minutes }}
+                        {% if form.duration_minutes.errors %}
+                            <div class="text-danger mt-1" style="font-size:0.75rem;">{{ form.duration_minutes.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4 d-flex align-items-center gap-2">
+                    {{ form.is_active }}
+                    <label class="form-check-label ms-2 form-label mb-0">Активна (видима для пациентов)</label>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <a href="{% url 'admin_services' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Отмена</a>
+                    <button type="submit" class="btn-admin btn-admin-primary">
+                        <i class="bi bi-check2"></i> Сохранить услугу
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

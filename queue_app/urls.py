@@ -31,7 +31,9 @@ urlpatterns = [
     # ─── Панель сотрудника ─────────────────────────────────────────────────────
     path('staff/', views.staff_panel_view, name='staff_panel'),
     path('staff/doctor/add/', views.staff_add_doctor_view, name='staff_add_doctor'),
+
     path('staff/appointments/<int:appointment_id>/status/', views.update_appointment_status_view, name='update_appointment_status'),
+    path('staff/appointments/<int:appointment_id>/status/', views.update_appointment_status_view, name='update_appointment_status_view'),
 
 
     # ─── API-эндпоинты (JSON) ──────────────────────────────────────────────────
@@ -55,4 +57,26 @@ urlpatterns = [
     path('doctor/notifications/<int:notification_id>/read/', views.doctor_mark_read_view, name='doctor_mark_read'),
     path('doctor/notifications/read-all/', views.doctor_mark_all_read_view, name='doctor_mark_all_read'),
     path('doctor/profile/', views.doctor_profile_view, name='doctor_profile'),
+
+    # ─── Admin Panel ───────────────────────────────────────────────────────────
+    path('dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
+    path('dashboard/appointments/', views.admin_appointments_view, name='admin_appointments'),
+    path('dashboard/appointments/<int:appointment_id>/delete/', views.admin_delete_appointment_view, name='admin_delete_appointment'),
+    path('dashboard/specialists/', views.admin_specialists_view, name='admin_specialists'),
+    path('dashboard/specialists/<int:specialist_id>/absence/', views.admin_specialist_absence_view, name='admin_specialist_absence'),
+    path('dashboard/absences/<int:absence_id>/delete/', views.admin_delete_absence_view, name='admin_delete_absence'),
+    path('dashboard/specialists/<int:specialist_id>/edit/', views.admin_edit_specialist_view, name='admin_edit_specialist'),
+    path('dashboard/specialists/<int:specialist_id>/delete/', views.admin_delete_specialist_view, name='admin_delete_specialist'),
+    path('dashboard/specialists/<int:specialist_id>/toggle/', views.admin_toggle_specialist_view, name='admin_toggle_specialist'),
+    path('dashboard/services/', views.admin_services_view, name='admin_services'),
+    path('dashboard/services/add/', views.admin_add_service_view, name='admin_add_service'),
+    path('dashboard/services/<int:service_id>/edit/', views.admin_edit_service_view, name='admin_edit_service'),
+    path('dashboard/services/<int:service_id>/delete/', views.admin_delete_service_view, name='admin_delete_service'),
+    path('dashboard/services/<int:service_id>/toggle/', views.admin_toggle_service_view, name='admin_toggle_service'),
+    path('dashboard/users/', views.admin_users_view, name='admin_users'),
+    path('dashboard/users/<int:user_id>/toggle/', views.admin_toggle_user_view, name='admin_toggle_user'),
+    path('dashboard/users/<int:user_id>/delete/', views.admin_delete_user_view, name='admin_delete_user'),
+    path('dashboard/users/<int:user_id>/password/', views.admin_user_change_password_view, name='admin_user_change_password'),
+    path('dashboard/reviews/', views.admin_reviews_view, name='admin_reviews'),
+    path('dashboard/reviews/<int:review_id>/delete/', views.admin_delete_review_view, name='admin_delete_review'),
 ]

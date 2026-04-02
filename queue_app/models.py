@@ -302,3 +302,31 @@ class MedicalRecord(models.Model):
 
     def __str__(self):
         return f'Мед. запись для {self.appointment.patient.get_full_name()} ({self.appointment.time_slot.date})'
+
+
+class SpecialistAbsence(models.Model):
+    """Отсутствие специалиста (отпуск, больничный, выходной)."""
+    specialist = models.ForeignKey(
+        Specialist,
+        on_delete=models.CASCADE,
+        related_name='absences',
+        verbose_name='Специалист'
+    )
+    start_date = models.DateField(verbose_name='Дата начала')
+    end_date = models.DateField(verbose_name='Дата окончания')
+    reason = models.CharField(
+        max_length=255, 
+        blank=True, 
+        verbose_name='Причина',
+        help_text='Например: Отпуск, Больничный, Личные обстоятельства'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Отсутствие специалиста'
+        verbose_name_plural = 'Отсутствие специалистов'
+        ordering = ['-start_date']
+
+    def __str__(self):
+        return f'{self.specialist.last_name} | {self.start_date} — {self.end_date}'
+

@@ -815,9 +815,10 @@ main { flex: 1; }
                                 </li>
                                 {% endif %}
                                 {% if user.is_staff %}
+
                                 <li>
-                                    <a class="dropdown-item" href="{% url 'staff_panel' %}">
-                                        <i class="bi bi-clipboard2-pulse me-2 text-success"></i> Панель сотрудника
+                                    <a class="dropdown-item" href="{% url 'admin_dashboard' %}">
+                                        <i class="bi bi-speedometer2 me-2 text-primary"></i> Админ-панель
                                     </a>
                                 </li>
                                 {% endif %}
@@ -884,7 +885,7 @@ main { flex: 1; }
     </div>
 
     <p class="text-white-50 small mb-4 mx-auto mx-md-0" style="line-height: 1.8; max-width: 320px;">
-        Интеллектуальная система управления очередями и онлайн-записи. Мы объединяем современные технологии и заботу о пациентах, делая медицину доступнее.
+        Интеллектуальная система управления очередями и онлайн-записи. Мы объединяем современные технологии и заботу о пациентах, делая медицину доступнее
     </p>
 
     <div class="d-flex gap-3 justify-content-center justify-content-md-start">
@@ -959,7 +960,7 @@ main { flex: 1; }
 
             <div class="pt-5 border-top border-secondary border-opacity-10 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                 <p class="text-white-50 small mb-0">
-                    &copy; {% now "Y" %} МедЗапись. Платформа для современной медицины.
+                    &copy; {% now "Y" %} МедЗапись. Платформа для современной медицины
                 </p>
                 <div class="d-flex gap-4">
                     <a href="#" class="text-white-50 small text-decoration-none hover-white transition-colors">Конфиденциальность</a>
@@ -1071,7 +1072,7 @@ main { flex: 1; }
                             <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
                                 <p class="text-white-50 small mb-0">
                                     <i class="bi bi-stars me-2 text-primary"></i> 
-                                    Посмотрите короткое видео выше, чтобы узнать, как за 2 минуты начать пользоваться системой.
+                                    Посмотрите короткое видео выше, чтобы узнать, как за 2 минуты начать пользоваться системой
                                 </p>
                             </div>
                         </div>
@@ -1084,28 +1085,28 @@ main { flex: 1; }
                                     <div class="step-blob flex-shrink-0">1</div>
                                     <div>
                                         <h6 class="text-white small fw-bold mb-1">Регистрация</h6>
-                                        <p class="text-white-50 xs-text mb-0">Создайте аккаунт по номеру телефона.</p>
+                                        <p class="text-white-50 xs-text mb-0">Создайте аккаунт по номеру телефона</p>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-3 align-items-start">
                                     <div class="step-blob flex-shrink-0">2</div>
                                     <div>
                                         <h6 class="text-white small fw-bold mb-1">Выбор врача</h6>
-                                        <p class="text-white-50 xs-text mb-0">Найдите нужного специалиста в списке.</p>
+                                        <p class="text-white-50 xs-text mb-0">Найдите нужного специалиста в списке</p>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-3 align-items-start">
                                     <div class="step-blob flex-shrink-0">3</div>
                                     <div>
                                         <h6 class="text-white small fw-bold mb-1">Запись на время</h6>
-                                        <p class="text-white-50 xs-text mb-0">Выберите удобное «окно» в календаре.</p>
+                                        <p class="text-white-50 xs-text mb-0">Выберите удобное «окно» в календаре</p>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-3 align-items-start bg-primary bg-opacity-10 border-start border-primary border-4 ps-3 py-2 rounded-end" style="margin-left: -1rem;">
                                     <div class="step-blob flex-shrink-0 bg-primary">4</div>
                                     <div>
                                         <h6 class="text-primary small fw-bold mb-1">Ваш талон</h6>
-                                        <p class="text-white-50 xs-text mb-0">Следите за очередью онлайн в реальном времени.</p>
+                                        <p class="text-white-50 xs-text mb-0">Следите за очередью онлайн в реальном времени</p>
                                     </div>
                                 </div>
                             </div>

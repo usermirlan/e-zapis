@@ -1,0 +1,99 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}График отсутствия — {{ specialist.last_name }}{% endblock %}
+{% block page_title %}Управление отсутствием врача{% endblock %}
+{% block breadcrumb %}Главная / Врачи / {{ specialist.last_name }} / Отсутствие{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Form Side -->
+    <div class="col-lg-4">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-calendar-plus text-primary me-2"></i>Добавить отсутствие</div>
+            </div>
+            <div class="p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Дата начала</label>
+                        <input type="date" name="start_date" class="form-control" required min="{{ today|date:'Y-m-d' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Дата окончания</label>
+                        <input type="date" name="end_date" class="form-control" required min="{{ today|date:'Y-m-d' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Причина (опционально)</label>
+                        <input type="text" name="reason" class="form-control" placeholder="Например: Отпуск или Больничный">
+                    </div>
+                    
+                    <div class="alert-admin alert-warning py-2 px-3" style="font-size: 0.8rem;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        Внимание: все существующие записи пациентов на эти даты будут автоматически <strong>отменены</strong>.
+                    </div>
+                    
+                    <button type="submit" class="btn-admin btn-admin-primary w-100 py-2 mt-3">
+                        Заблокировать даты
+                    </button>
+                    <a href="{% url 'admin_specialists' %}" class="btn-admin btn-admin-outline w-100 py-2 mt-2 text-center" style="text-decoration:none;">
+                        Вернуться к списку
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- List Side -->
+    <div class="col-lg-8">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title">
+                    <i class="bi bi-list-task text-primary me-2"></i> История и текущие отпуска врача
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Период</th>
+                            <th>Причина</th>
+                            <th>Создано</th>
+                            <th class="text-end">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for abs in absences %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="badge-status badge-cancelled" style="font-weight:700;">
+                                        {{ abs.start_date|date:"d.m.Y" }} — {{ abs.end_date|date:"d.m.Y" }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ abs.reason|default:"—" }}</td>
+                            <td class="text-muted small">{{ abs.created_at|date:"d.m.Y H:i" }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'admin_delete_absence' abs.pk %}" onsubmit="return confirm('Удалить запись об отсутствии? Свободные слоты будут восстановлены (если на них нет записей).')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-admin btn-admin-outline-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;">
+                                        <i class="bi bi-trash3"></i> Удалить
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="bi bi-calendar-check d-block mb-2" style="font-size:2rem; opacity:0.3;"></i>
+                                У данного врача нет запланированных отсутствий
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

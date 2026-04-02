@@ -1,0 +1,165 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Все записи — Админ-панель{% endblock %}
+{% block page_title %}Все записи{% endblock %}
+{% block breadcrumb %}Главная / Записи{% endblock %}
+
+{% block extra_css %}
+<style>
+.filter-bar { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; }
+.filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.filter-group label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<form method="get" class="filter-bar">
+    <div class="filter-group">
+        <label>Дата</label>
+        <input type="date" name="date" value="{{ selected_date }}" class="admin-input">
+    </div>
+    <div class="filter-group">
+        <label>Врач</label>
+        <select name="specialist" class="admin-select">
+            <option value="">Все врачи</option>
+            {% for s in specialists %}
+            <option value="{{ s.pk }}" {% if selected_specialist == s.pk|stringformat:"s" %}selected{% endif %}>
+                {{ s.get_full_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>Статус</label>
+        <select name="status" class="admin-select">
+            <option value="">Все статусы</option>
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn-admin btn-admin-primary" style="align-self:flex-end;">
+        <i class="bi bi-funnel"></i> Применить
+    </button>
+    <a href="{% url 'admin_appointments' %}" class="btn-admin btn-admin-outline" style="align-self:flex-end; text-decoration:none;">
+        <i class="bi bi-x"></i> Сбросить
+    </a>
+    <div class="ms-auto" style="align-self:flex-end;">
+        <span style="font-size:0.8rem; color:var(--muted);">Найдено: <strong>{{ appointments.paginator.count }}</strong></span>
+    </div>
+</form>
+
+<div class="panel-card">
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Талон</th>
+                    <th>Пациент</th>
+                    <th>Услуга</th>
+                    <th>Врач</th>
+                    <th>Дата / Время</th>
+                    <th>Кабинет</th>
+                    <th>Статус</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                <tr>
+                    <td>
+                        <span style="font-weight:800; color:var(--accent); font-size:1rem;">№{{ appt.queue_number }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="user-avatar" style="width:32px;height:32px;font-size:0.75rem;">
+                                {{ appt.patient.first_name|first|upper }}{{ appt.patient.last_name|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:0.875rem;">{{ appt.patient.get_full_name }}</div>
+                                <div style="font-size:0.72rem; color:var(--muted);">{{ appt.patient.phone|default:appt.patient.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span style="font-size:0.825rem;">{{ appt.service.name }}</span></td>
+                    <td>
+                        <div style="font-size:0.825rem; font-weight:500;">{{ appt.specialist.last_name }} {{ appt.specialist.first_name|first }}.</div>
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <div style="font-weight:600;">{{ appt.time_slot.date|date:"d.m.Y" }}</div>
+                        <div style="font-size:0.78rem; color:var(--muted);">{{ appt.time_slot.time|time:"H:i" }}</div>
+                    </td>
+                    <td style="font-size:0.825rem;">{{ appt.specialist.cabinet|default:"—" }}</td>
+                    <td>
+                        <span class="badge-status badge-{{ appt.status }}">{{ appt.get_status_display }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <form method="post" action="{% url 'update_appointment_status' appt.pk %}" class="d-flex gap-1">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            {% if appt.status == 'pending' %}
+                            <button name="status" value="confirmed" class="btn-admin btn-admin-success" style="padding:0.3rem 0.6rem; font-size:0.75rem;" title="Подтвердить">
+                                <i class="bi bi-check2-circle"></i>
+                            </button>
+                            {% endif %}
+                            {% if appt.status == 'confirmed' %}
+                            <button name="status" value="completed" class="btn-admin btn-admin-primary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" title="Завершить">
+                                <i class="bi bi-check2-all"></i>
+                            </button>
+                            {% endif %}
+                            {% if appt.status not in 'completed cancelled' %}
+                            <button name="status" value="cancelled" class="btn-admin btn-admin-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" title="Отменить">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                            {% endif %}
+                        </form>
+                        
+                        <form method="post" action="{% url 'admin_delete_appointment' appt.pk %}" onsubmit="return confirm('Вы уверены, что хотите полностью УДАЛИТЬ эту запись из базы данных?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="btn-admin" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:rgba(239,68,68,0.1); color:#dc2626; border:1px solid rgba(239,68,68,0.2);" title="Удалить из базы">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-x"></i>
+                            <p>Нет записей по выбранным фильтрам</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if appointments.has_other_pages %}
+    <div style="padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:0.8rem; color:var(--muted);">
+            Страница {{ appointments.number }} из {{ appointments.paginator.num_pages }}
+        </span>
+        <div class="d-flex gap-1">
+            {% if appointments.has_previous %}
+            <a href="?page={{ appointments.previous_page_number }}&date={{ selected_date }}&specialist={{ selected_specialist }}&status={{ selected_status }}"
+               class="btn-admin btn-admin-outline" style="padding:0.35rem 0.75rem; font-size:0.8rem; text-decoration:none;">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            {% endif %}
+            {% if appointments.has_next %}
+            <a href="?page={{ appointments.next_page_number }}&date={{ selected_date }}&specialist={{ selected_specialist }}&status={{ selected_status }}"
+               class="btn-admin btn-admin-outline" style="padding:0.35rem 0.75rem; font-size:0.8rem; text-decoration:none;">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

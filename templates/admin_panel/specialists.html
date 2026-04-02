@@ -1,0 +1,124 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Врачи — Админ-панель{% endblock %}
+{% block page_title %}Управление врачами{% endblock %}
+{% block breadcrumb %}Главная / Врачи{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div style="font-size:0.875rem; color:var(--muted);">Всего врачей: <strong>{{ specialists|length }}</strong></div>
+    <a href="{% url 'staff_add_doctor' %}" class="btn-admin btn-admin-primary" style="text-decoration:none;">
+        <i class="bi bi-plus-lg"></i> Добавить врача
+    </a>
+</div>
+
+<div class="row g-3">
+    {% for s in specialists %}
+    <div class="col-sm-6 col-xl-4">
+        <div class="panel-card" style="height:100%;">
+            <div style="padding: 1.25rem;">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <!-- Photo / Avatar -->
+                    <div style="position:relative; flex-shrink:0;">
+                        {% if s.photo %}
+                        <img src="{{ s.photo.url }}" alt="{{ s.get_full_name }}"
+                             style="width:56px;height:56px;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                        <div class="user-avatar" style="width:56px;height:56px;font-size:1.25rem;
+                             background:linear-gradient(135deg,#3b82f6,#8b5cf6);">
+                            {{ s.last_name|first|upper }}
+                        </div>
+                        {% endif %}
+                        <span style="position:absolute;bottom:0;right:0;width:12px;height:12px;
+                              border-radius:50%;border:2px solid white;
+                              background:{% if s.is_active %}#10b981{% else %}#ef4444{% endif %};"></span>
+                    </div>
+
+                    <!-- Info -->
+                    <div style="min-width:0; flex:1;">
+                        <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.2rem;">{{ s.get_full_name }}</div>
+                        <div style="font-size:0.8rem; color:var(--accent); font-weight:500;">{{ s.service.name }}</div>
+                    </div>
+
+                    <!-- Status badge -->
+                    <span class="badge-status {% if s.is_active %}badge-completed{% else %}badge-cancelled{% endif %}">
+                        {% if s.is_active %}Активен{% else %}Неактивен{% endif %}
+                    </span>
+                </div>
+
+                <!-- Details -->
+                <div style="display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem;">
+                    <div style="font-size:0.75rem; color: #1e40af; background: rgba(59,130,246,0.1); display:inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700; width: fit-content; margin-bottom: 4px;">
+                        <i class="bi bi-person-fill"></i> Логин: {{ s.user.username }}
+                    </div>
+                    {% if s.cabinet %}
+                    <div style="font-size:0.8rem; color:var(--muted); display:flex; align-items:center; gap:0.5rem;">
+                        <i class="bi bi-door-open" style="color:var(--accent);"></i>
+                        Кабинет {{ s.cabinet }}
+                    </div>
+                    {% endif %}
+                    <div style="font-size:0.8rem; color:var(--muted); display:flex; align-items:center; gap:0.5rem;">
+                        <i class="bi bi-award" style="color:var(--warning);"></i>
+                        Стаж: {{ s.experience_years }} лет
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted); display:flex; align-items:center; gap:0.5rem;">
+                        <i class="bi bi-clock" style="color:var(--success);"></i>
+                        {{ s.work_start|time:"H:i" }} — {{ s.work_end|time:"H:i" }}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted); display:flex; align-items:center; gap:0.5rem;">
+                        <i class="bi bi-calendar3" style="color:var(--purple);"></i>
+                        Записей: <strong>{{ s.appointments.count }}</strong>
+                    </div>
+                    {% if s.average_rating %}
+                    <div style="font-size:0.8rem; color:var(--muted); display:flex; align-items:center; gap:0.5rem;">
+                        <i class="bi bi-star-fill" style="color:#f59e0b;"></i>
+                        Рейтинг: <strong>{{ s.average_rating }}/5</strong>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex gap-1">
+                    <a href="{% url 'admin_edit_specialist' s.pk %}" class="btn-admin btn-admin-outline flex-fill" style="padding:0.4rem; justify-content:center; text-decoration:none; font-size:0.75rem;" title="Редактировать профиль">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    
+                    {% if s.user %}
+                    <a href="{% url 'admin_user_change_password' s.user.pk %}" class="btn-admin btn-admin-outline" 
+                       style="padding:0.4rem 0.6rem; font-size:0.75rem;" 
+                       title="Сменить пароль врача">
+                        <i class="bi bi-key-fill text-warning"></i>
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'admin_specialist_absence' s.pk %}" class="btn-admin btn-admin-outline" 
+                       style="padding:0.4rem 0.6rem; font-size:0.75rem;" 
+                       title="График отсутствия / Отпуск">
+                        <i class="bi bi-calendar-x text-danger"></i>
+                    </a>
+
+                    <a href="{% url 'admin_toggle_specialist' s.pk %}" class="btn-admin {% if s.is_active %}btn-admin-danger{% else %}btn-admin-success{% endif %}" style="padding:0.4rem 0.6rem; justify-content:center; text-decoration:none; font-size:0.75rem;" title="{% if s.is_active %}Деактивировать{% else %}Активировать{% endif %}">
+                        {% if s.is_active %}<i class="bi bi-pause-circle"></i>{% else %}<i class="bi bi-play-circle"></i>{% endif %}
+                    </a>
+                    
+                    <form method="post" action="{% url 'admin_delete_specialist' s.pk %}" class="d-flex">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-admin btn-admin-danger" style="padding:0.4rem 0.6rem; justify-content:center; font-size:0.75rem; border:none;" onclick="return confirm('Удалить врача {{ s.get_full_name }}?')">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="panel-card">
+            <div class="empty-state">
+                <i class="bi bi-person-badge"></i>
+                <p>Нет врачей. <a href="{% url 'staff_add_doctor' %}">Добавить первого врача →</a></p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -7,6 +7,8 @@ from .forms import RegisterForm, LoginForm, ProfileEditForm
 
 def register_view(request):
     if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.is_staff:
+            return redirect('admin_dashboard')
         return redirect('home')
 
     if request.method == 'POST':
@@ -27,6 +29,10 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.is_staff:
+            return redirect('admin_dashboard')
+        if request.user.is_doctor:
+            return redirect('doctor_dashboard')
         return redirect('home')
 
     if request.method == 'POST':
@@ -35,10 +41,15 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             messages.success(request, f'Добро пожаловать, {user.get_full_name()}!')
+            # Если администратор — перенаправить в админ-панель
+            if user.is_superuser or user.is_staff:
+                return redirect('admin_dashboard')
             # Если врач — перенаправить в кабинет врача
             if user.is_doctor:
                 return redirect('doctor_dashboard')
             next_url = request.GET.get('next', 'home')
+            if next_url == 'home' and (user.is_superuser or user.is_staff):
+                return redirect('admin_dashboard')
             return redirect(next_url)
         else:
             messages.error(request, 'Неверный логин или пароль.')

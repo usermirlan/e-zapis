@@ -154,7 +154,7 @@
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm rounded-3 overflow-hidden">
                                 {% if appt.status == 'pending' %}
-                                <form method="POST" action="{% url 'update_appointment_status_view' appt.id %}">
+                                <form method="POST" action="{% url 'update_appointment_status' appt.id %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="confirmed">
                                     <button type="submit" class="btn btn-sm btn-white border-0 py-2" title="Подтвердить">
@@ -249,6 +249,49 @@
             </nav>
         </div>
         {% endif %}
+    </div>
+
+    <!-- Specialists Section -->
+    <div class="mt-5 mb-5">
+        <h3 class="fw-bold mb-4">Наши специалисты</h3>
+        <div class="glass-card overflow-hidden border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light bg-opacity-50">
+                        <tr>
+                            <th class="ps-4 py-3 fw-bold text-muted small text-uppercase">Врач</th>
+                            <th class="py-3 fw-bold text-muted small text-uppercase">Специальность</th>
+                            <th class="py-3 fw-bold text-muted small text-uppercase text-end pe-4">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for specialist in specialists %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-placeholder text-primary">
+                                        {{ specialist.first_name|first }}{{ specialist.last_name|first }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ specialist.get_full_name }}</div>
+                                        <div class="text-muted small">ID: {{ specialist.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ specialist.service.name }}</td>
+                            <td class="text-end pe-4">
+                                {% if specialist.is_active %}
+                                    <span class="badge badge-soft-success px-3 py-2 rounded-pill">Активен</span>
+                                {% else %}
+                                    <span class="badge badge-soft-danger px-3 py-2 rounded-pill">Неактивен</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
