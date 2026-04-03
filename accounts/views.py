@@ -15,7 +15,7 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, f'Добро пожаловать, {user.get_full_name()}! Регистрация прошла успешно.')
             return redirect('home')
         else:
