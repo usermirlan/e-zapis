@@ -1,8 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
 from .forms import RegisterForm, LoginForm, ProfileEditForm
+from .models import CustomUser, EmailVerificationCode
 
 
 def register_view(request):
@@ -15,15 +18,102 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            messages.success(request, f'Добро пожаловать, {user.get_full_name()}! Регистрация прошла успешно.')
-            return redirect('home')
+            # Деактивируем пользователя до подтверждения email
+            user.is_active = False
+            user.save()
+
+            # Генерируем и сохраняем код
+            code_str = EmailVerificationCode.generate_code()
+            EmailVerificationCode.objects.update_or_create(
+                user=user,
+                defaults={'code': code_str}
+            )
+
+            # Отправляем письмо
+            try:
+                subject = 'Подтверждение регистрации — МедЗапись'
+                message = f'Здравствуйте, {user.get_full_name()}!\n\nВаш код для подтверждения регистрации: {code_str}\n\nВведите его на странице подтверждения, чтобы активировать аккаунт.'
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+                messages.success(request, 'Код подтверждения отправлен на ваш email.')
+            except Exception as e:
+                print(f"Error sending email: {e}")
+                messages.warning(request, 'Не удалось отправить email, но аккаунт создан. Пожалуйста, обратитесь в поддержку или попробуйте позже.')
+
+            return redirect('verify_email', user_id=user.id)
         else:
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = RegisterForm()
 
     return render(request, 'accounts/register.html', {'form': form})
+
+
+def verify_email_view(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    if user.is_active:
+        messages.info(request, 'Ваш email уже подтвержден.')
+        return redirect('login')
+
+    if request.method == 'POST':
+        code_input = request.POST.get('code')
+        try:
+            verification = EmailVerificationCode.objects.get(user=user)
+            if verification.code == code_input:
+                if verification.is_expired():
+                    messages.error(request, 'Код истек. Пожалуйста, запросите новый код.')
+                else:
+                    # Успех!
+                    user.is_active = True
+                    user.save()
+                    verification.delete()
+                    
+                    # Автоматический вход
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    messages.success(request, f'Добро пожаловать, {user.get_full_name()}! Ваш email успешно подтвержден.')
+                    return redirect('home')
+            else:
+                messages.error(request, 'Неверный код. Пожалуйста, проверьте и попробуйте снова.')
+        except EmailVerificationCode.DoesNotExist:
+            messages.error(request, 'Код не найден. Пожалуйста, запросите новый код.')
+
+    return render(request, 'accounts/verify_email.html', {'target_user': user})
+
+
+def resend_code_view(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    if user.is_active:
+        return redirect('login')
+
+    # Генерируем новый код
+    code_str = EmailVerificationCode.generate_code()
+    
+    # Удаляем старый код и создаем новый, чтобы обновить время создания (timestamp)
+    EmailVerificationCode.objects.filter(user=user).delete()
+    EmailVerificationCode.objects.create(user=user, code=code_str)
+
+    try:
+        subject = 'Новый код подтверждения — МедЗапись'
+        message = f'Ваш новый код для подтверждения регистрации: {code_str}'
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        messages.success(request, 'Новый код успешно отправлен на вашу почту.')
+    except Exception:
+        messages.error(request, 'Ошибка при отправке почты.')
+
+    return redirect('verify_email', user_id=user.id)
 
 
 

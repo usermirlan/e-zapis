@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Подтверждение Email — МедЗапись{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-envelope-check fs-1"></i>
+                        </div>
+                        <h2 class="fw-bold h3 mb-2">Подтвердите ваш Email</h2>
+                        <p class="text-muted small">Мы отправили 6-значный код на почту <br><span class="fw-semibold text-dark">{{ target_user.email }}</span></p>
+                    </div>
+
+                    <form method="post" action="{% url 'verify_email' target_user.id %}" id="verificationForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="code" class="form-label small fw-semibold text-uppercase tracking-wider text-muted">Введите 6-значный код</label>
+                            <input type="text" 
+                                   name="code" 
+                                   id="code" 
+                                   class="form-control form-control-lg text-center fw-bold fs-2 py-3 border-2 rounded-3" 
+                                   placeholder="000000" 
+                                   maxlength="6" 
+                                   pattern="\d{6}" 
+                                   required 
+                                   autofocus
+                                   style="letter-spacing: 0.5rem;">
+                            <div class="form-text text-center mt-2 small">
+                                Проверьте папку «Спам», если письмо не пришло.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-3 py-3 fw-bold transition-all hover-lift">
+                                <i class="bi bi-check2-circle me-2"></i>Подтвердить
+                            </button>
+                            <a href="{% url 'resend_code' target_user.id %}" class="btn btn-light btn-lg rounded-3 py-3 fw-semibold small text-muted border-0 transition-all">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Отправить код повторно
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'login' %}" class="text-decoration-none small text-muted">
+                            <i class="bi bi-arrow-left me-1"></i>Вернуться к входу
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tracking-wider { letter-spacing: 0.05rem; }
+    .transition-all { transition: all 0.3s ease; }
+    .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(var(--bs-primary-rgb), 0.2); }
+    
+    #code:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+</style>
+
+<script>
+    document.getElementById('code').addEventListener('input', function(e) {
+        // Only allow numbers
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        // Auto-submit if 6 digits entered
+        if (this.value.length === 6) {
+            // Optional: submit form automatically
+            // setTimeout(() => document.getElementById('verificationForm').submit(), 300);
+        }
+    });
+</script>
+{% endblock %}

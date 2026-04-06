@@ -17,4 +17,7 @@ urlpatterns = [
 
     # Профиль пользователя
     path('profile/', views.profile_view, name='profile'),
+    # Подтверждение email
+    path('verify-email/<int:user_id>/', views.verify_email_view, name='verify_email'),
+    path('resend-code/<int:user_id>/', views.resend_code_view, name='resend_code'),
 ]
