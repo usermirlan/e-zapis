@@ -1027,6 +1027,11 @@ def admin_dashboard_view(request):
         'patient', 'specialist', 'service', 'time_slot'
     ).order_by('-created_at')[:10]
 
+    # ── Recent user registrations ──
+    recent_users = CustomUser.objects.filter(
+        is_doctor=False, is_staff=False, is_superuser=False
+    ).order_by('-date_joined')[:5]
+
     # ── Line chart: last 7 days ──
     days_list = []
     counts_list = []
@@ -1091,6 +1096,18 @@ def admin_dashboard_view(request):
             'time': abs_obj.created_at
         })
 
+    # 4. Последние регистрации пользователей
+    for u in recent_users:
+        activities.append({
+            'type': 'registration',
+            'icon': 'bi-person-plus-fill',
+            'color': 'success',
+            'title': 'Новый пациент',
+            'text': f'Пользователь {u.get_full_name()} (Логин: {u.username}) зарегистрировался в системе',
+            'time': u.date_joined,
+            'status': 'Активен' if u.is_active else 'Ожидает подтв.'
+        })
+
     # Сортируем всё по времени (от новых к старым)
     activities.sort(key=lambda x: x['time'], reverse=True)
     activities = activities[:15]
@@ -1104,6 +1121,7 @@ def admin_dashboard_view(request):
         'week_total': week_total,
         'status_data': status_data,
         'recent_appointments': recent_appointments,
+        'recent_users': recent_users,
         'days_list': '[' + ','.join(days_list) + ']',
         'counts_list': counts_list,
         'top_specialists': top_specialists,

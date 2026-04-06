@@ -271,6 +271,36 @@
             </div>
         </div>
 
+        <!-- RECENT USERS -->
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <div class="panel-card-title"><i class="bi bi-people-fill text-info me-2"></i>Новые пациенты</div>
+                <a href="{% url 'admin_users' %}" style="font-size:0.78rem; color:var(--accent); text-decoration:none;">Все →</a>
+            </div>
+            <div class="panel-card-body">
+                {% for u in recent_users %}
+                <div class="specialist-item">
+                    <div class="user-avatar" style="background: linear-gradient(135deg, #10b981, #3b82f6); width:32px; height:32px; font-size:0.75rem;">
+                        {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:0.825rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            {{ u.get_full_name }}
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--muted);">{{ u.date_joined|date:"d.m.Y H:i" }}</div>
+                    </div>
+                    {% if not u.is_active %}
+                    <span class="badge-status badge-cancelled" style="font-size:0.6rem; padding: 0.1rem 0.3rem;">Ожидает</span>
+                    {% else %}
+                    <i class="bi bi-patch-check-fill text-success" style="font-size: 0.8rem;"></i>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="empty-state" style="padding:1.5rem;"><i class="bi bi-people"></i>Нет новых пользователей</div>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- RECENT ACTIVITIES (Notification Center) -->
         <div class="panel-card">
             <div class="panel-card-header">

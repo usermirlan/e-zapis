@@ -27,9 +27,8 @@ SECRET_KEY = _cfg(
     default='django-insecure-clinic-queue-secret-key-change-in-production-2024'
 )
 
-DEBUG = _cfg('DEBUG', default=True, cast=bool)
-
 ALLOWED_HOSTS = ['ezapis.pythonanywhere.com', 'localhost', '127.0.0.1', '*']
+DEBUG = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ─── Приложения ───────────────────────────────────────────────────────────────
