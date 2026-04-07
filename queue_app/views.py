@@ -56,23 +56,6 @@ def home_view(request):
     })
 
 
-def fix_social_apps_view(request):
-    """Временная функция для удаления дублей Google в базе сайта."""
-    try:
-        from allauth.socialaccount.models import SocialApp
-        google_apps = SocialApp.objects.filter(provider='google')
-        count = google_apps.count()
-        if count > 1:
-            to_keep = google_apps.first()
-            deleted_count = google_apps.exclude(id=to_keep.id).delete()[0]
-            message = f"Успех! Было {count} записей Google. Удалено лишних: {deleted_count}. Оставлена одна."
-        else:
-            message = f"В этой базе данных порядок. Найдено записей Google: {count}"
-        return JsonResponse({"status": "ok", "message": message})
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})
-
-
 # ─── Услуги ───────────────────────────────────────────────────────────────────
 
 def services_view(request):
