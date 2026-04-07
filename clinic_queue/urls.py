@@ -16,6 +16,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('fix-social/', app_views.fix_social_apps_view),
     path('', include('queue_app.urls')),
 ]
 
