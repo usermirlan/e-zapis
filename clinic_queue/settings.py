@@ -203,6 +203,9 @@ try:
         MIDDLEWARE.insert(6, 'allauth.account.middleware.AccountMiddleware')
     if 'allauth.account.auth_backends.AuthenticationBackend' not in AUTHENTICATION_BACKENDS:
         AUTHENTICATION_BACKENDS.append('allauth.account.auth_backends.AuthenticationBackend')
+    
+    # Use robust adapter to prevent MultipleObjectsReturned errors
+    SOCIALACCOUNT_ADAPTER = 'accounts.adapter.RobustSocialAccountAdapter'
 except ImportError:
     pass
 
