@@ -41,44 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Required by allauth
 
-    # Third-party
-
     # Наши приложения
     'accounts',   # Аутентификация и пользователи
     'queue_app',  # Очереди, услуги, специалисты
 ]
-
-# Daphne and Channels are loaded safely for compatibility with environments 
-# where they might be missing (like some PythonAnywhere quotas).
-try:
-    import daphne
-    INSTALLED_APPS.insert(0, 'daphne')
-except ImportError:
-    pass
-
-try:
-    import allauth
-    if 'allauth' not in INSTALLED_APPS:
-        INSTALLED_APPS += [
-            'allauth',
-            'allauth.account',
-            'allauth.socialaccount',
-            'allauth.socialaccount.providers.google',
-        ]
-    # Add allauth middleware and backend dynamically
-    if 'allauth.account.middleware.AccountMiddleware' not in MIDDLEWARE:
-        MIDDLEWARE.insert(6, 'allauth.account.middleware.AccountMiddleware')
-    if 'allauth.account.auth_backends.AuthenticationBackend' not in AUTHENTICATION_BACKENDS:
-        AUTHENTICATION_BACKENDS.append('allauth.account.auth_backends.AuthenticationBackend')
-except ImportError:
-    pass
-
-try:
-    import channels
-    if 'channels' not in INSTALLED_APPS:
-        INSTALLED_APPS.append('channels')
-except ImportError:
-    pass
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -213,3 +179,36 @@ MESSAGE_TAGS = {
     message_constants.ERROR: 'danger',
 }
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000  
+
+# ─── Динамическое подключение (Survival Mode) ──────────────────────────────────
+# Daphne, Allauth and Channels are loaded safely for compatibility
+try:
+    import daphne
+    if 'daphne' not in INSTALLED_APPS:
+        INSTALLED_APPS.insert(0, 'daphne')
+except ImportError:
+    pass
+
+try:
+    import allauth
+    if 'allauth' not in INSTALLED_APPS:
+        INSTALLED_APPS += [
+            'allauth',
+            'allauth.account',
+            'allauth.socialaccount',
+            'allauth.socialaccount.providers.google',
+        ]
+    # Add allauth middleware and backend dynamically
+    if 'allauth.account.middleware.AccountMiddleware' not in MIDDLEWARE:
+        MIDDLEWARE.insert(6, 'allauth.account.middleware.AccountMiddleware')
+    if 'allauth.account.auth_backends.AuthenticationBackend' not in AUTHENTICATION_BACKENDS:
+        AUTHENTICATION_BACKENDS.append('allauth.account.auth_backends.AuthenticationBackend')
+except ImportError:
+    pass
+
+try:
+    import channels
+    if 'channels' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('channels')
+except ImportError:
+    pass
