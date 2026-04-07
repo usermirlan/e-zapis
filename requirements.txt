@@ -5,6 +5,6 @@ django-cors-headers==4.3.1
 gunicorn
 whitenoise
 python-decouple
-daphne
-channels
-django-allauth
+daphne==4.0.0
+channels==4.0.0
+django-allauth==64.2.1

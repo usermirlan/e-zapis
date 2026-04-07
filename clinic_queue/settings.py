@@ -42,21 +42,39 @@ INSTALLED_APPS = [
     'django.contrib.sites',  # Required by allauth
 
     # Third-party
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'channels',
+    'django.contrib.sites',  # Required by allauth
 
     # Наши приложения
     'accounts',   # Аутентификация и пользователи
     'queue_app',  # Очереди, услуги, специалисты
 ]
 
-# Daphne must be first for ASGI, but we load it safely for compatibility
+# Daphne and Channels are loaded safely for compatibility with environments 
+# where they might be missing (like some PythonAnywhere quotas).
 try:
     import daphne
     INSTALLED_APPS.insert(0, 'daphne')
+except ImportError:
+    pass
+
+try:
+    import allauth
+    # Only add allauth to INSTALLED_APPS if it's actually installed
+    if 'allauth' not in INSTALLED_APPS:
+        INSTALLED_APPS += [
+            'allauth',
+            'allauth.account',
+            'allauth.socialaccount',
+            'allauth.socialaccount.providers.google',
+        ]
+except ImportError:
+    # If allauth is missing, we must ensure 'django.contrib.sites' remains if needed
+    pass
+
+try:
+    import channels
+    if 'channels' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('channels')
 except ImportError:
     pass
 
