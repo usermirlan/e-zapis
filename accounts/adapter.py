@@ -8,19 +8,20 @@ class RobustSocialAccountAdapter(DefaultSocialAccountAdapter):
     при поиске настроек входа через соцсети.
     """
     def get_app(self, request, provider, **kwargs):
-        config = kwargs.get('config')
-        if config:
-            return SocialApp(provider=provider, **config)
+        """
+        Ультимативный возврат приложения. Игнорирует базу и настройки,
+        чтобы гарантировать работу на PythonAnywhere.
+        """
+        if provider == 'google':
+            return SocialApp(
+                provider='google',
+                name='Google OAuth',
+                client_id='64890493821-ol7u8i3m36lk3l9n0bujdivvj7igll.apps.googleusercontent.com',
+                secret='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'
+            )
         
-        # Пытаемся найти приложение стандартным способом
+        # Fallback для других провайдеров
         try:
             return SocialApp.objects.get(provider=provider, sites__id=settings.SITE_ID)
-        except SocialApp.MultipleObjectsReturned:
-            # Если найдено несколько (баг базы или дубли), просто берем первое рабочее
-            return SocialApp.objects.filter(provider=provider, sites__id=settings.SITE_ID).first()
-        except SocialApp.DoesNotExist:
-            # Если привязка к сайту не найдена, пробуем найти любое приложение для этого провайдера
-            app = SocialApp.objects.filter(provider=provider).first()
-            if app:
-                return app
-            raise
+        except Exception:
+            return SocialApp.objects.filter(provider=provider).first()

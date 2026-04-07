@@ -31,6 +31,14 @@ ALLOWED_HOSTS = ['ezapis.pythonanywhere.com', 'localhost', '127.0.0.1', '*']
 DEBUG = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# CSRF & Session Security for Production
+CSRF_TRUSTED_ORIGINS = ['https://ezapis.pythonanywhere.com']
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False  # Allows JS to read the cookie if needed for AJAX
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
 # ─── Приложения ───────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
