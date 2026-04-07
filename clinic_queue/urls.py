@@ -7,6 +7,7 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views import defaults as default_views
+from queue_app import views as app_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,5 +29,5 @@ if settings.DEBUG:
 
 # Ловушка 404 для DEBUG=True (ставим в самый конец!)
 urlpatterns += [
-    re_path(r'^.*$', default_views.page_not_found, {'exception': Exception("Page not found")}),
+    re_path(r'^.*$', app_views.custom_404_view),
 ]

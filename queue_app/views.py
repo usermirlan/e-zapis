@@ -1482,3 +1482,8 @@ def admin_delete_review_view(request, review_id):
     review.delete()
     messages.success(request, 'Отзыв удалён.')
     return redirect('admin_reviews')
+
+
+def custom_404_view(request, exception=None):
+    """Принудительный показ премиальной страницы 404 (даже при DEBUG=True)."""
+    return render(request, '404.html', status=404)
