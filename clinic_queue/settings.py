@@ -59,7 +59,6 @@ except ImportError:
 
 try:
     import allauth
-    # Only add allauth to INSTALLED_APPS if it's actually installed
     if 'allauth' not in INSTALLED_APPS:
         INSTALLED_APPS += [
             'allauth',
@@ -67,8 +66,12 @@ try:
             'allauth.socialaccount',
             'allauth.socialaccount.providers.google',
         ]
+    # Add allauth middleware and backend dynamically
+    if 'allauth.account.middleware.AccountMiddleware' not in MIDDLEWARE:
+        MIDDLEWARE.insert(6, 'allauth.account.middleware.AccountMiddleware')
+    if 'allauth.account.auth_backends.AuthenticationBackend' not in AUTHENTICATION_BACKENDS:
+        AUTHENTICATION_BACKENDS.append('allauth.account.auth_backends.AuthenticationBackend')
 except ImportError:
-    # If allauth is missing, we must ensure 'django.contrib.sites' remains if needed
     pass
 
 try:
@@ -85,7 +88,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'allauth.account.middleware.AccountMiddleware',  # allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -122,10 +124,8 @@ DATABASES = {
 # ─── Кастомная модель пользователя ────────────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-# ─── Authentication backends (allauth) ───────────────────────────────────────
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 # ─── Django Sites Framework ───────────────────────────────────────────────────
