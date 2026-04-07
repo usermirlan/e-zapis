@@ -16,6 +16,16 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
+]
+
+# Dynamic Allauth URLs inclusion (Survival Mode)
+try:
+    import allauth
+    urlpatterns.append(path('accounts/', include('allauth.urls')))
+except ImportError:
+    pass
+
+urlpatterns += [
     path('', include('queue_app.urls')),
 ]
 
