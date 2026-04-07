@@ -15,10 +15,13 @@ urlpatterns = [
     path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico')),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('accounts/', include('allauth.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('queue_app.urls')),
 ]
+
+if 'allauth' in settings.INSTALLED_APPS:
+    # Adding allauth urls only if the app is installed
+    urlpatterns.insert(3, path('accounts/', include('allauth.urls')))
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
