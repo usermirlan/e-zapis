@@ -7,7 +7,8 @@ class RobustSocialAccountAdapter(DefaultSocialAccountAdapter):
     Улучшенный адаптер, который предотвращает ошибку MultipleObjectsReturned
     при поиске настроек входа через соцсети.
     """
-    def get_app(self, request, provider, config=None):
+    def get_app(self, request, provider, **kwargs):
+        config = kwargs.get('config')
         if config:
             return SocialApp(provider=provider, **config)
         
