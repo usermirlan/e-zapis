@@ -630,20 +630,25 @@ def doctor_update_status_view(request, appointment_id):
         )
 
         # ── Real-Time WebSocket broadcast ──
-        from channels.layers import get_channel_layer
-        from asgiref.sync import async_to_sync
-        channel_layer = get_channel_layer()
-        group_name = f'queue_{specialist.id}'
-        async_to_sync(channel_layer.group_send)(
-            group_name,
-            {
-                'type': 'queue_update',
-                'appointment_id': appointment.id,
-                'status': appointment.status,
-                'status_display': appointment.get_status_display(),
-                'queue_number': appointment.queue_number,
-            }
-        )
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                group_name = f'queue_{specialist.id}'
+                async_to_sync(channel_layer.group_send)(
+                    group_name,
+                    {
+                        'type': 'queue_update',
+                        'appointment_id': appointment.id,
+                        'status': appointment.status,
+                        'status_display': appointment.get_status_display(),
+                        'queue_number': appointment.queue_number,
+                    }
+                )
+        except ImportError:
+            # Skip real-time update if channels is not available
+            pass
     else:
         messages.error(request, 'Неверный статус.')
 

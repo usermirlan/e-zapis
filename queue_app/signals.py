@@ -1,14 +1,18 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+try:
+    from channels.layers import get_channel_layer
+    CHANNELS_AVAILABLE = True
+except ImportError:
+    CHANNELS_AVAILABLE = False
 from .models import Notification
 
 
 @receiver(post_save, sender=Notification)
 def broadcast_notification(sender, instance, created, **kwargs):
     """Отправка уведомления Real-time через WebSocket при создании записи в БД."""
-    if created:
+    if created and CHANNELS_AVAILABLE:
         channel_layer = get_channel_layer()
         if channel_layer:
             group_name = f'user_notifications_{instance.user.id}'
