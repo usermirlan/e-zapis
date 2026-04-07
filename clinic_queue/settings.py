@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.sites',  # Required by allauth
 
     # Third-party
-    'django.contrib.sites',  # Required by allauth
 
     # Наши приложения
     'accounts',   # Аутентификация и пользователи
