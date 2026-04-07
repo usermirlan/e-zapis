@@ -44,6 +44,14 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger mb-4 rounded-3 border-0 shadow-sm">
+                    {% for error in form.non_field_errors %}
+                        <div class="d-flex align-items-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             <div class="panel-card mb-4">
                 <div class="panel-card-header">
                     <div class="panel-card-title"><i class="bi bi-person-badge text-primary me-2"></i>Основная информация</div>
@@ -116,6 +124,11 @@
                             <label class="form-label">E-mail</label>
                             {{ form.email }}
                             {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Номер телефона</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Пароль</label>

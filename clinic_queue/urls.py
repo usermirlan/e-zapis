@@ -6,20 +6,17 @@ admin.site.site_url = None
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views import defaults as default_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('accounts/', include('allauth.urls')),  # Google OAuth
-
-    # Встроенный Django password reset flow
+    path('accounts/', include('allauth.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-
     path('', include('queue_app.urls')),
 ]
 
 if settings.DEBUG:
-    from django.views import defaults as default_views
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     # Тестовые маршруты для аутентичного просмотра страниц ошибок

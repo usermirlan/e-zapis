@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q, Avg, Count
+from django.core.exceptions import PermissionDenied
 from django.views.generic import TemplateView, View, CreateView, UpdateView
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
@@ -21,7 +22,7 @@ from accounts.forms import DoctorRegisterForm
 # ─── Вспомогательная функция ──────────────────────────────────────────────────
 
 def is_staff_user(user):
-    return user.is_authenticated and (user.is_staff or user.is_superuser)
+    return user.is_authenticated and user.is_active and (user.is_staff or user.is_superuser)
 
 
 # ─── Главная ──────────────────────────────────────────────────────────────────
@@ -491,7 +492,7 @@ def api_time_slots(request, specialist_id):
 # ─── Утилита: проверка "является ли врачом" ───────────────────────────────────
 
 def is_doctor(user):
-    return user.is_authenticated and user.is_doctor and hasattr(user, 'specialist_profile')
+    return user.is_authenticated and user.is_active and user.is_doctor and hasattr(user, 'specialist_profile')
 
 
 def doctor_required(view_func):
@@ -502,8 +503,7 @@ def doctor_required(view_func):
         if not request.user.is_authenticated:
             return redirect('login')
         if not is_doctor(request.user):
-            messages.error(request, 'У вас нет доступа к кабинету врача.')
-            return redirect('home')
+            raise PermissionDenied
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -986,7 +986,7 @@ def doctor_add_manual_slot_view(request):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def is_admin_user(user):
-    return user.is_authenticated and (user.is_staff or user.is_superuser)
+    return user.is_authenticated and user.is_active and (user.is_staff or user.is_superuser)
 
 
 def admin_required(view_func):
@@ -997,8 +997,7 @@ def admin_required(view_func):
         if not request.user.is_authenticated:
             return redirect('login')
         if not is_admin_user(request.user):
-            messages.error(request, 'У вас нет доступа к панели администратора.')
-            return redirect('home')
+            raise PermissionDenied
         return view_func(request, *args, **kwargs)
     return wrapper
 
