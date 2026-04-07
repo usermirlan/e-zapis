@@ -113,6 +113,10 @@ SOCIALACCOUNT_PROVIDERS = {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
         'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': '64890493821-ol7u8i3m36lk3l9n0bujdivvj7igll.apps.googleusercontent.com',
+            'secret': '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',
+        }
     }
 }
 
