@@ -7,9 +7,12 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views import defaults as default_views
+from django.views.generic import RedirectView
 from queue_app import views as app_views
 
 urlpatterns = [
+    # Favicon Redirect to solve 404s
+    path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico')),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('allauth.urls')),

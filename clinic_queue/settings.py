@@ -33,7 +33,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ─── Приложения ───────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
-    'daphne',  # Must be FIRST for ASGI
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,6 +52,13 @@ INSTALLED_APPS = [
     'accounts',   # Аутентификация и пользователи
     'queue_app',  # Очереди, услуги, специалисты
 ]
+
+# Daphne must be first for ASGI, but we load it safely for compatibility
+try:
+    import daphne
+    INSTALLED_APPS.insert(0, 'daphne')
+except ImportError:
+    pass
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
