@@ -33,8 +33,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # CSRF & Session Security for Production
 CSRF_TRUSTED_ORIGINS = ['https://ezapis.pythonanywhere.com']
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = not DEBUG  # False on localhost (HTTP), True on production (HTTPS)
+CSRF_COOKIE_SECURE = not DEBUG    # False on localhost (HTTP), True on production (HTTPS)
 CSRF_COOKIE_HTTPONLY = False  # Allows JS to read the cookie if needed for AJAX
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -122,7 +122,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'access_type': 'online'},
         'OAUTH_PKCE_ENABLED': True,
         'APP': {
-            'client_id': '64890493821-ol7u8i3m36lk3l9n0bujdivvj7igll.apps.googleusercontent.com',
+            'client_id': '64890493821-0l7u8i3m36lk3l9n0bjujdivv7jtigll.apps.googleusercontent.com',
             'secret': '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',
         }
     }
