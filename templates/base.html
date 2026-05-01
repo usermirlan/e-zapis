@@ -22,27 +22,51 @@
     <!-- Bootstrap Icons (Non-blocking) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" media="print" onload="this.media='all'">
     <!-- Google Fonts (Non-blocking) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <!-- Наш стиль (Inlined for performance) -->
     <style>
 :root {
-    --primary:       #2563EB;
-    --primary-dark:  #1D4ED8;
-    --primary-light: #EFF6FF;
+    --primary:       #3b82f6;
+    --primary-dark:  #1d4ed8;
+    --primary-light: rgba(59, 130, 246, 0.1);
+    --secondary:     #8b5cf6;
     --success:       #10B981;
     --warning:       #F59E0B;
     --danger:        #EF4444;
-    --dark:          #0F172A;
-    --body-bg:       #F8FAFC;
+    --dark:          #020617;
+    --body-bg:       #f8fafc;
     --card-bg:       #FFFFFF;
     --text-muted:    #64748B;
     --border:        #E2E8F0;
-    --radius:        12px;
-    --radius-lg:     20px;
-    --shadow:        0 4px 20px rgba(0,0,0,0.08);
-    --shadow-md:     0 8px 32px rgba(37,99,235,0.12);
-    --font:          'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --transition:    all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --radius:        16px;
+    --radius-lg:     24px;
+    --shadow:        0 10px 40px -10px rgba(0,0,0,0.08);
+    --shadow-md:     0 20px 40px -10px rgba(59, 130, 246, 0.15);
+    --font:          'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --transition:    all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    /* Theme Variables */
+    --hero-bg:       #020617;
+    --hero-text:     #ffffff;
+    --hero-text-muted: rgba(255,255,255,0.7);
+    --nav-bg:        rgba(2, 6, 23, 0.85);
+    --nav-scrolled:  rgba(15, 23, 42, 0.9);
+    --nav-text:      #ffffff;
+    --glass-bg:      rgba(255, 255, 255, 0.03);
+    --glass-border:  rgba(255, 255, 255, 0.1);
+    --glass-shadow:  rgba(0, 0, 0, 0.3);
+}
+
+body.light-theme {
+    --hero-bg:       #f8fafc;
+    --hero-text:     #0f172a;
+    --hero-text-muted: #64748b;
+    --nav-bg:        rgba(255, 255, 255, 0.85);
+    --nav-scrolled:  rgba(255, 255, 255, 0.95);
+    --nav-text:      #0f172a;
+    --glass-bg:      rgba(255, 255, 255, 0.7);
+    --glass-border:  rgba(0, 0, 0, 0.05);
+    --glass-shadow:  rgba(0, 0, 0, 0.05);
 }
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--body-bg); }
@@ -65,18 +89,20 @@ body {
 }
 main { flex: 1; }
 #mainNavbar {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-    box-shadow: 0 2px 20px rgba(37,99,235,0.3);
-    padding: 0.75rem 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1030;
 }
 #mainNavbar.navbar-scrolled {
     padding: 0.6rem 0;
-    background: rgba(15, 23, 42, 0.9) !important; 
+    background: var(--nav-scrolled) !important; 
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
 }
 .navbar-hidden {
     transform: translateY(-100%);
@@ -84,30 +110,65 @@ main { flex: 1; }
 }
 .brand-icon {
     width: 38px; height: 38px;
-    background: rgba(255,255,255,0.2);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--nav-text);
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.25rem;
     backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
 }
-.brand-text { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; }
+.navbar-brand:hover .brand-icon {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.05) rotate(-5deg);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+.brand-text { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; color: var(--nav-text); }
 .navbar-nav .nav-link {
+    color: var(--nav-text) !important;
     font-weight: 500;
     padding: 0.5rem 1rem !important;
     border-radius: 8px;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
+    position: relative;
+}
+.navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 1rem; right: 1rem;
+    height: 2px;
+    background: #8b5cf6;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+}
+.navbar-nav .nav-link:hover::after,
+.navbar-nav .nav-link.active::after {
+    transform: scaleX(1);
+    transform-origin: left;
 }
 .navbar-nav .nav-link:hover,
 .navbar-nav .nav-link.active {
-    background: rgba(255,255,255,0.15);
+    color: var(--primary) !important;
+    background: transparent !important;
 }
 .hero-section {
     position: relative;
-    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 60%, #2563EB 100%);
-    color: white;
-    padding: 6rem 0 5rem;
+    background: var(--hero-bg);
+    color: var(--hero-text);
+    padding: 8rem 0 6rem;
     overflow: hidden;
     width: 100%;
+}
+.hero-bg-gradient {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+    z-index: 0;
 }
 @media (max-width: 991px) {
     .navbar-collapse {
@@ -230,14 +291,14 @@ main { flex: 1; }
 .hero-badge {
     display: inline-flex;
     align-items: center;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 50px;
     padding: 0.4rem 1rem;
     font-size: 0.875rem;
     font-weight: 500;
     backdrop-filter: blur(8px);
-    color: white;
+    color: var(--hero-text);
 }
 .hero-title {
     font-size: clamp(2rem, 5vw, 3.25rem);
@@ -247,56 +308,139 @@ main { flex: 1; }
     margin-bottom: 1.25rem;
 }
 .text-gradient {
-    background: linear-gradient(135deg, #60A5FA, #A78BFA);
+    background: linear-gradient(135deg, #38bdf8, #818cf8, #e879f9);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: shine 5s linear infinite;
+}
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
 }
 .hero-subtitle {
     font-size: 1.125rem;
-    color: rgba(255,255,255,0.8);
+    color: var(--hero-text-muted);
     max-width: 520px;
     line-height: 1.7;
 }
 .hero-illustration {
-    width: 320px; height: 320px;
-    background: rgba(255,255,255,0.12);
-    border: 2px solid rgba(255,255,255,0.25);
+    position: relative;
+    width: 100%; height: 450px;
+    display: flex; align-items: center; justify-content: center;
+    animation: floatAnim 6s ease-in-out infinite;
+    z-index: 2;
+}
+.hero-glass-card {
+    position: absolute;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 var(--glass-shadow);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--hero-text);
+    animation: floatAnimCard 8s ease-in-out infinite;
+    z-index: 10;
+}
+.hero-glass-card.card-1 { top: 5%; right: 5%; animation-delay: 0s; }
+.hero-glass-card.card-2 { bottom: 10%; left: 0%; animation-delay: -2s; }
+.hero-glass-card.card-3 { top: 40%; right: -10%; animation-delay: -4s; }
+
+.glass-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+}
+.glass-icon.blue { background: rgba(59, 130, 246, 0.2); color: #60A5FA; }
+.glass-icon.purple { background: rgba(139, 92, 246, 0.2); color: #A78BFA; }
+.glass-icon.green { background: rgba(16, 185, 129, 0.2); color: #34D399; }
+
+.glass-text-sm { font-size: 0.8rem; opacity: 0.7; margin-bottom: 0.1rem; }
+.glass-text-lg { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
+
+.premium-orb {
+    position: relative;
+    width: 250px; height: 250px;
+    display: flex; align-items: center; justify-content: center;
+}
+.orb-core {
+    width: 140px; height: 140px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 10rem;
-    color: rgba(255,255,255,0.6);
-    backdrop-filter: blur(10px);
-    animation: floatAnim 4s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(255,255,255,0.5);
+    z-index: 5;
+    animation: pulseHeart 2s infinite;
 }
+.orb-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    animation: expandRing 3s infinite linear;
+}
+.orb-ring.ring-1 { width: 100%; height: 100%; animation-delay: 0s; }
+.orb-ring.ring-2 { width: 80%; height: 80%; animation-delay: 1.5s; }
+
+@keyframes pulseHeart {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+    50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(139, 92, 246, 0.8); }
+}
+@keyframes expandRing {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
 @keyframes floatAnim {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+    50% { transform: translateY(-20px); }
+}
+@keyframes floatAnimCard {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
 }
 .min-vh-65 { min-height: 65vh; }
 .stats-section {
     background: white;
     border-bottom: 1px solid var(--border);
+    position: relative;
+    z-index: 10;
 }
 .stat-card {
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    transition: transform 0.2s;
+    padding: 1rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
 }
-.stat-card:hover { transform: translateY(-3px); }
+.stat-card:hover { 
+    transform: translateY(-8px); 
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.03);
+}
 .stat-num {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 800;
-    color: var(--primary);
-    line-height: 1;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
 }
 .stat-label {
     font-size: 0.8rem;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     margin-top: 4px;
-    font-weight: 500;
+    font-weight: 700;
 }
 .section-badge {
     display: inline-block;
@@ -620,29 +764,35 @@ main { flex: 1; }
     transition: all 0.2s;
 }
 .btn-primary {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border: none;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, var(--secondary), var(--primary));
+    z-index: -1;
+    transition: opacity 0.4s ease;
+    opacity: 0;
 }
 .btn-primary:hover, .btn-premium-glow:hover {
-    background: var(--primary-dark);
-    border-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37,99,235,0.35), 0 0 0 1px rgba(255,255,255,0.1);
-    filter: brightness(1.1);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4), 0 0 0 2px rgba(255,255,255,0.1);
+    color: white;
 }
-.btn-outline-primary { border-color: var(--primary); color: var(--primary); }
-.btn-outline-primary:hover { 
-    background: var(--primary); 
-    color: white; 
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+.btn-primary:hover::before {
+    opacity: 1;
 }
 .fade-in-up {
-    animation: fadeInUp 0.6s ease-out forwards;
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
 }
 @keyframes fadeInUp {
-    from { transform: translateY(30px); opacity: 0; }
+    from { transform: translateY(40px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 #backToTop {
@@ -723,6 +873,10 @@ main { flex: 1; }
     </style>
 
     {% block extra_css %}{% endblock %}
+    
+    <!-- Lottie & Lordicon Scripts -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
 </head>
 
 <body>
@@ -770,12 +924,17 @@ main { flex: 1; }
                 <!-- Правая часть навбара -->
                 <div class="navbar-divider d-lg-none"></div>
                 <div class="nav-actions-wrapper">
+                    <!-- Theme Toggle -->
+                    <button class="btn nav-action-btn theme-toggle-btn" id="themeToggle" title="Сменить фон" style="border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--nav-text);">
+                        <i class="bi bi-sun-fill" id="themeIcon"></i>
+                    </button>
+
                     <!-- Язык -->
-                    <div class="lang-switch nav-action-btn" onclick="window.langManager.toggle()" style="cursor: pointer; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);">
-                        <i class="bi bi-globe2 text-white me-2" style="opacity: 0.9;"></i>
-                        <span id="langCurrent" class="text-white fw-bold">RU</span>
-                        <span class="text-white-50 mx-1">/</span>
-                        <span id="langOther" class="text-white-50">КЫ</span>
+                    <div class="lang-switch nav-action-btn" onclick="window.langManager.toggle()" style="cursor: pointer; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--nav-text);">
+                        <i class="bi bi-globe2 me-2" style="opacity: 0.9;"></i>
+                        <span id="langCurrent" class="fw-bold">RU</span>
+                        <span class="mx-1" style="opacity: 0.5;">/</span>
+                        <span id="langOther" style="opacity: 0.5;">КЫ</span>
                     </div>
                     
                     {% if user.is_authenticated %}
@@ -1116,9 +1275,38 @@ main { flex: 1; }
             </div>
         </div>
     </div>
+    <!-- Theme Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggleBtn = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            
+            if (currentTheme === 'light') {
+                document.body.classList.add('light-theme');
+                if(themeIcon) themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
+            }
+            
+            if(themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', function() {
+                    document.body.classList.toggle('light-theme');
+                    
+                    let theme = 'dark';
+                    if (document.body.classList.contains('light-theme')) {
+                        theme = 'light';
+                        if(themeIcon) themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
+                    } else {
+                        if(themeIcon) themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+                    }
+                    
+                    localStorage.setItem('theme', theme);
+                });
+            }
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
-
 </body>
 
 </html>

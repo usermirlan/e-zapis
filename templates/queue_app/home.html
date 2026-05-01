@@ -7,19 +7,8 @@
 
 <!-- ─── ГЕРОЙ-СЕКЦИЯ ─────────────────────────────────────────────────────── -->
 <section class="hero-section">
-    <!-- Animated floating particles -->
-    <div class="hero-particles">
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-        <div class="hero-particle"></div>
-    </div>
+    <!-- Ambient background glow -->
+    <div class="hero-bg-gradient"></div>
     <div class="container position-relative fade-in-up" style="z-index: 2;">
         <div class="row align-items-center min-vh-65">
             <div class="col-lg-6">
@@ -48,7 +37,47 @@
             </div>
             <div class="col-lg-6 d-none d-lg-flex justify-content-center">
                 <div class="hero-illustration">
-                    <i class="bi bi-hospital-fill"></i>
+                    <!-- Glass Card 1 -->
+                    <div class="hero-glass-card card-1">
+                        <div class="glass-icon blue">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div>
+                            <div class="glass-text-sm">Рейтинг</div>
+                            <div class="glass-text-lg">4.9/5.0</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Glass Card 2 -->
+                    <div class="hero-glass-card card-2">
+                        <div class="glass-icon green">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div>
+                            <div class="glass-text-sm">Ожидание</div>
+                            <div class="glass-text-lg">< 5 мин</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Glass Card 3 -->
+                    <div class="hero-glass-card card-3">
+                        <div class="glass-icon purple">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <div class="glass-text-sm">Специалисты</div>
+                            <div class="glass-text-lg">{{ specialists_count|default:"0" }} Врачей</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Premium Animation -->
+                    <div class="premium-orb">
+                        <div class="orb-ring ring-1"></div>
+                        <div class="orb-ring ring-2"></div>
+                        <div class="orb-core">
+                            <i class="bi bi-heart-pulse-fill text-white" style="font-size: 5rem;"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -56,18 +85,18 @@
 </section>
 
 <!-- ─── СТАТИСТИКА ─────────────────────────────────────────────────────────── -->
-<section class="stats-section py-4 fade-in-up">
+<section class="stats-section py-5 fade-in-up">
     <div class="container">
         <div class="row g-3 g-md-4">
             <div class="col-6 col-md-3">
                 <div class="stat-card text-center">
-                    <div class="stat-num">{{ specialists_count }}+</div>
+                    <div class="stat-num">{{ specialists_count|default:"10" }}+</div>
                     <div class="stat-label">Врачей</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="stat-card text-center">
-                    <div class="stat-num">{{ appointments_count }}+</div>
+                    <div class="stat-num">{{ appointments_count|default:"500" }}+</div>
                     <div class="stat-label">Записей</div>
                 </div>
             </div>
@@ -79,8 +108,8 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="stat-card text-center">
-                    <div class="stat-num">{{ wait_time|default:0 }}</div>
-                    <div class="stat-label">Минут ожидания</div>
+                    <div class="stat-num">{{ wait_time|default:"0" }}</div>
+                    <div class="stat-label">Мин. ожидания</div>
                 </div>
             </div>
         </div>
@@ -149,7 +178,12 @@
             <div class="col-sm-6 col-lg-3">
                 <div class="how-step text-center">
                     <div class="step-num">1</div>
-                    <i class="bi bi-person-plus how-icon"></i>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/dxjqoygy.json"
+                        trigger="hover"
+                        colors="primary:#3b82f6,secondary:#8b5cf6"
+                        style="width:64px;height:64px">
+                    </lord-icon>
                     <h3 class="h6 fw-bold mt-3">Регистрация</h3>
                     <p class="text-muted small">Создайте аккаунт за 1 минуту</p>
                 </div>
@@ -157,7 +191,12 @@
             <div class="col-sm-6 col-lg-3">
                 <div class="how-step text-center">
                     <div class="step-num">2</div>
-                    <i class="bi bi-search how-icon"></i>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/xfftupfv.json"
+                        trigger="hover"
+                        colors="primary:#3b82f6,secondary:#8b5cf6"
+                        style="width:64px;height:64px">
+                    </lord-icon>
                     <h3 class="h6 fw-bold mt-3">Выбор услуги</h3>
                     <p class="text-muted small">Найдите нужного специалиста</p>
                 </div>
@@ -165,7 +204,12 @@
             <div class="col-sm-6 col-lg-3">
                 <div class="how-step text-center">
                     <div class="step-num">3</div>
-                    <i class="bi bi-calendar-check how-icon"></i>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/wloilxuq.json"
+                        trigger="hover"
+                        colors="primary:#3b82f6,secondary:#8b5cf6"
+                        style="width:64px;height:64px">
+                    </lord-icon>
                     <h3 class="h6 fw-bold mt-3">Запись</h3>
                     <p class="text-muted small">Выберите удобное время</p>
                 </div>
@@ -173,7 +217,12 @@
             <div class="col-sm-6 col-lg-3">
                 <div class="how-step text-center">
                     <div class="step-num">4</div>
-                    <i class="bi bi-ticket-perforated how-icon"></i>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/pimvysaa.json"
+                        trigger="hover"
+                        colors="primary:#3b82f6,secondary:#8b5cf6"
+                        style="width:64px;height:64px">
+                    </lord-icon>
                     <h3 class="h6 fw-bold mt-3">Получите талон</h3>
                     <p class="text-muted small">Номер очереди придёт сразу</p>
                 </div>
