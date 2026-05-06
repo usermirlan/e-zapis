@@ -34,6 +34,23 @@
                         Как это работает
                     </button>
                 </div>
+                <!-- Поиск врача -->
+                <div class="mt-4">
+                    <form action="{% url 'specialists' %}" method="get" class="d-flex gap-2">
+                        <div class="input-group" style="max-width: 420px; background: rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15);">
+                            <span class="input-group-text border-0" style="background: transparent; color: rgba(255,255,255,0.6);">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" name="q" class="form-control border-0 shadow-none"
+                                   placeholder="Поиск врача по имени..."
+                                   style="background: transparent; color: white;"
+                                   autocomplete="off">
+                            <button type="submit" class="btn btn-primary px-3" style="border-radius: 0 10px 10px 0;">
+                                Найти
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
             <div class="col-lg-6 d-none d-lg-flex justify-content-center">
                 <div class="hero-illustration">
@@ -115,6 +132,85 @@
         </div>
     </div>
 </section>
+
+<!-- ─── НАШИ ВРАЧИ ───────────────────────────────────────────────────────── -->
+{% if specialists %}
+<section class="py-5 fade-in-up" style="background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <span class="section-badge">Наша команда</span>
+            <h2 class="section-title">Наши специалисты</h2>
+            <p class="text-muted">Опытные врачи, готовые вам помочь</p>
+        </div>
+
+        <div class="row g-4">
+            {% for specialist in specialists %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 text-center rounded-4 overflow-hidden" 
+                     style="transition: transform 0.3s ease, box-shadow 0.3s ease;"
+                     onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(37,99,235,0.15)'"
+                     onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.08)'">
+                    <!-- Фото врача -->
+                    <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); height: 80px; position: relative;">
+                        <div style="position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%);">
+                            {% if specialist.photo %}
+                            <img src="{{ specialist.photo.url }}" 
+                                 alt="{{ specialist.get_full_name }}"
+                                 style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid white; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            {% else %}
+                            <div style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid white; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                <span style="font-size: 1.8rem; font-weight: 700; color: white;">
+                                    {{ specialist.first_name|first }}{{ specialist.last_name|first }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-5 pb-4 px-3">
+                        <h3 class="h6 fw-bold mb-1" style="font-size: 0.95rem;">{{ specialist.get_full_name }}</h3>
+                        <p class="text-primary small fw-semibold mb-2">{{ specialist.service.name }}</p>
+
+                        <div class="d-flex justify-content-center gap-3 mb-3">
+                            {% if specialist.experience_years %}
+                            <div class="text-center">
+                                <div class="fw-bold text-dark" style="font-size: 1rem;">{{ specialist.experience_years }}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">лет опыта</div>
+                            </div>
+                            <div class="text-muted" style="font-size: 1.2rem;">|</div>
+                            {% endif %}
+                            {% if specialist.avg_rating %}
+                            <div class="text-center">
+                                <div class="fw-bold text-warning" style="font-size: 1rem;">&#9733; {{ specialist.avg_rating|floatformat:1 }}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">рейтинг</div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if specialist.cabinet %}
+                        <p class="text-muted mb-3" style="font-size: 0.78rem;">
+                            <i class="bi bi-door-open me-1"></i>Каб. {{ specialist.cabinet }}
+                        </p>
+                        {% endif %}
+
+                        <a href="{% url 'specialist_detail' specialist.id %}" 
+                           class="btn btn-primary btn-sm w-100 rounded-pill fw-semibold">
+                            <i class="bi bi-calendar-plus me-1"></i>Записаться
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'specialists' %}" class="btn btn-outline-primary">
+                Все специалисты <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <!-- ─── УСЛУГИ ─────────────────────────────────────────────────────────────── -->
 <section class="py-5 fade-in-up">

@@ -50,6 +50,7 @@ def home_view(request):
 
     return render(request, 'queue_app/home.html', {
         'services': services,
+        'specialists': Specialist.objects.filter(is_active=True).select_related('service').annotate(avg_rating=Avg('reviews__rating'))[:8],
         'specialists_count': specialists_count,
         'appointments_count': appointments_count,
         'wait_time': wait_time,
@@ -311,6 +312,21 @@ def add_review_view(request, appointment_id):
     return render(request, 'queue_app/add_review.html', {
         'form': form,
         'appointment': appointment
+    })
+
+
+@login_required
+def certificate_view(request, appointment_id):
+    """Страница для просмотра и печати медицинской справки (протокола)."""
+    appointment = get_object_or_404(Appointment, id=appointment_id, patient=request.user)
+    
+    if not hasattr(appointment, 'medical_record'):
+        messages.error(request, 'Для этого приема еще нет медицинской справки.')
+        return redirect('my_appointments')
+
+    return render(request, 'queue_app/certificate.html', {
+        'appointment': appointment,
+        'record': appointment.medical_record
     })
 
 

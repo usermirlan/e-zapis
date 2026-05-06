@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Медицинская справка — {{ appointment.patient.get_full_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', serif;
+            color: #0f172a;
+            background-color: #f0fdf9;
+            padding: 40px;
+        }
+        .cert-wrapper {
+            max-width: 760px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(5,150,105,0.10);
+        }
+        .cert-header {
+            background: linear-gradient(135deg, #022c22 0%, #059669 100%);
+            color: white;
+            padding: 32px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cert-header .clinic-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .cert-header .clinic-sub {
+            font-size: 13px;
+            opacity: 0.75;
+            margin-top: 4px;
+        }
+        .cert-header .cert-title-badge {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .cert-header .cert-title-badge .title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .cert-header .cert-title-badge .num {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+        .cert-body {
+            padding: 36px 40px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .info-item {
+            background: #f0fdf9;
+            border: 1px solid #d1fae5;
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+        .info-item .lbl {
+            font-size: 11px;
+            font-weight: 600;
+            color: #059669;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-item .val {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #059669;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #d1fae5;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .content-block {
+            background: #f8fafc;
+            border-left: 4px solid #059669;
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            color: #1e293b;
+            line-height: 1.7;
+        }
+        .signature-box {
+            margin-top: 48px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+        }
+        .signature-item {
+            text-align: center;
+        }
+        .signature-line {
+            border-bottom: 1.5px solid #94a3b8;
+            margin-bottom: 6px;
+            height: 36px;
+        }
+        .signature-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .cert-footer {
+            background: #f0fdf9;
+            border-top: 1px solid #d1fae5;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #64748b;
+        }
+        @media print {
+            @page { margin: 0; }
+            body { background: white; padding: 0; }
+            .no-print { display: none !important; }
+            .cert-wrapper { box-shadow: none; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="text-end mb-4 no-print" style="max-width: 760px; margin: 0 auto;">
+        <button onclick="window.print()" class="btn btn-success px-4 fw-semibold">
+            🖨️ Распечатать / PDF
+        </button>
+        <button onclick="window.close()" class="btn btn-outline-secondary ms-2">Закрыть</button>
+    </div>
+
+    <div class="cert-wrapper">
+        <!-- Шапка -->
+        <div class="cert-header">
+            <div>
+                <div class="clinic-name">🏥 МедЗапись</div>
+                <div class="clinic-sub">Медицинская информационная система</div>
+            </div>
+            <div class="cert-title-badge">
+                <div class="title">Мед. справка</div>
+                <div class="num">№ {{ appointment.queue_number }} / {{ appointment.time_slot.date|date:"Y" }}</div>
+            </div>
+        </div>
+
+        <!-- Тело -->
+        <div class="cert-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="lbl">Пациент</div>
+                    <div class="val">{{ appointment.patient.get_full_name|default:appointment.patient.email }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="lbl">Дата приема</div>
+                    <div class="val">{{ appointment.time_slot.date|date:"d.m.Y" }}, {{ appointment.time_slot.time|time:"H:i" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="lbl">Врач</div>
+                    <div class="val">{{ appointment.specialist.get_full_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="lbl">Специальность</div>
+                    <div class="val">{{ appointment.service.name }}</div>
+                </div>
+            </div>
+
+            <div class="section-title">Жалобы пациента</div>
+            <div class="content-block">{{ appointment.complaint|default:"Не указаны" }}</div>
+
+            <div class="section-title">Диагноз</div>
+            <div class="content-block" style="font-weight: 600;">{{ record.diagnosis }}</div>
+
+            <div class="section-title">Рекомендации и назначения</div>
+            <div class="content-block" style="white-space: pre-wrap;">{{ record.recommendations }}</div>
+
+            <div class="signature-box">
+                <div class="signature-item">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Подпись врача</div>
+                </div>
+                <div class="signature-item">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">М.П.</div>
+                </div>
+                <div class="signature-item">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Подпись пациента</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cert-footer">
+            <span>Документ сформирован системой МедЗапись</span>
+            <span>{{ appointment.time_slot.date|date:"d.m.Y" }}</span>
+        </div>
+    </div>
+</body>
+</html>
+

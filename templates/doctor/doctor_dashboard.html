@@ -227,40 +227,41 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-end">
-                                <div class="dropdown">
-                                    <button class="btn btn-icon btn-light rounded-circle border shadow-sm"
-                                        data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2">
-                                        <li>
-                                            <form method="post" action="{% url 'doctor_update_status' appt.id %}">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="status" value="confirmed">
-                                                <button class="dropdown-item rounded-3 py-2"><i
-                                                        class="bi bi-check-circle me-2 text-primary"></i>Подтвердить</button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form method="post" action="{% url 'doctor_update_status' appt.id %}">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="status" value="completed">
-                                                <button class="dropdown-item rounded-3 py-2"><i
-                                                        class="bi bi-check2-all me-2 text-success"></i>Завершить</button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <hr class="dropdown-divider opacity-50">
-                                        </li>
-                                        <li>
-                                            <form method="post" action="{% url 'doctor_update_status' appt.id %}">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="status" value="cancelled">
-                                                <button class="dropdown-item rounded-3 py-2 text-danger"><i
-                                                        class="bi bi-x-circle me-2 text-danger"></i>Отменить</button>
-                                            </form>
-                                        </li>
-                                    </ul>
+                                <div class="d-flex gap-2 justify-content-end">
+                                    {% if appt.status == 'pending' %}
+                                    <form method="post" action="{% url 'doctor_update_status' appt.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="confirmed">
+                                        <button class="btn btn-sm btn-outline-primary" title="Подтвердить" data-bs-toggle="tooltip">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    {% if appt.status in 'pending confirmed' %}
+                                    <a href="{% url 'doctor_add_medical_record' appt.id %}"
+                                        class="btn btn-sm btn-outline-success" title="Выдать справку" data-bs-toggle="tooltip">
+                                        <i class="bi bi-file-earmark-medical"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if appt.status in 'pending confirmed' %}
+                                    <form method="post" action="{% url 'doctor_update_status' appt.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="cancelled">
+                                        <button class="btn btn-sm btn-outline-danger" title="Отменить" data-bs-toggle="tooltip">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                    {% if appt.status == 'completed' %}
+                                    <span class="text-success small"><i class="bi bi-check-all me-1"></i>Завершено</span>
+                                    {% endif %}
+                                    
+                                    {% if appt.status == 'cancelled' %}
+                                    <span class="text-danger small"><i class="bi bi-x me-1"></i>Отменено</span>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

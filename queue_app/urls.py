@@ -27,6 +27,7 @@ urlpatterns = [
     path('notifications/', views.patient_notifications_view, name='patient_notifications'),
     path('notifications/read-all/', views.patient_mark_all_read_view, name='patient_mark_all_read'),
     path('appointments/<int:appointment_id>/review/', views.add_review_view, name='add_review'),
+    path('appointments/<int:appointment_id>/certificate/', views.certificate_view, name='certificate'),
 
     # ─── Панель сотрудника ─────────────────────────────────────────────────────
     path('staff/', views.staff_panel_view, name='staff_panel'),
