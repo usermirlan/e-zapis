@@ -13,6 +13,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 def _cfg(key, default=None, cast=None):
     """Читает из .env через decouple, иначе из os.environ или default."""
     if _USE_DECOUPLE:
+        # Пробуем загрузить .env явно из корня проекта
+        from decouple import Config, RepositoryEnv
+        env_path = BASE_DIR / '.env'
+        if env_path.exists():
+            config_env = Config(RepositoryEnv(str(env_path)))
+            if cast is not None:
+                return config_env(key, default=default, cast=cast)
+            return config_env(key, default=default)
+        
         if cast is not None:
             return config(key, default=default, cast=cast)
         return config(key, default=default)
@@ -171,14 +180,15 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
-# ─── Email (консоль для разработки) ───────────────────────────────────────────
-EMAIL_BACKEND = _cfg('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+# ─── Email (Gmail SMTP) ───────────────────────────────────────────────────────
+EMAIL_BACKEND = _cfg('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = _cfg('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = _cfg('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = _cfg('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_PORT = _cfg('EMAIL_PORT', default=465, cast=int)
+EMAIL_USE_TLS = _cfg('EMAIL_USE_TLS', default=False, cast=bool)
+EMAIL_USE_SSL = _cfg('EMAIL_USE_SSL', default=True, cast=bool)
 EMAIL_HOST_USER = _cfg('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = _cfg('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = _cfg('DEFAULT_FROM_EMAIL', default='noreply@medzapis.kg')
+DEFAULT_FROM_EMAIL = _cfg('DEFAULT_FROM_EMAIL', default='akunaliuulumirlan@gmail.com')
 
 # ─── Сообщения — маппинг тегов ────────────────────────────────────────────────
 from django.contrib.messages import constants as message_constants
