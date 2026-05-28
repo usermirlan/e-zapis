@@ -1,152 +1,124 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
+{% load static %}
 
-{% block title %}Мои записи — МедЗапись{% endblock %}
+{% block title %}Мои записи — МедЗапись Premium{% endblock %}
 
 {% block content %}
-<div class="page-header py-5">
-    <div class="container">
-        <h1 class="page-title">
-            <i class="bi bi-calendar-check me-2"></i>Мои записи
-        </h1>
-        <p class="text-muted">История ваших посещений и активных записей</p>
+<section class="section">
+  <div class="s-inner">
+    <div class="s-head reveal">
+      <div class="s-tag">✦ Ваш кабинет</div>
+      <h1 class="s-title">Мои записи</h1>
+      <p class="s-desc">История ваших посещений и активных записей. Управляйте своими приемами в один клик.</p>
     </div>
-</div>
-
-<div class="container py-5">
 
     {% if appointments %}
-    <div class="row g-3">
-        {% for appointment in appointments %}
-        <div class="col-12">
-            <div class="appointment-row card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="row align-items-center g-3">
-                        <div class="col-auto">
-                            <div class="queue-badge">
-                                <div class="queue-badge-label">Талон</div>
-                                <div class="queue-badge-num">#{{ appointment.queue_number }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md">
-                            <h2 class="h6 fw-bold mb-1">{{ appointment.specialist.get_full_name }}</h2>
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <span class="badge bg-primary-soft text-primary">{{ appointment.service.name }}</span>
-                                {% if appointment.specialist.cabinet %}
-                                <span class="text-muted small">
-                                    <i class="bi bi-door-open me-1"></i>Каб. {{ appointment.specialist.cabinet }}
-                                </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-sm-auto">
-                            <div class="text-center">
-                                <div class="fw-semibold text-primary">
-                                    <i class="bi bi-calendar3 me-1"></i>
-                                    {{ appointment.time_slot.date|date:"d.m.Y" }}
-                                </div>
-                                <div class="text-muted small">
-                                    <i class="bi bi-clock me-1"></i>
-                                    {{ appointment.time_slot.time|time:"H:i" }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-auto">
-                            <span class="badge bg-{{ appointment.get_status_badge_class }} fs-6 px-3 py-2">
-                                {{ appointment.get_status_display }}
-                            </span>
-                        </div>
-                        <div class="col-sm-auto">
-                            {% if appointment.status == 'completed' %}
-                            {% if not appointment.review %}
-                            <a href="{% url 'add_review' appointment.id %}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-star me-1"></i>Оставить отзыв
-                            </a>
-                            {% else %}
-                            <span class="text-success small"><i class="bi bi-check-circle me-1"></i>Отзыв
-                                оставлен</span>
-                            {% endif %}
-                            {% endif %}
-
-                            {% if appointment.status in 'pending confirmed' %}
-                            <form method="POST" action="{% url 'cancel_appointment' appointment.id %}"
-                                onsubmit="return confirm('Вы уверены, что хотите отменить запись?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-x-circle me-1"></i>Отменить
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% if appointment.complaint or appointment.medical_record %}
-                    <div class="mt-3 ps-5">
-                        {% if appointment.complaint %}
-                        <div class="mb-2">
-                            <small class="text-muted d-block">Жалоба:</small>
-                            <span class="small text-secondary"><em>{{ appointment.complaint }}</em></span>
-                        </div>
-                        {% endif %}
-
-                        {% if appointment.medical_record %}
-                        <div class="mt-3">
-                            <a href="{% url 'certificate' appointment.id %}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-file-earmark-pdf me-1"></i>Скачать справку (PDF)
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+    <div class="docs-grid" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));">
+      {% for appointment in appointments %}
+      <div class="doc-card reveal" style="transition-delay: {{ forloop.counter0|add:1 }}00ms">
+        <div class="doc-card-top" style="height: 80px;">
+          <div class="doc-verified" style="top: 12px; left: 12px; right: auto;">
+            Талон #{{ appointment.queue_number }}
+          </div>
+          {% if appointment.status == 'pending' %}
+            <div class="doc-verified" style="background: rgba(245,200,66,.2); color: var(--gold);">⏳ Ожидает</div>
+          {% elif appointment.status == 'confirmed' %}
+            <div class="doc-verified" style="background: rgba(16,185,129,.2); color: var(--emerald);">✓ Подтверждена</div>
+          {% elif appointment.status == 'completed' %}
+            <div class="doc-verified" style="background: rgba(59,130,246,.2); color: var(--blue);">★ Завершена</div>
+          {% elif appointment.status == 'cancelled' %}
+            <div class="doc-verified" style="background: rgba(244,63,94,.2); color: var(--rose);">✕ Отменена</div>
+          {% endif %}
         </div>
-        {% endfor %}
+        
+        <div class="doc-body" style="padding-top: 1.5rem; text-align: left;">
+          <div class="doc-spec" style="align-self: flex-start; margin-bottom: 0.8rem;">
+            {{ appointment.service.name }}
+          </div>
+          <div class="doc-name">{{ appointment.specialist.get_full_name }}</div>
+          
+          <div class="doc-stats" style="justify-content: flex-start; gap: 1rem; margin-bottom: 1.2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: .8rem 0;">
+            <div class="ds" style="text-align: left; flex: none;">
+              <div class="ds-v"><i class="bi bi-calendar3" style="color:var(--gold)"></i> {{ appointment.time_slot.date|date:"d.m" }}</div>
+              <div class="ds-l">Дата</div>
+            </div>
+            <div class="ds" style="text-align: left; flex: none; padding-left: 1rem;">
+              <div class="ds-v"><i class="bi bi-clock" style="color:var(--cyan)"></i> {{ appointment.time_slot.time|time:"H:i" }}</div>
+              <div class="ds-l">Время</div>
+            </div>
+            {% if appointment.specialist.cabinet %}
+            <div class="ds" style="text-align: left; flex: none; padding-left: 1rem;">
+              <div class="ds-v"><i class="bi bi-door-open" style="color:var(--emerald)"></i> {{ appointment.specialist.cabinet }}</div>
+              <div class="ds-l">Кабинет</div>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if appointment.complaint %}
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Жалоба</div>
+            <p class="doc-bio" style="margin-bottom: 0;">{{ appointment.complaint }}</p>
+          </div>
+          {% endif %}
+
+          <div style="margin-top: auto; display: flex; gap: 0.8rem; flex-wrap: wrap;">
+            {% if appointment.status == 'completed' %}
+              {% if not appointment.review %}
+                <a href="{% url 'add_review' appointment.id %}" class="btn-outline-g" style="flex: 1; text-align: center;">⭐ Оставить отзыв</a>
+              {% else %}
+                <span class="btn-outline-g" style="flex: 1; text-align: center; border-color: var(--emerald); color: var(--emerald); pointer-events: none;">✓ Отзыв оставлен</span>
+              {% endif %}
+            {% endif %}
+
+            {% if appointment.medical_record %}
+              <a href="{% url 'certificate' appointment.id %}" target="_blank" class="btn-gold-nav" style="flex: 1; text-align: center;">📄 Скачать справку</a>
+            {% endif %}
+
+            {% if appointment.status in 'pending confirmed' %}
+              <form method="POST" action="{% url 'cancel_appointment' appointment.id %}" style="width: 100%;" onsubmit="return confirm('Вы уверены, что хотите отменить запись?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-outline-g" style="width: 100%; text-align: center; border-color: rgba(244,63,94,.5); color: var(--rose);">✕ Отменить запись</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
 
+    <!-- Пагинация -->
     {% if appointments.has_other_pages %}
-    <nav class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% if appointments.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ appointments.previous_page_number }}">
-                    <i class="bi bi-chevron-left"></i>
-                </a>
-            </li>
-            {% endif %}
-            {% for num in appointments.paginator.page_range %}
-            <li class="page-item {% if appointments.number == num %}active{% endif %}">
-                <a class="page-link" href="?page={{ num }}"> {{ num }}</a>
-            </li>
-            {% endfor %}
-            {% if appointments.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ appointments.next_page_number }}">
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
+    <div class="filter-pills" style="justify-content: center; margin-top: 3rem;">
+      {% if appointments.has_previous %}
+      <a href="?page={{ appointments.previous_page_number }}" class="pill">← Назад</a>
+      {% endif %}
+      
+      {% for num in appointments.paginator.page_range %}
+      <a href="?page={{ num }}" class="pill {% if appointments.number == num %}active{% endif %}">{{ num }}</a>
+      {% endfor %}
+
+      {% if appointments.has_next %}
+      <a href="?page={{ appointments.next_page_number }}" class="pill">Вперед →</a>
+      {% endif %}
+    </div>
     {% endif %}
 
     {% else %}
-    <div class="empty-state text-center py-5">
-        <div class="empty-icon mb-4">
-            <i class="bi bi-calendar-x"></i>
-        </div>
-        <h3 class="fw-bold text-muted">У вас пока нет записей</h3>
-        <p class="text-muted mb-4">Запишитесь к врачу в удобное время прямо сейчас</p>
-        <a href="{% url 'services' %}" class="btn btn-primary btn-lg fw-semibold">
-            <i class="bi bi-calendar-plus me-2"></i>
-            Записаться к врачу
-        </a>
+    <!-- Пустое состояние -->
+    <div style="grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; background: rgba(0,0,0,0.02); border-radius: 30px; border: 1px dashed rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;" class="reveal">
+      <div style="font-size: 4rem; margin-bottom: 1.5rem; color: rgba(0,0,0,0.2);">📅</div>
+      <h3 style="color: var(--text-main); font-family: var(--f2); font-size: 2rem; margin-bottom: 1rem;">У вас пока нет записей</h3>
+      <p style="color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.6;">В данный момент история ваших посещений пуста. Запишитесь к врачу в удобное время прямо сейчас.</p>
+      <a href="{% url 'services' %}" class="btn-gold-nav" style="padding: 1rem 2.5rem; font-size: 1.1rem; display:inline-block;">🩺 Записаться к врачу</a>
     </div>
     {% endif %}
 
-    <div class="text-center mt-4">
-        <a href="{% url 'services' %}" class="btn btn-outline-primary">
-            <i class="bi bi-plus-circle me-2"></i>
-            Записаться ещё раз
-        </a>
+    {% if appointments %}
+    <div class="text-center reveal" style="margin-top: 3.5rem;">
+      <a href="{% url 'services' %}" class="btn-outline-g" style="padding: .85rem 2.2rem; font-size: 1rem;">Записаться ещё раз →</a>
     </div>
-</div>
+    {% endif %}
+
+  </div>
+</section>
 {% endblock %}

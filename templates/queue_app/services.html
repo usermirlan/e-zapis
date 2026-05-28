@@ -1,58 +1,43 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
+{% load static %}
 
-{% block title %}Услуги — МедЗапись{% endblock %}
+{% block title %}Услуги — МедЗапись Premium{% endblock %}
 
 {% block content %}
-<div class="page-header py-5">
-    <div class="container">
-        <h1 class="page-title">Медицинские услуги</h1>
-        <p class="text-muted">Выберите направление для записи к специалисту</p>
+<section class="section">
+  <div class="s-inner">
+    <div class="s-head reveal">
+      <div class="s-tag">✦ Медицинские направления</div>
+      <h1 class="s-title">Медицинские услуги</h1>
+      <p class="s-desc">Выберите интересующее вас направление для записи к специалисту. Мы предлагаем современную диагностику и лечение.</p>
     </div>
-</div>
 
-<div class="container py-5">
-    <div class="row g-4">
-        {% for service in services %}
-        <div class="col-md-6 col-lg-4">
-            <div class="service-card card border-0 h-100 hover-lift">
-                <div class="card-body p-4">
-                    <div class="service-icon-wrap mb-4">
-                        <i class="bi {{ service.icon }}"></i>
-                    </div>
-                    <h2 class="h5 fw-bold mb-2">{{ service.name }}</h2>
-                    <p class="text-muted small mb-4">
-                        {{ service.description|default:"Консультация специалиста."|truncatechars:150 }}
-                    </p>
-
-                    <!-- Информационные бейджи -->
-                    <div class="d-flex flex-wrap gap-2 mb-4">
-                        <span class="badge bg-primary-soft text-primary">
-                            <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} мин
-                        </span>
-                        <span class="badge bg-success-soft text-success">
-                            <i class="bi bi-people me-1"></i>
-                            {{ service.specialists.count }}
-                            врач{{ service.specialists.count|pluralize:",,а,ей" }}
-                        </span>
-                    </div>
-
-                    <!-- Кнопка перехода -->
-                    <a href="{% url 'specialists_by_service' service.id %}" class="btn btn-primary w-100 fw-semibold">
-                        <i class="bi bi-calendar-plus me-2"></i>
-                        Записаться
-                    </a>
-                </div>
-            </div>
+    <div class="srv-grid">
+      {% for service in services %}
+      <a href="{% url 'specialists_by_service' service.id %}" class="srv-card c-{{ forloop.counter|divisibleby:6|yesno:'rs,gd' }} reveal" style="transition-delay: {{ forloop.counter0|add:1 }}00ms">
+        <div class="srv-ico {% cycle 'gd' 'vt' 'cy' 'em' 'bl' 'rs' %}">
+          <i class="bi {{ service.icon|default:'bi-heart-pulse' }}"></i>
         </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="empty-state text-center py-5">
-                <i class="bi bi-hospital text-muted mb-3" style="font-size:4rem;"></i>
-                <h4 class="text-muted">Услуги ещё не добавлены</h4>
-                <p class="text-muted">Администратор скоро добавит доступные услуги.</p>
-            </div>
+        <div class="srv-name">{{ service.name }}</div>
+        <div class="srv-desc">{{ service.description|default:"Консультация квалифицированного специалиста, диагностика и назначение лечения."|truncatechars:120 }}</div>
+        
+        <div class="srv-meta">
+          <span><i class="bi bi-clock" style="color:var(--gold); margin-right:5px;"></i> {{ service.duration_minutes }} мин</span>
+          <span><i class="bi bi-people" style="color:var(--cyan); margin-right:5px;"></i> {{ service.specialists.count }} врач{{ service.specialists.count|pluralize:",,а,ей" }}</span>
         </div>
-        {% endfor %}
+        
+        <div class="srv-arrow">→</div>
+        {% if forloop.counter == 3 %}<span class="srv-new" style="position:absolute; top:1rem; right:1rem; background:linear-gradient(135deg,var(--gold),#ff9f43); color:var(--dark); font-size:.65rem; font-weight:800; padding:.2rem .6rem; border-radius:50px; text-transform:uppercase; letter-spacing:.5px;">NEW</span>{% endif %}
+      </a>
+      {% empty %}
+      <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: rgba(0,0,0,0.02); border-radius: 20px; border: 1px dashed rgba(0,0,0,0.1);" class="reveal">
+        <div style="font-size: 3rem; margin-bottom: 1rem; color: rgba(0,0,0,0.2);">🏥</div>
+        <h3 style="color: var(--text-main); font-family: var(--f2); margin-bottom: 0.5rem;">Услуги ещё не добавлены</h3>
+        <p style="color: var(--text-muted);">Администратор скоро добавит доступные медицинские направления.</p>
+      </div>
+      {% endfor %}
     </div>
-</div>
+
+  </div>
+</section>
 {% endblock %}

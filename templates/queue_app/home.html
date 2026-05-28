@@ -1,440 +1,302 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
 {% load static %}
 
-{% block title %}МедЗапись — Запись к врачу онлайн{% endblock %}
+{% block title %}МедЗапись — Premium | Онлайн-запись к врачу{% endblock %}
 
 {% block content %}
+<!-- ===================== HERO ===================== -->
+<section class="hero" style="min-height: 100vh; display: flex; align-items: center; padding: 2rem 2rem 5rem;">
+  <div class="s-inner" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
 
-<!-- ─── ГЕРОЙ-СЕКЦИЯ ─────────────────────────────────────────────────────── -->
-<section class="hero-section">
-    <!-- Ambient background glow -->
-    <div class="hero-bg-gradient"></div>
-    <div class="container position-relative fade-in-up" style="z-index: 2;">
-        <div class="row align-items-center min-vh-65">
-            <div class="col-lg-6">
-                <div class="hero-badge mb-3">
-                    <i class="bi bi-patch-check-fill me-2 text-success" aria-hidden="true"></i>
-                    Быстро, удобно, онлайн
-                </div>
-                <h1 class="hero-title">
-                    Запишитесь к врачу<br>
-                    <span class="text-gradient">без очередей</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Выберите специалиста, удобное время и получите номер очереди прямо сейчас.
-                    Никаких звонков — только несколько кликов
-                </p>
-                <div class="d-flex flex-wrap gap-3 mt-4">
-                    <a href="{% url 'services' %}" class="btn btn-primary btn-lg px-4 fw-semibold shadow-sm">
-                        <i class="bi bi-calendar-plus me-2" aria-hidden="true"></i>
-                        Записаться сейчас
-                    </a>
-                    <button type="button" class="btn btn-outline-light btn-lg px-4 video-hero-btn" data-bs-toggle="modal" data-bs-target="#videoGuideModal">
-                        <i class="bi bi-play-circle me-2"></i>
-                        Как это работает
-                    </button>
-                </div>
-                <!-- Поиск врача -->
-                <div class="mt-4">
-                    <form action="{% url 'specialists' %}" method="get" class="d-flex gap-2">
-                        <div class="input-group" style="max-width: 420px; background: rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15);">
-                            <span class="input-group-text border-0" style="background: transparent; color: rgba(255,255,255,0.6);">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" name="q" class="form-control border-0 shadow-none"
-                                   placeholder="Поиск врача по имени..."
-                                   style="background: transparent; color: white;"
-                                   autocomplete="off">
-                            <button type="submit" class="btn btn-primary px-3" style="border-radius: 0 10px 10px 0;">
-                                Найти
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="col-lg-6 d-none d-lg-flex justify-content-center">
-                <div class="hero-illustration">
-                    <!-- Glass Card 1 -->
-                    <div class="hero-glass-card card-1">
-                        <div class="glass-icon blue">
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-                        <div>
-                            <div class="glass-text-sm">Рейтинг</div>
-                            <div class="glass-text-lg">4.9/5.0</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Glass Card 2 -->
-                    <div class="hero-glass-card card-2">
-                        <div class="glass-icon green">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                        <div>
-                            <div class="glass-text-sm">Ожидание</div>
-                            <div class="glass-text-lg">< 5 мин</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Glass Card 3 -->
-                    <div class="hero-glass-card card-3">
-                        <div class="glass-icon purple">
-                            <i class="bi bi-people-fill"></i>
-                        </div>
-                        <div>
-                            <div class="glass-text-sm">Специалисты</div>
-                            <div class="glass-text-lg">{{ specialists_count|default:"0" }} Врачей</div>
-                        </div>
-                    </div>
+    <!-- Left -->
+    <div class="h-left">
+      <div class="h-badge" style="display: inline-flex; align-items: center; gap: .5rem; background: rgba(14,165,233,.1); border: 1px solid rgba(14,165,233,.2); color: var(--gold-d); padding: .38rem .95rem; border-radius: 50px; font-size: .78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem; animation: fadeDown .6s ease forwards;">
+        <span class="dot" style="width: 6px; height: 6px; background: var(--gold-d); border-radius: 50%; animation: blinkDot 1.5s ease-in-out infinite;"></span> Medical Premium 3D
+      </div>
 
-                    <!-- Main Premium Animation -->
-                    <div class="premium-orb">
-                        <div class="orb-ring ring-1"></div>
-                        <div class="orb-ring ring-2"></div>
-                        <div class="orb-core">
-                            <i class="bi bi-heart-pulse-fill text-white" style="font-size: 5rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <h1 class="h-title" style="font-family: var(--f2); font-size: clamp(2.4rem,4.5vw,3.8rem); font-weight: 900; line-height: 1.1; letter-spacing: -1.5px; color: var(--text-main); margin-bottom: 1.4rem; animation: fadeLeft .8s ease .1s forwards; opacity: 0;">
+        Ваше здоровье —<br>
+        наш <span class="grad-txt" style="background: linear-gradient(135deg, var(--gold) 0%, var(--blue) 45%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shineText 4s linear infinite;">Приоритет</span>
+      </h1>
+
+      <p class="h-sub" style="font-size: 1.08rem; color: var(--text-muted); line-height: 1.78; max-width: 470px; margin-bottom: 2.2rem; animation: fadeLeft .8s ease .2s forwards; opacity: 0;">
+        Запишитесь к лучшим специалистам онлайн. Система нового поколения
+        для удобной, быстрой и безопасной записи в клинику.
+      </p>
+
+      <!-- Search -->
+      <form action="{% url 'specialists' %}" method="get" class="p-search" style="animation: fadeLeft .8s ease .25s forwards; opacity: 0; max-width: 420px; margin-bottom: 2.2rem;">
+        <div class="p-search-inner">
+          <span>🔍</span>
+          <input type="text" name="q" placeholder="Найти врача по имени или специализации..." autocomplete="off">
+          <button type="submit" class="btn-search">Найти</button>
         </div>
+      </form>
+
+      <div class="h-actions" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; animation: fadeLeft .8s ease .3s forwards; opacity: 0;">
+        <a href="{% url 'specialists' %}" class="btn-primary-h" style="display: inline-flex; align-items: center; gap: .6rem; padding: .95rem 2rem; border-radius: 14px; background: linear-gradient(135deg, var(--gold), var(--blue)); color: #fff; font-weight: 800; font-size: 1rem; text-decoration: none; border: none; cursor: pointer; transition: all .35s cubic-bezier(.34,1.56,.64,1); box-shadow: 0 10px 36px var(--gold-glow);">🩺 Найти врача</a>
+        <a href="#how" class="btn-ghost-h" style="display: inline-flex; align-items: center; gap: .6rem; padding: .95rem 2rem; border-radius: 14px; background: #ffffff; color: var(--text-main); font-weight: 700; font-size: 1rem; text-decoration: none; border: 1.5px solid var(--border); transition: all .3s; box-shadow: 0 4px 14px rgba(0,0,0,0.03);"><span class="play-circ" style="width: 34px; height: 34px; background: rgba(14,165,233,.1); color: var(--gold-d); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .85rem;">▶</span> Как это работает</a>
+      </div>
+
+      <div class="h-stats" style="display: flex; gap: 2.2rem; margin-top: 2.8rem; animation: fadeLeft .8s ease .4s forwards; opacity: 0;">
+        <div class="h-stat"><div class="n" style="font-family: var(--f2); font-size: 1.8rem; font-weight: 900; color: var(--text-main); line-height: 1;">{{ specialists_count|default:"50" }}<em style="color: var(--gold); font-style: normal;">+</em></div><div class="l" style="font-size: .75rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; font-weight: 700;">Врачей</div></div>
+        <div class="h-stat"><div class="n" style="font-family: var(--f2); font-size: 1.8rem; font-weight: 900; color: var(--text-main); line-height: 1;">{{ appointments_count|default:"500" }}<em style="color: var(--gold); font-style: normal;">+</em></div><div class="l" style="font-size: .75rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; font-weight: 700;">Записей</div></div>
+        <div class="h-stat"><div class="n" style="font-family: var(--f2); font-size: 1.8rem; font-weight: 900; color: var(--text-main); line-height: 1;">4.9<em style="color: var(--gold); font-style: normal;">★</em></div><div class="l" style="font-size: .75rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; font-weight: 700;">Рейтинг</div></div>
+      </div>
     </div>
+
+    <!-- Right 3D -->
+    <div class="h-visual" style="position: relative; height: 520px; animation: fadeRight .8s ease .2s forwards; opacity: 0;">
+      <style>
+        .c-orb { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 190px; height: 190px; }
+        .c-sphere { width: 190px; height: 190px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(14,165,233,.9) 0%, rgba(59,130,246,.7) 28%, rgba(6,182,212,.5) 58%, rgba(16,185,129,.3) 100%); box-shadow: 0 0 55px rgba(14,165,233,.4), 0 0 110px rgba(14,165,233,.2), inset 0 0 40px rgba(255,255,255,.6); animation: sphereFloat 5.5s ease-in-out infinite, spherePulse 3s ease-in-out infinite; position: relative; z-index: 5; }
+        .c-sphere::before { content: ''; position: absolute; top: 14%; left: 18%; width: 42%; height: 26%; background: rgba(255,255,255,.5); border-radius: 50%; filter: blur(8px); transform: rotate(-28deg); }
+        .c-sphere::after { content: '🏥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 3.5rem; filter: drop-shadow(0 0 12px rgba(255,255,255,.5)); }
+        @keyframes sphereFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-22px) rotate(5deg)} }
+        @keyframes spherePulse { 0%,100%{box-shadow:0 0 55px rgba(14,165,233,.4),0 0 110px rgba(14,165,233,.2),inset 0 0 40px rgba(255,255,255,.6)} 50%{box-shadow:0 0 80px rgba(14,165,233,.6),0 0 160px rgba(14,165,233,.3),inset 0 0 50px rgba(255,255,255,.7)} }
+        .o-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; border: 1.5px solid; }
+        .o-ring-1 { width: 295px; height: 115px; margin-left: -147.5px; margin-top: -57.5px; border-color: rgba(14,165,233,.3); animation: orb1 6s linear infinite; box-shadow: 0 0 10px rgba(14,165,233,.1); }
+        .o-ring-2 { width: 380px; height: 150px; margin-left: -190px; margin-top: -75px; border-color: rgba(59,130,246,.25); animation: orb2 9s linear infinite; }
+        .o-ring-3 { width: 460px; height: 178px; margin-left: -230px; margin-top: -89px; border-color: rgba(6,182,212,.2); animation: orb3 12s linear infinite; }
+        @keyframes orb1 { from{transform:rotateX(75deg) rotateZ(0)} to{transform:rotateX(75deg) rotateZ(360deg)} }
+        @keyframes orb2 { from{transform:rotateX(75deg) rotateZ(30deg)} to{transform:rotateX(75deg) rotateZ(390deg)} }
+        @keyframes orb3 { from{transform:rotateX(60deg) rotateZ(-20deg)} to{transform:rotateX(60deg) rotateZ(340deg)} }
+        .o-dot { position: absolute; width: 11px; height: 11px; border-radius: 50%; top: -5.5px; left: calc(50% - 5.5px); }
+        .o-dot.gd { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+        .o-dot.vt { background: var(--violet); box-shadow: 0 0 10px var(--violet); }
+        .o-dot.cy { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+        .fc { position: absolute; z-index: 20; background: var(--dark2); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 18px; padding: .9rem 1.15rem; display: flex; align-items: center; gap: .8rem; min-width: 182px; cursor: default; box-shadow: 0 8px 38px rgba(0,0,0,.08); transition: transform .3s ease, box-shadow .3s; }
+        .fc:hover { transform: translateY(-6px) scale(1.04) !important; box-shadow: 0 20px 55px rgba(0,0,0,.12); }
+        .dark-theme .fc { box-shadow: 0 8px 38px rgba(0,0,0,.4); }
+        .dark-theme .fc:hover { box-shadow: 0 20px 55px rgba(0,0,0,.55); }
+        .fc.fc1 { top: 3%; right: 1%;   border-color: rgba(14,165,233,.2); animation: fc1 7s ease-in-out infinite; }
+        .fc.fc2 { bottom: 8%; left: 0%; border-color: rgba(59,130,246,.2); animation: fc2 8.5s ease-in-out infinite; }
+        .fc.fc3 { top: 42%; right: -4%; border-color: rgba(6,182,212,.2);  animation: fc3 6s ease-in-out infinite; }
+        .fc.fc4 { top: 7%; left: 0%;    border-color: rgba(16,185,129,.2); animation: fc4 9s ease-in-out infinite; }
+        @keyframes fc1 { 0%,100%{transform:translateY(0) rotate(1deg)}  50%{transform:translateY(-14px) rotate(-1deg)} }
+        @keyframes fc2 { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-18px) rotate(1deg)} }
+        @keyframes fc3 { 0%,100%{transform:translateY(0) rotate(2deg)}  50%{transform:translateY(-10px) rotate(-2deg)} }
+        @keyframes fc4 { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-15px) rotate(1.5deg)} }
+        .fc-ico { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0; }
+        .fc-ico.gd { background: rgba(14,165,233,.1); }
+        .fc-ico.vt { background: rgba(59,130,246,.1); }
+        .fc-ico.cy { background: rgba(6,182,212,.1); }
+        .fc-ico.em { background: rgba(16,185,129,.1); }
+        .fc-lbl { font-size: .7rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .4px; font-weight: 700; }
+        .fc-val { font-family: var(--f2); font-size: 1rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+        .fc-bde { display: inline-block; font-size: .62rem; font-weight: 800; padding: .15rem .45rem; border-radius: 50px; margin-top: 2px; }
+        .fc-bde.up { background: rgba(16,185,129,.15); color: var(--emerald); }
+        .fc-bde.warn { background: rgba(245,200,66,.2); color: #f59e0b; }
+        @keyframes blinkDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
+        @keyframes shineText { to { background-position: 200% center; } }
+      </style>
+      <div class="scene" style="position: relative; width: 100%; height: 100%; perspective: 1100px;">
+        <!-- Rings -->
+        <div class="o-ring o-ring-1"><div class="o-dot gd"></div></div>
+        <div class="o-ring o-ring-2"><div class="o-dot vt"></div></div>
+        <div class="o-ring o-ring-3"><div class="o-dot cy"></div></div>
+        <!-- Orb -->
+        <div class="c-orb"><div class="c-sphere"></div></div>
+        <!-- Floating cards -->
+        <div class="fc fc1">
+          <div class="fc-ico gd">📅</div>
+          <div><div class="fc-lbl">Ближайший приём</div><div class="fc-val">Сегодня 14:30</div><span class="fc-bde up">✓ Подтверждено</span></div>
+        </div>
+        <div class="fc fc2">
+          <div class="fc-ico vt">🩺</div>
+          <div><div class="fc-lbl">Онлайн сейчас</div><div class="fc-val">{{ specialists_count|default:"12" }} врачей</div><span class="fc-bde warn">● Доступны</span></div>
+        </div>
+        <div class="fc fc3">
+          <div class="fc-ico cy">⏱</div>
+          <div><div class="fc-lbl">Ср. ожидание</div><div class="fc-val">{{ wait_time|default:"< 5" }} мин</div></div>
+        </div>
+        <div class="fc fc4">
+          <div class="fc-ico em">✅</div>
+          <div><div class="fc-lbl">Записей сегодня</div><div class="fc-val">38 записей</div><span class="fc-bde up">↑ +12%</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </section>
 
-<!-- ─── СТАТИСТИКА ─────────────────────────────────────────────────────────── -->
-<section class="stats-section py-5 fade-in-up">
-    <div class="container">
-        <div class="row g-3 g-md-4">
-            <div class="col-6 col-md-3">
-                <div class="stat-card text-center">
-                    <div class="stat-num">{{ specialists_count|default:"10" }}+</div>
-                    <div class="stat-label">Врачей</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card text-center">
-                    <div class="stat-num">{{ appointments_count|default:"500" }}+</div>
-                    <div class="stat-label">Записей</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card text-center">
-                    <div class="stat-num">24/7</div>
-                    <div class="stat-label">Онлайн-запись</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card text-center">
-                    <div class="stat-num">{{ wait_time|default:"0" }}</div>
-                    <div class="stat-label">Мин. ожидания</div>
-                </div>
-            </div>
-        </div>
+<!-- ===================== STATS ===================== -->
+<div class="stats-bar" style="position: relative; z-index: 2; background: var(--dark2); backdrop-filter: blur(20px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 2.5rem 2rem;">
+  <div class="stats-grid" style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem;">
+    <div class="s-item reveal" style="text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+      <span class="s-num" data-target="{{ appointments_count|default:500 }}" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
+      <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">Счастливых пациентов</div>
     </div>
-</section>
+    <div class="s-item reveal" style="transition-delay:.1s; text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+      <span class="s-num" data-target="{{ specialists_count|default:50 }}" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
+      <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">Опытных врачей</div>
+    </div>
+    <div class="s-item reveal" style="transition-delay:.2s; text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+      <span class="s-num" data-target="15" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
+      <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">Специализаций</div>
+    </div>
+    <div class="s-item reveal" style="transition-delay:.3s; text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+      <span class="s-num" data-target="99" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
+      <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">% Удовлетворённости</div>
+    </div>
+  </div>
+</div>
 
-<!-- ─── НАШИ ВРАЧИ ───────────────────────────────────────────────────────── -->
+<!-- ===================== DOCTORS ===================== -->
 {% if specialists %}
-<section class="py-5 fade-in-up" style="background: linear-gradient(180deg, #f0f4ff 0%, #ffffff 100%);">
-    <div class="container">
-        <div class="section-header text-center mb-5">
-            <span class="section-badge">Наша команда</span>
-            <h2 class="section-title">Наши специалисты</h2>
-            <p class="text-muted">Опытные врачи, которым доверяют пациенты</p>
-        </div>
-
-        <div class="row g-4 justify-content-center">
-            {% for specialist in specialists %}
-            <div class="col-sm-6 col-lg-4 col-xl-3">
-                <div class="card border-0 h-100 text-center overflow-hidden position-relative"
-                     style="border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);"
-                     onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 20px 50px rgba(59,130,246,0.18)'"
-                     onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(0,0,0,0.06)'">
-                    
-                    <!-- Верхний градиент -->
-                    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #3b82f6 100%); height: 110px; position: relative;">
-                        <!-- Декор -->
-                        <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; color: white; font-weight: 600;">
-                            <i class="bi bi-patch-check-fill me-1" style="color: #60a5fa;"></i>Врач
-                        </div>
-                        <!-- Фото -->
-                        <div style="position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%);">
-                            {% if specialist.photo %}
-                            <div style="width: 96px; height: 96px; border-radius: 50%; border: 4px solid white; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.2);">
-                                <img src="{{ specialist.photo.url }}" 
-                                     alt="{{ specialist.get_full_name }}"
-                                     style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            {% else %}
-                            <div style="width: 96px; height: 96px; border-radius: 50%; border: 4px solid white; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(0,0,0,0.2);">
-                                <span style="font-size: 2rem; font-weight: 800; color: white;">
-                                    {{ specialist.first_name|first }}{{ specialist.last_name|first }}
-                                </span>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Контент -->
-                    <div class="card-body px-3" style="padding-top: 58px; padding-bottom: 24px;">
-                        <h3 class="fw-bold mb-1" style="font-size: 1.05rem; color: #0f172a;">{{ specialist.get_full_name }}</h3>
-                        <span style="display: inline-block; background: rgba(59,130,246,0.08); color: #3b82f6; font-size: 0.78rem; font-weight: 600; padding: 3px 12px; border-radius: 20px; margin-bottom: 14px;">
-                            {{ specialist.service.name }}
-                        </span>
-
-                        <!-- Статистика -->
-                        <div class="d-flex justify-content-center gap-2 mb-3" style="padding: 10px 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
-                            {% if specialist.experience_years %}
-                            <div class="text-center px-3">
-                                <div class="fw-bold" style="font-size: 1.15rem; color: #0f172a;">{{ specialist.experience_years }}</div>
-                                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.3px;">лет опыта</div>
-                            </div>
-                            {% endif %}
-                            {% if specialist.avg_rating %}
-                            <div style="width: 1px; background: #e2e8f0;"></div>
-                            <div class="text-center px-3">
-                                <div class="fw-bold" style="font-size: 1.15rem; color: #f59e0b;">★ {{ specialist.avg_rating|floatformat:1 }}</div>
-                                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.3px;">рейтинг</div>
-                            </div>
-                            {% endif %}
-                            {% if specialist.cabinet %}
-                            <div style="width: 1px; background: #e2e8f0;"></div>
-                            <div class="text-center px-3">
-                                <div class="fw-bold" style="font-size: 1.15rem; color: #0f172a;">{{ specialist.cabinet }}</div>
-                                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.3px;">кабинет</div>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <a href="{% url 'specialist_detail' specialist.id %}" 
-                           class="btn btn-primary btn-sm w-100 fw-semibold"
-                           style="border-radius: 12px; padding: 10px; font-size: 0.88rem;">
-                            <i class="bi bi-calendar-plus me-1"></i>Записаться на приём
-                        </a>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="text-center mt-5">
-            <a href="{% url 'specialists' %}" class="btn btn-outline-primary px-4 py-2 fw-semibold" style="border-radius: 12px;">
-                Все специалисты <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
+<section class="section">
+  <div class="s-inner">
+    <div class="s-head reveal">
+      <div class="s-tag">✦ Наши специалисты</div>
+      <h2 class="s-title">Лучшие врачи города</h2>
+      <p class="s-desc">Опытные специалисты, которым доверяют тысячи пациентов</p>
     </div>
+
+    <div class="docs-grid">
+      {% for spec in specialists|slice:":6" %}
+      <div class="doc-card reveal" style="transition-delay:{{ forloop.counter0 }}00ms">
+        <div class="doc-card-top">
+          <div class="doc-verified">⚕️ Врач</div>
+          <div class="doc-avatar">
+            {% if spec.photo %}
+              <img src="{{ spec.photo.url }}" alt="{{ spec.get_full_name }}">
+            {% else %}
+              <div class="initials">{{ spec.first_name|first|default:"D" }}{{ spec.last_name|first|default:"R" }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="doc-body">
+          <div class="doc-name">{{ spec.get_full_name }}</div>
+          <div class="doc-spec">{{ spec.service.name }}</div>
+          <div class="doc-stats">
+            {% if spec.experience_years %}
+            <div class="ds"><div class="ds-v">{{ spec.experience_years }}</div><div class="ds-l">лет опыта</div></div>
+            {% endif %}
+            {% if spec.avg_rating %}
+            <div class="ds"><div class="ds-v gold">★ {{ spec.avg_rating|floatformat:1 }}</div><div class="ds-l">рейтинг</div></div>
+            {% endif %}
+            {% if spec.cabinet %}
+            <div class="ds"><div class="ds-v">{{ spec.cabinet }}</div><div class="ds-l">кабинет</div></div>
+            {% endif %}
+          </div>
+          <a href="{% url 'specialist_detail' spec.id %}" class="btn-book">📅 Записаться на приём</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="view-all-wrap reveal" style="text-align: center; margin-top: 3.5rem;">
+      <a href="{% url 'specialists' %}" class="btn-outline-g" style="padding: .85rem 2.2rem; font-size: 1rem;">Все специалисты →</a>
+    </div>
+  </div>
 </section>
 {% endif %}
 
-<!-- ─── УСЛУГИ ─────────────────────────────────────────────────────────────── -->
-<section class="py-5 fade-in-up">
-    <div class="container">
-        <div class="section-header text-center mb-5">
-            <span class="section-badge">Что мы предлагаем</span>
-            <h2 class="section-title">Медицинские услуги</h2>
-            <p class="text-muted">Запишитесь к нужному специалисту в несколько кликов</p>
-        </div>
-
-        <div class="row g-4">
-            {% for service in services %}
-            <div class="col-md-6 col-lg-4">
-                <div class="service-card card border-0 h-100">
-                    <div class="card-body p-4">
-                        <div class="service-icon-wrap mb-3">
-                            <i class="bi {{ service.icon }}" aria-hidden="true"></i>
-                        </div>
-                        <h3 class="h5 fw-bold mb-2">{{ service.name }}</h3>
-                        <p class="text-muted small mb-3">
-                            {{ service.description|default:"Запись к специалисту"|truncatechars:100 }}
-                        </p>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted small">
-                                <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ service.duration_minutes }} мин
-                                &nbsp;·&nbsp;
-                                <i class="bi bi-people me-1" aria-hidden="true"></i>
-                                {{ service.specialists.count }} врач {{ service.specialists.count|pluralize:",,а,ей" }}
-                            </span>
-                            <a href="{% url 'specialists_by_service' service.id %}" class="btn btn-primary btn-sm">
-                                Записаться <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12 text-center py-4">
-                <i class="bi bi-hospital text-muted" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-2">Услуги ещё не добавлены. Зайдите позже</p>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="text-center mt-4">
-            <a href="{% url 'services' %}" class="btn btn-outline-primary">
-                Все услуги <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
+<!-- ===================== SERVICES ===================== -->
+<section class="section" style="background: var(--dark3);">
+  <div class="s-inner">
+    <div class="s-head reveal">
+      <div class="s-tag">✦ Наши услуги</div>
+      <h2 class="s-title">Всё для вашего здоровья</h2>
+      <p class="s-desc">Современная медицина, доступная каждому — записывайтесь онлайн за секунды</p>
     </div>
+
+    <div class="srv-grid">
+      {% for svc in services|slice:":6" %}
+      <a href="{% url 'specialists_by_service' svc.id %}" class="srv-card c-{{ forloop.counter|divisibleby:6|yesno:'rs,gd' }} reveal" style="transition-delay:{{ forloop.counter0 }}00ms">
+        <div class="srv-ico {% cycle 'gd' 'vt' 'cy' 'em' 'bl' 'rs' %}">
+          <i class="bi {{ svc.icon|default:'bi-heart-pulse' }}"></i>
+        </div>
+        <div class="srv-name">{{ svc.name }}</div>
+        <div class="srv-desc">{{ svc.description|default:"Запись к специалисту онлайн."|truncatechars:90 }}</div>
+        <div class="srv-meta"><span>⏱ {{ svc.duration_minutes }} мин</span><span>👨‍⚕️ {{ svc.specialists.count }} врач{{ svc.specialists.count|pluralize:",,а,ей" }}</span></div>
+        <div class="srv-arrow">→</div>
+        {% if forloop.counter == 3 %}<span class="srv-new" style="position:absolute; top:1rem; right:1rem; background:linear-gradient(135deg,var(--gold),var(--blue)); color:#fff; font-size:.65rem; font-weight:800; padding:.2rem .6rem; border-radius:50px; text-transform:uppercase; letter-spacing:.5px;">NEW</span>{% endif %}
+      </a>
+      {% empty %}
+      <div class="srv-card c-gd reveal">
+        <div class="srv-ico gd">🫀</div>
+        <div class="srv-name">Кардиология</div>
+        <div class="srv-desc">Диагностика и лечение сердечно-сосудистых заболеваний с применением современных методов.</div>
+        <div class="srv-arrow">→</div>
+      </div>
+      <div class="srv-card c-vt reveal" style="transition-delay:.1s">
+        <div class="srv-ico vt">🧠</div>
+        <div class="srv-name">Неврология</div>
+        <div class="srv-desc">Диагностика и лечение заболеваний нервной системы, головного и спинного мозга.</div>
+        <div class="srv-arrow">→</div>
+      </div>
+      <div class="srv-card c-cy reveal" style="transition-delay:.2s">
+        <div class="srv-ico cy">🦷</div>
+        <div class="srv-name">Стоматология</div>
+        <div class="srv-desc">Профессиональная помощь: от профилактики до сложного протезирования.</div>
+        <div class="srv-arrow">→</div>
+        <span class="srv-new" style="position:absolute; top:1rem; right:1rem; background:linear-gradient(135deg,var(--gold),var(--blue)); color:#fff; font-size:.65rem; font-weight:800; padding:.2rem .6rem; border-radius:50px; text-transform:uppercase; letter-spacing:.5px;">NEW</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 </section>
 
-<!-- ─── КАК ЭТО РАБОТАЕТ ──────────────────────────────────────────────────── -->
-<section class="how-section py-5 fade-in-up">
-    <div class="container">
-        <div class="section-header text-center mb-5">
-            <span class="section-badge">Просто и быстро</span>
-            <h2 class="section-title">Как записаться</h2>
-        </div>
-        <div class="row g-4 justify-content-center">
-            <div class="col-sm-6 col-lg-3">
-                <div class="how-step text-center">
-                    <div class="step-num">1</div>
-                    <lord-icon
-                        src="https://cdn.lordicon.com/dxjqoygy.json"
-                        trigger="hover"
-                        colors="primary:#3b82f6,secondary:#8b5cf6"
-                        style="width:64px;height:64px">
-                    </lord-icon>
-                    <h3 class="h6 fw-bold mt-3">Регистрация</h3>
-                    <p class="text-muted small">Создайте аккаунт за 1 минуту</p>
-                </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="how-step text-center">
-                    <div class="step-num">2</div>
-                    <lord-icon
-                        src="https://cdn.lordicon.com/xfftupfv.json"
-                        trigger="hover"
-                        colors="primary:#3b82f6,secondary:#8b5cf6"
-                        style="width:64px;height:64px">
-                    </lord-icon>
-                    <h3 class="h6 fw-bold mt-3">Выбор услуги</h3>
-                    <p class="text-muted small">Найдите нужного специалиста</p>
-                </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="how-step text-center">
-                    <div class="step-num">3</div>
-                    <lord-icon
-                        src="https://cdn.lordicon.com/wloilxuq.json"
-                        trigger="hover"
-                        colors="primary:#3b82f6,secondary:#8b5cf6"
-                        style="width:64px;height:64px">
-                    </lord-icon>
-                    <h3 class="h6 fw-bold mt-3">Запись</h3>
-                    <p class="text-muted small">Выберите удобное время</p>
-                </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="how-step text-center">
-                    <div class="step-num">4</div>
-                    <lord-icon
-                        src="https://cdn.lordicon.com/pimvysaa.json"
-                        trigger="hover"
-                        colors="primary:#3b82f6,secondary:#8b5cf6"
-                        style="width:64px;height:64px">
-                    </lord-icon>
-                    <h3 class="h6 fw-bold mt-3">Получите талон</h3>
-                    <p class="text-muted small">Номер очереди придёт сразу</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Premium Video Guide Card -->
-        <div class="mt-5 max-w-900 mx-auto fade-in-up" style="max-width: 900px; margin: 4rem auto 0;">
-            <div class="glass-card border-0 rounded-5 overflow-hidden shadow-lg p-1" 
-                 style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                <div class="p-2 h-100 rounded-5" style="background: white;">
-                    <div class="row g-0 align-items-center h-100">
-                        <!-- Video Preview Area -->
-                        <div class="col-md-5">
-                            <div class="position-relative cursor-pointer m-2 rounded-4 overflow-hidden group shadow-sm video-card-hover" 
-                                 data-bs-toggle="modal" data-bs-target="#videoGuideModal"
-                                 style="min-height: 240px; background: linear-gradient(45deg, #0F172A, #1E293B);">
-                                
-                                <!-- Decorative Gradient Overlay -->
-                                <div class="position-absolute top-0 start-0 w-100 h-100 opacity-25" 
-                                     style="background: radial-gradient(circle at center, var(--primary-color), transparent 70%);"></div>
-                                
-                                <!-- Pulse Play Button -->
-                                <div class="position-absolute top-50 start-50 translate-middle z-index-2">
-                                    <div class="play-pulse-wrapper">
-                                        <div class="play-pulse"></div>
-                                        <div class="play-pulse" style="animation-delay: 1s;"></div>
-                                        <div class="play-icon-box bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
-                                             style="width: 70px; height: 70px;">
-                                            <i class="bi bi-play-fill fs-1 ms-1"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="position-absolute bottom-0 start-0 p-3 w-100">
-                                    <span class="badge bg-dark bg-opacity-75 blur-sm px-3 py-2 rounded-pill font-monospace" style="backdrop-filter: blur(10px);">
-                                        <i class="bi bi-clock me-1"></i> 2:15 МИН
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Content Area -->
-                        <div class="col-md-7">
-                            <div class="card-body p-4 p-md-5 text-start">
-                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-3 py-2 rounded-pill fw-bold mb-3">ОБУЧЕНИЕ</span>
-                                <h3 class="display-6 fw-bold mb-3 text-dark">Видео-инструкция</h3>
-                                <p class="text-secondary mb-4 lead" style="font-size: 1.1rem; opacity: 0.8;">
-                                    Узнайте всё о системе за 2 минуты: от регистрации до получения талона на прием.
-                                </p>
-                                <div class="d-flex flex-wrap gap-3 align-items-center">
-                                    <button class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-lg" 
-                                            data-bs-toggle="modal" data-bs-target="#videoGuideModal"
-                                            style="transition: all 0.3s ease;">
-                                        Смотреть сейчас <i class="bi bi-play-circle ms-2"></i>
-                                    </button>
-                                    <div class="text-muted small">
-                                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Понятно и быстро
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <style>
-            .video-card-hover { transition: all 0.4s ease; transform-origin: center; }
-            .video-card-hover:hover { transform: scale(1.02); }
-            
-            .play-pulse-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
-            .play-pulse {
-                position: absolute;
-                width: 70px;
-                height: 70px;
-                background: rgba(37, 99, 235, 0.4);
-                border-radius: 50%;
-                animation: pulse-ring 2s infinite;
-            }
-            @keyframes pulse-ring {
-                0% { transform: scale(1); opacity: 0.8; }
-                100% { transform: scale(2.2); opacity: 0; }
-            }
-            .blur-sm { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); }
-        </style>
+<!-- ===================== HOW IT WORKS ===================== -->
+<section class="section" id="how" style="background: var(--dark);">
+  <div class="s-inner">
+    <div class="s-head reveal">
+      <div class="s-tag">✦ Простой процесс</div>
+      <h2 class="s-title">Запись за 4 простых шага</h2>
+      <p class="s-desc">От регистрации до консультации — быстро, удобно и надёжно</p>
     </div>
+    <div class="timeline reveal">
+      <style>
+        .timeline { position: relative; display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+        .timeline::before { content: ''; position: absolute; top: 54px; left: 12.5%; right: 12.5%; height: 2px; background: linear-gradient(90deg, var(--gold), var(--violet), var(--cyan), var(--emerald)); z-index: 0; }
+        .tl-item { position: relative; z-index: 1; text-align: center; }
+        .tl-dot { width: 108px; height: 108px; margin: 0 auto 1.5rem; border-radius: 24px; background: var(--dark2); display: flex; align-items: center; justify-content: center; font-size: 2.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.04); position: relative; border: 1px solid var(--border); transition: transform .3s; }
+        .tl-item:hover .tl-dot { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(14,165,233,0.15); border-color: rgba(14,165,233,0.3); }
+        .tl-num { position: absolute; top: -10px; right: -10px; width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: #fff; font-weight: 800; font-family: var(--f2); display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 4px 10px var(--gold-glow); }
+        .tl-title { font-family: var(--f2); font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: .6rem; }
+        .tl-desc { font-size: .95rem; color: var(--text-muted); line-height: 1.6; }
+        @media (max-width:900px){ .timeline{grid-template-columns:1fr; gap:3rem;} .timeline::before{display:none;} }
+      </style>
+      <div class="tl-item">
+        <div class="tl-dot">🔍<div class="tl-num">1</div></div>
+        <div class="tl-title">Выберите врача</div>
+        <div class="tl-desc">Найдите нужного специалиста по рейтингу и отзывам</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">📅<div class="tl-num">2</div></div>
+        <div class="tl-title">Укажите время</div>
+        <div class="tl-desc">Подберите удобную дату и время для приёма онлайн</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">✅<div class="tl-num">3</div></div>
+        <div class="tl-title">Подтвердите</div>
+        <div class="tl-desc">Получите моментальное подтверждение и талон</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">🏥<div class="tl-num">4</div></div>
+        <div class="tl-title">Приходите</div>
+        <div class="tl-desc">Посетите клинику в назначенное время без очередей</div>
+      </div>
+    </div>
+  </div>
 </section>
 
-<!-- ─── CTA ───────────────────────────────────────────────────────────────── -->
-{% if not user.is_authenticated %}
-<section class="cta-section py-5">
-    <div class="container">
-        <div class="cta-card text-center p-3 p-md-5">
-            <h2 class="fw-bold mb-3">Готовы записаться?</h2>
-            <p class="text-white mb-4">Создайте аккаунт бесплатно и запишитесь к врачу прямо сейчас</p>
-            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 fw-semibold">
-                <i class="bi bi-person-plus me-2"></i>
-                Зарегистрироваться бесплатно
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
+<script>
+// Animate numbers
+const nums = document.querySelectorAll('.s-num');
+const obs = new IntersectionObserver((es)=>{
+  es.forEach(e=>{
+    if(e.isIntersecting) {
+      const el=e.target; const t=+el.getAttribute('data-target'); let c=0;
+      const int = setInterval(()=>{
+        c+=Math.ceil(t/30); if(c>=t){c=t; clearInterval(int);}
+        el.innerText=c+(t>100?'+':'');
+      },40);
+      obs.unobserve(el);
+    }
+  });
+},{threshold:.5});
+nums.forEach(n=>obs.observe(n));
+</script>
 {% endblock %}

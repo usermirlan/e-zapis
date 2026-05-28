@@ -1,168 +1,107 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
+{% load static %}
 
-{% block title %}Врачи — МедЗапись{% endblock %}
+{% block title %}Врачи — МедЗапись Premium{% endblock %}
 
 {% block content %}
-<div class="page-header py-5">
-    <div class="container">
-        <h1 class="page-title">
-            {% if selected_service %}
-            Врачи: {{ selected_service.name }}
-            {% else %}
-            Все специалисты
-            {% endif %}
-        </h1>
-        <p class="text-muted">Выберите врача для записи</p>
+<section class="section">
+  <div class="s-inner">
+    <div class="s-head reveal">
+      <div class="s-tag">✦ Наши специалисты</div>
+      <h1 class="s-title">
+        {% if selected_service %}
+          Врачи: <span style="color:var(--gold)">{{ selected_service.name }}</span>
+        {% else %}
+          Все специалисты
+        {% endif %}
+      </h1>
+      <p class="s-desc">Выберите врача для записи и выберите удобное время. Лучшие специалисты города к вашим услугам.</p>
     </div>
-</div>
-
-<div class="container py-5">
 
     <!-- Поиск -->
-    <div class="mb-4">
-        <form method="get" action="{% url 'specialists' %}" class="d-flex gap-2">
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0">
-                    <i class="bi bi-search text-muted"></i>
-                </span>
-                <input type="text" name="q" class="form-control border-start-0"
-                    placeholder="Поиск по имени врача или специализации..." value="{{ search_query }}">
-                {% if search_query %}
-                <a href="{% url 'specialists' %}" class="btn btn-outline-secondary" title="Сбросить поиск">
-                    <i class="bi bi-x-lg"></i>
-                </a>
-                {% endif %}
-                <button type="submit" class="btn btn-primary">
-                    Найти
-                </button>
-            </div>
-        </form>
-    </div>
+    <form method="get" action="{% url 'specialists' %}" class="p-search reveal" style="transition-delay: .1s">
+      <div class="p-search-inner">
+        <span>🔍</span>
+        <input type="text" name="q" placeholder="Поиск по имени врача или специализации..." value="{{ search_query|default:'' }}">
+        <button type="submit" class="btn-search">Найти</button>
+      </div>
+    </form>
 
-    <!-- Фильтр и Сортировка -->
-    <div class="mb-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <span class="text-muted small fw-semibold me-2">Услуги:</span>
-                <a href="{% url 'specialists' %}{% if search_query %}?q={{ search_query }}{% endif %}"
-                    class="btn btn-sm {% if not selected_service %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    Все врачи
-                </a>
-                {% for service in services %}
-                <a href="{% url 'specialists_by_service' service.id %}{% if search_query %}?q={{ search_query }}{% endif %}"
-                    class="btn btn-sm {% if selected_service.id == service.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    <i class="bi {{ service.icon }} me-1"></i>{{ service.name }}
-                </a>
-                {% endfor %}
-            </div>
+    <!-- Фильтры -->
+    <div class="filter-pills reveal" style="transition-delay: .15s">
+      <span class="filter-lbl">Услуги:</span>
+      <a href="{% url 'specialists' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+         class="pill {% if not selected_service %}active{% endif %}">
+         Все врачи
+      </a>
+      {% for service in services %}
+      <a href="{% url 'specialists_by_service' service.id %}{% if search_query %}?q={{ search_query }}{% endif %}"
+         class="pill {% if selected_service and selected_service.id == service.id %}active{% endif %}">
+         {{ service.name }}
+      </a>
+      {% endfor %}
 
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted small fw-semibold">Сортировка:</span>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        {% if order_by == 'rating' %}
-                        По рейтингу
-                        {% elif order_by == 'experience' %}
-                        По стажу
-                        {% else %}
-                        По алфавиту
-                        {% endif %}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><a class="dropdown-item {% if order_by == 'name' %}active{% endif %}"
-                                href="?order=name{% if search_query %}&q={{ search_query }}{% endif %}">По алфавиту</a>
-                        </li>
-                        <li><a class="dropdown-item {% if order_by == 'rating' %}active{% endif %}"
-                                href="?order=rating{% if search_query %}&q={{ search_query }}{% endif %}">По
-                                рейтингу</a></li>
-                        <li><a class="dropdown-item {% if order_by == 'experience' %}active{% endif %}"
-                                href="?order=experience{% if search_query %}&q={{ search_query }}{% endif %}">По
-                                стажу</a></li>
-                    </ul>
-                </div>
-            </div>
+      <div class="dropdown" style="margin-left: auto;">
+        <button class="dropdown-btn" type="button">
+          <span style="color:var(--gold)">Сортировка:</span> 
+          {% if order_by == 'rating' %}По рейтингу
+          {% elif order_by == 'experience' %}По стажу
+          {% else %}По алфавиту{% endif %}
+          <i class="bi bi-chevron-down"></i>
+        </button>
+        <div class="dropdown-content">
+          <a class="{% if order_by == 'name' %}active{% endif %}" href="?order=name{% if search_query %}&q={{ search_query }}{% endif %}">По алфавиту</a>
+          <a class="{% if order_by == 'rating' %}active{% endif %}" href="?order=rating{% if search_query %}&q={{ search_query }}{% endif %}">По рейтингу</a>
+          <a class="{% if order_by == 'experience' %}active{% endif %}" href="?order=experience{% if search_query %}&q={{ search_query }}{% endif %}">По стажу</a>
         </div>
+      </div>
     </div>
 
     <!-- Сетка специалистов -->
-    <div class="row g-4">
-        {% for specialist in specialists %}
-        <div class="col-md-6 col-lg-4">
-            <div class="specialist-card card border-0 h-100 hover-lift">
-                <div class="card-body p-4">
-                    <!-- Фото и базовая информация -->
-                    <div class="d-flex align-items-start gap-3 mb-3">
-                        <div class="specialist-avatar">
-                            {% if specialist.photo %}
-                            <img src="{{ specialist.photo.url }}" alt="{{ specialist.get_full_name }}"
-                                class="avatar-img">
-                            {% else %}
-                            <i class="bi bi-person-fill"></i>
-                            {% endif %}
-                        </div>
-                        <div class="flex-grow-1">
-                            <h2 class="h6 fw-bold mb-1">{{ specialist.get_full_name }}</h2>
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-primary-soft text-primary small">
-                                    {{ specialist.service.name }}
-                                </span>
-                                {% if specialist.avg_rating %}
-                                <div class="small text-warning">
-                                    <i class="bi bi-star-fill"></i> {{ specialist.avg_rating|floatformat:1 }}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Детали -->
-                    <div class="specialist-details">
-                        {% if specialist.experience_years %}
-                        <div class="detail-item">
-                            <i class="bi bi-award text-warning"></i>
-                            <span>Стаж: {{ specialist.experience_years }} лет</span>
-                        </div>
-                        {% endif %}
-                        {% if specialist.cabinet %}
-                        <div class="detail-item">
-                            <i class="bi bi-door-open text-primary"></i>
-                            <span>Кабинет {{ specialist.cabinet }}</span>
-                        </div>
-                        {% endif %}
-                        <div class="detail-item">
-                            <i class="bi bi-clock text-success"></i>
-                            <span>{{ specialist.work_start|time:"H:i" }} — {{ specialist.work_end|time:"H:i" }}</span>
-                        </div>
-                    </div>
-
-                    {% if specialist.bio %}
-                    <p class="text-muted small mt-3 mb-0">{{ specialist.bio|truncatechars:100 }}</p>
-                    {% endif %}
-
-                    <!-- Кнопка записи -->
-                    <a href="{% url 'specialist_detail' specialist.id %}"
-                        class="btn btn-primary w-100 mt-3 fw-semibold">
-                        <i class="bi bi-calendar-plus me-2"></i>
-                        Записаться
-                    </a>
-                </div>
-            </div>
+    <div class="docs-grid">
+      {% for spec in specialists %}
+      <div class="doc-card reveal" style="transition-delay: {{ forloop.counter0|add:2 }}00ms">
+        <div class="doc-card-top">
+          <div class="doc-verified">⚕️ Врач</div>
+          <div class="doc-avatar">
+            {% if spec.photo %}
+              <img src="{{ spec.photo.url }}" alt="{{ spec.get_full_name }}">
+            {% else %}
+              <div class="initials">{{ spec.first_name|first|default:"D" }}{{ spec.last_name|first|default:"R" }}</div>
+            {% endif %}
+          </div>
         </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="bi bi-person-x text-muted" style="font-size:3rem;"></i>
-            <p class="text-muted mt-3">
-                {% if search_query %}
-                По запросу «{{ search_query }}» специалисты не найдены.
-                {% elif selected_service %}
-                По данной услуге специалисты не найдены.
-                {% else %}
-                Специалисты ещё не добавлены.
-                {% endif %}
-            </p>
-            <a href="{% url 'specialists' %}" class="btn btn-outline-primary mt-2">Показать всех врачей</a>
+        <div class="doc-body">
+          <div class="doc-name">{{ spec.get_full_name }}</div>
+          <div class="doc-spec">{{ spec.service.name }}</div>
+          
+          <div class="doc-stats">
+            {% if spec.experience_years %}
+            <div class="ds"><div class="ds-v">{{ spec.experience_years }}</div><div class="ds-l">лет стажа</div></div>
+            {% endif %}
+            {% if spec.avg_rating %}
+            <div class="ds"><div class="ds-v gold">★ {{ spec.avg_rating|floatformat:1 }}</div><div class="ds-l">рейтинг</div></div>
+            {% endif %}
+            {% if spec.cabinet %}
+            <div class="ds"><div class="ds-v">{{ spec.cabinet }}</div><div class="ds-l">кабинет</div></div>
+            {% endif %}
+          </div>
+
+          <p class="doc-bio">{{ spec.bio|default:"Профессиональный врач с многолетним опытом работы. Индивидуальный подход к каждому пациенту."|truncatechars:90 }}</p>
+
+          <a href="{% url 'specialist_detail' spec.id %}" class="btn-book">📅 Записаться на приём</a>
         </div>
-        {% endfor %}
+      </div>
+      {% empty %}
+      <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: rgba(0,0,0,0.02); border-radius: 20px; border: 1px dashed rgba(0,0,0,0.1);" class="reveal">
+        <div style="font-size: 3rem; margin-bottom: 1rem; color: rgba(0,0,0,0.2);">🩺</div>
+        <h3 style="color: var(--text-main); font-family: var(--f2); margin-bottom: 0.5rem;">Специалисты не найдены</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">По вашему запросу ничего не найдено. Попробуйте изменить фильтры или поисковый запрос.</p>
+        <a href="{% url 'specialists' %}" class="btn-primary-h" style="padding: .8rem 2rem; border-radius: 10px; background: var(--gold); color:#fff; text-decoration:none; font-weight:700;">Сбросить фильтры</a>
+      </div>
+      {% endfor %}
     </div>
-</div>
+
+  </div>
+</section>
 {% endblock %}
