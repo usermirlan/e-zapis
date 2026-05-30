@@ -8,3 +8,5 @@ python-decouple
 daphne==4.0.0
 channels==4.0.0
 django-allauth==64.2.1
+requests
+PyJWT
