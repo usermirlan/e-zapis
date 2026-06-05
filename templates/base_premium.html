@@ -509,7 +509,62 @@
       .f-inner { grid-template-columns:1fr 1fr; gap:2rem; }
       .docs-grid { grid-template-columns:repeat(2,1fr); }
     }
-    @media (max-width:640px) {
+    /* Hamburger button */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 6px;
+      border: none;
+      background: transparent;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--text-main);
+      border-radius: 2px;
+      transition: all .3s var(--ease);
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Mobile slide-in drawer */
+    .mobile-drawer {
+      display: none;
+      position: fixed; top: 0; right: -100%; bottom: 0;
+      width: 280px; z-index: 999;
+      background: var(--dark2);
+      box-shadow: -10px 0 40px rgba(0,0,0,0.12);
+      padding: 5rem 1.5rem 2rem;
+      flex-direction: column; gap: .4rem;
+      transition: right .35s var(--ease);
+      border-left: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+    }
+    .mobile-drawer.open { right: 0; }
+    .mobile-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 998;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(3px);
+    }
+    .mobile-overlay.open { display: block; }
+    .mobile-drawer a {
+      color: var(--text-main); text-decoration: none;
+      padding: .9rem 1rem; border-radius: 10px;
+      font-weight: 600; font-size: .95rem;
+      display: flex; align-items: center; gap: .7rem;
+      transition: all .2s;
+      border: 1px solid transparent;
+    }
+    .mobile-drawer a:hover { background: rgba(14,165,233,0.08); color: var(--gold-d); border-color: rgba(14,165,233,0.15); }
+    .mobile-drawer-divider { height: 1px; background: var(--border); margin: .6rem 0; }
+    .mobile-drawer .btn-gold-nav { text-align: center; margin-top: .5rem; padding: .8rem; border-radius: 12px; }
+
+    @media (max-width:768px) {
+      .hamburger { display: flex; }
+      .mobile-drawer { display: flex; }
       .pnav { padding:1rem; }
       .nav-links { display:none; }
       .srv-grid,.docs-grid { grid-template-columns:1fr; }
@@ -519,6 +574,7 @@
       .btn-search { width: 100%; border-radius: 12px; }
       .filter-pills { gap: .5rem; }
       .btn-outline-g.nav-btn-hide { display:none; }
+      .btn-gold-nav.nav-btn-hide { display:none; }
     }
 
     /* Theme toggle button */
@@ -539,6 +595,61 @@
     .theme-toggle .icon-moon { display: block; }
     body.dark-theme .theme-toggle .icon-sun { display: block; }
     body.dark-theme .theme-toggle .icon-moon { display: none; }
+    /* Dropdown Language Menu */
+    .custom-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .custom-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 0.5rem;
+      background: var(--dark2);
+      min-width: 120px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 1000;
+      overflow: hidden;
+      padding: 0;
+      list-style: none;
+    }
+    .custom-dropdown.show .custom-dropdown-menu {
+      display: block;
+      animation: fadeInDown 0.2s var(--ease);
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .custom-dropdown-menu li { margin: 0; padding: 0; }
+    .custom-dropdown-item {
+      display: block;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-main);
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .custom-dropdown-item:hover {
+      background: rgba(14,165,233,0.08);
+      color: var(--gold-d);
+    }
+
+    @media (max-width:480px) {
+      .logo-txt { font-size: 1.2rem; }
+      .theme-toggle { width: 36px; height: 36px; font-size: 1rem; }
+      .pnav { padding: 0.8rem; }
+      .nav-logo { gap: 0.5rem; }
+      .custom-dropdown-toggle { padding: 0 5px !important; }
+    }
     {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -563,8 +674,8 @@
   </a>
 
   <ul class="nav-links">
-    <li><a href="{% url 'specialists' %}" class="{% if request.resolver_match.url_name == 'specialists' or request.resolver_match.url_name == 'specialists_by_service' %}active{% endif %}">Врачи</a></li>
-    <li><a href="{% url 'services' %}" class="{% if request.resolver_match.url_name == 'services' %}active{% endif %}">Услуги</a></li>
+    <li><a href="{% url 'specialists' %}" class="{% if request.resolver_match.url_name == 'specialists' or request.resolver_match.url_name == 'specialists_by_service' %}active{% endif %}">{% if request.LANGUAGE_CODE == 'ky' %}Дарыгерлер{% else %}Врачи{% endif %}</a></li>
+    <li><a href="{% url 'services' %}" class="{% if request.resolver_match.url_name == 'services' %}active{% endif %}">{% if request.LANGUAGE_CODE == 'ky' %}Кызматтар{% else %}Услуги{% endif %}</a></li>
   </ul>
 
   <div class="nav-acts">
@@ -573,14 +684,63 @@
       <i class="bi bi-sun-fill icon-sun"></i>
     </button>
     {% if user.is_authenticated %}
-      <a href="{% url 'my_appointments' %}" class="btn-outline-g nav-btn-hide">Мои записи</a>
-      <a href="{% url 'logout' %}" class="btn-gold-nav">Выйти</a>
+      <a href="{% url 'my_appointments' %}" class="btn-outline-g nav-btn-hide">{% if request.LANGUAGE_CODE == 'ky' %}Менин жазууларым{% else %}Мои записи{% endif %}</a>
+      <a href="{% url 'logout' %}" class="btn-gold-nav nav-btn-hide">{% if request.LANGUAGE_CODE == 'ky' %}Чыгуу{% else %}Выйти{% endif %}</a>
     {% else %}
-      <a href="{% url 'login' %}" class="btn-outline-g nav-btn-hide">Войти</a>
-      <a href="{% url 'register' %}" class="btn-gold-nav">Записаться</a>
+      <a href="{% url 'login' %}" class="btn-outline-g nav-btn-hide">{% if request.LANGUAGE_CODE == 'ky' %}Кирүү{% else %}Войти{% endif %}</a>
+      <a href="{% url 'register' %}" class="btn-gold-nav nav-btn-hide">{% if request.LANGUAGE_CODE == 'ky' %}Жазылуу{% else %}Записаться{% endif %}</a>
     {% endif %}
+
+    <div class="custom-dropdown" id="langDropdown">
+      <button class="theme-toggle custom-dropdown-toggle" id="langDropdownBtn" type="button" style="width: auto; padding: 0 10px; font-weight: bold; border: none; background: transparent; font-size: .9rem;">
+        🌐 {% if request.LANGUAGE_CODE == 'ky' %}KG{% else %}RU{% endif %}
+      </button>
+      <ul class="custom-dropdown-menu" id="langDropdownMenu">
+        <li>
+          <form action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+            <input name="language" type="hidden" value="ru">
+            <button type="submit" class="custom-dropdown-item">🇷🇺 Русский</button>
+          </form>
+        </li>
+        <li>
+          <form action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+            <input name="language" type="hidden" value="ky">
+            <button type="submit" class="custom-dropdown-item">🇰🇬 Кыргызча</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Hamburger (mobile only) -->
+    <button class="hamburger" id="hamburger" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+
+<!-- Mobile overlay -->
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+<!-- Mobile drawer -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <a href="{% url 'home' %}"><i class="bi bi-house-fill"></i> {% if request.LANGUAGE_CODE == 'ky' %}Башкы бет{% else %}Главная{% endif %}</a>
+  <a href="{% url 'specialists' %}"><i class="bi bi-people-fill"></i> {% if request.LANGUAGE_CODE == 'ky' %}Дарыгерлер{% else %}Врачи{% endif %}</a>
+  <a href="{% url 'services' %}"><i class="bi bi-grid-fill"></i> {% if request.LANGUAGE_CODE == 'ky' %}Кызматтар{% else %}Услуги{% endif %}</a>
+  <div class="mobile-drawer-divider"></div>
+  {% if user.is_authenticated %}
+    <a href="{% url 'my_appointments' %}"><i class="bi bi-calendar-check-fill"></i> {% if request.LANGUAGE_CODE == 'ky' %}Менин жазууларым{% else %}Мои записи{% endif %}</a>
+    <a href="{% url 'profile' %}"><i class="bi bi-person-fill"></i> {% if request.LANGUAGE_CODE == 'ky' %}Профиль{% else %}Профиль{% endif %}</a>
+    <div class="mobile-drawer-divider"></div>
+    <a href="{% url 'logout' %}" style="color:var(--rose);"><i class="bi bi-box-arrow-right"></i> {% if request.LANGUAGE_CODE == 'ky' %}Чыгуу{% else %}Выйти{% endif %}</a>
+  {% else %}
+    <a href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> {% if request.LANGUAGE_CODE == 'ky' %}Кирүү{% else %}Войти{% endif %}</a>
+    <a href="{% url 'register' %}" class="btn-gold-nav"><i class="bi bi-calendar-plus"></i> {% if request.LANGUAGE_CODE == 'ky' %}Жазылуу{% else %}Записаться{% endif %}</a>
+  {% endif %}
+</div>
 
 <div class="main-content">
   {% block content %}{% endblock %}
@@ -737,6 +897,60 @@ document.querySelectorAll('.srv-card, .doc-card').forEach(card=>{
   });
   card.addEventListener('mouseleave',()=>card.style.transform='');
 });
+
+/* ================================================
+   MOBILE HAMBURGER MENU
+================================================ */
+(function(){
+  const hamburger = document.getElementById('hamburger');
+  const drawer    = document.getElementById('mobileDrawer');
+  const overlay   = document.getElementById('mobileOverlay');
+  if(!hamburger || !drawer || !overlay) return;
+
+  function openMenu(){
+    hamburger.classList.add('open');
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu(){
+    hamburger.classList.remove('open');
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  hamburger.addEventListener('click', ()=>{
+    drawer.classList.contains('open') ? closeMenu() : openMenu();
+  });
+  overlay.addEventListener('click', closeMenu);
+
+  // Close on ESC
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeMenu(); });
+
+  // Close when a drawer link is clicked
+  drawer.querySelectorAll('a').forEach(a=>a.addEventListener('click', closeMenu));
+})();
+
+/* ================================================
+   CUSTOM LANGUAGE DROPDOWN
+================================================ */
+(function(){
+  const dropdown = document.getElementById('langDropdown');
+  const btn = document.getElementById('langDropdownBtn');
+  if(!dropdown || !btn) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  });
+})();
 </script>
 {% block extra_js %}{% endblock %}
 </body>

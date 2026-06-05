@@ -4,9 +4,43 @@
 {% block title %}МедЗапись — Premium | Онлайн-запись к врачу{% endblock %}
 
 {% block content %}
+<style>
+  .hero-sec { min-height: 100vh; display: flex; align-items: center; padding: 2rem 2rem 5rem; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  
+  @media (max-width: 992px) {
+    .hero-sec { padding: 6rem 1.5rem 3rem; align-items: flex-start; min-height: auto; }
+    .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .h-visual { height: 400px !important; margin-top: 3rem; transform: scale(0.9); }
+    .h-title { font-size: clamp(2rem, 8vw, 3rem) !important; }
+    .h-stats { justify-content: space-between; gap: 1rem !important; }
+    .h-left { text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .h-sub { text-align: center; }
+    .h-actions { justify-content: center; }
+    .p-search { margin: 0 auto 2.2rem auto; width: 100%; }
+    
+    /* Adjust flying cards for mobile so they don't go off screen */
+    .fc.fc1 { right: 0% !important; top: 0% !important; }
+    .fc.fc3 { right: 0% !important; top: 50% !important; }
+    .fc.fc4 { left: 0% !important; top: 0% !important; }
+    .fc.fc2 { left: 0% !important; bottom: 0% !important; }
+    
+    .stats-grid-wrap { grid-template-columns: repeat(2, 1fr) !important; gap: 1.5rem !important; }
+    .s-num { font-size: 2.2rem !important; }
+  }
+  @media (max-width: 480px) {
+    .h-visual { transform: scale(0.75); margin-top: 1rem; }
+    .h-stats { flex-direction: column; gap: 1.5rem !important; }
+    .h-stat { display: flex; flex-direction: column; align-items: center; }
+    
+    .stats-grid-wrap { grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
+    .s-num { font-size: 1.8rem !important; }
+    .s-lbl { font-size: 0.65rem !important; }
+  }
+</style>
 <!-- ===================== HERO ===================== -->
-<section class="hero" style="min-height: 100vh; display: flex; align-items: center; padding: 2rem 2rem 5rem;">
-  <div class="s-inner" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+<section class="hero hero-sec">
+  <div class="s-inner hero-grid">
 
     <!-- Left -->
     <div class="h-left">
@@ -16,7 +50,7 @@
 
       <h1 class="h-title" style="font-family: var(--f2); font-size: clamp(2.4rem,4.5vw,3.8rem); font-weight: 900; line-height: 1.1; letter-spacing: -1.5px; color: var(--text-main); margin-bottom: 1.4rem; animation: fadeLeft .8s ease .1s forwards; opacity: 0;">
         Ваше здоровье —<br>
-        наш <span class="grad-txt" style="background: linear-gradient(135deg, var(--gold) 0%, var(--blue) 45%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shineText 4s linear infinite;">Приоритет</span>
+        наш <span class="grad-txt" style="background: linear-gradient(135deg, var(--gold), var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shineText 4s linear infinite;">Приоритет</span>
       </h1>
 
       <p class="h-sub" style="font-size: 1.08rem; color: var(--text-muted); line-height: 1.78; max-width: 470px; margin-bottom: 2.2rem; animation: fadeLeft .8s ease .2s forwards; opacity: 0;">
@@ -25,12 +59,13 @@
       </p>
 
       <!-- Search -->
-      <form action="{% url 'specialists' %}" method="get" class="p-search" style="animation: fadeLeft .8s ease .25s forwards; opacity: 0; max-width: 420px; margin-bottom: 2.2rem;">
+      <form action="{% url 'specialists' %}" method="get" class="p-search" style="animation: fadeLeft .8s ease .25s forwards; opacity: 0; max-width: 420px; margin-bottom: 2.2rem; position: relative;">
         <div class="p-search-inner">
           <span>🔍</span>
-          <input type="text" name="q" placeholder="Найти врача по имени или специализации..." autocomplete="off">
+          <input type="text" name="q" id="hSearchInput" placeholder="Найти врача по имени или специализации..." autocomplete="off">
           <button type="submit" class="btn-search">Найти</button>
         </div>
+        <div id="hSearchResults" style="position: absolute; top: 110%; left: 0; width: 100%; background: var(--dark2); border-radius: 12px; z-index: 100; max-height: 300px; overflow-y: auto; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--border);"></div>
       </form>
 
       <div class="h-actions" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; animation: fadeLeft .8s ease .3s forwards; opacity: 0;">
@@ -100,19 +135,25 @@
         <!-- Floating cards -->
         <div class="fc fc1">
           <div class="fc-ico gd">📅</div>
-          <div><div class="fc-lbl">Ближайший приём</div><div class="fc-val">Сегодня 14:30</div><span class="fc-bde up">✓ Подтверждено</span></div>
+          <div>
+            <div class="fc-lbl">Ближайший приём</div>
+            <div class="fc-val">
+              {% if next_slot %}Сегодня {{ next_slot.time|time:"H:i" }}{% else %}Нет записей{% endif %}
+            </div>
+            {% if next_slot %}<span class="fc-bde up">✓ Подтверждено</span>{% endif %}
+          </div>
         </div>
         <div class="fc fc2">
           <div class="fc-ico vt">🩺</div>
-          <div><div class="fc-lbl">Онлайн сейчас</div><div class="fc-val">{{ specialists_count|default:"12" }} врачей</div><span class="fc-bde warn">● Доступны</span></div>
+          <div><div class="fc-lbl">Онлайн сейчас</div><div class="fc-val">{{ specialists_count }} врачей</div><span class="fc-bde warn">● Доступны</span></div>
         </div>
         <div class="fc fc3">
           <div class="fc-ico cy">⏱</div>
-          <div><div class="fc-lbl">Ср. ожидание</div><div class="fc-val">{{ wait_time|default:"< 5" }} мин</div></div>
+          <div><div class="fc-lbl">Ср. ожидание</div><div class="fc-val">{% if wait_time %}{{ wait_time }}{% else %}&lt; 5{% endif %} мин</div></div>
         </div>
         <div class="fc fc4">
           <div class="fc-ico em">✅</div>
-          <div><div class="fc-lbl">Записей сегодня</div><div class="fc-val">38 записей</div><span class="fc-bde up">↑ +12%</span></div>
+          <div><div class="fc-lbl">Записей сегодня</div><div class="fc-val">{{ today_appointments_count }} записей</div><span class="fc-bde up">↑ Сегодня</span></div>
         </div>
       </div>
     </div>
@@ -121,8 +162,12 @@
 </section>
 
 <!-- ===================== STATS ===================== -->
-<div class="stats-bar" style="position: relative; z-index: 2; background: var(--dark2); backdrop-filter: blur(20px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 2.5rem 2rem;">
-  <div class="stats-grid" style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem;">
+<style>
+  .stats-bar-sec { position: relative; z-index: 2; background: var(--dark2); backdrop-filter: blur(20px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 2.5rem 2rem; }
+  .stats-grid-wrap { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+</style>
+<div class="stats-bar-sec">
+  <div class="stats-grid-wrap">
     <div class="s-item reveal" style="text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
       <span class="s-num" data-target="{{ appointments_count|default:500 }}" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
       <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">Счастливых пациентов</div>
@@ -153,7 +198,7 @@
     </div>
 
     <div class="docs-grid">
-      {% for spec in specialists|slice:":6" %}
+      {% for spec in specialists %}
       <div class="doc-card reveal" style="transition-delay:{{ forloop.counter0 }}00ms">
         <div class="doc-card-top">
           <div class="doc-verified">⚕️ Врач</div>
@@ -202,16 +247,16 @@
     </div>
 
     <div class="srv-grid">
-      {% for svc in services|slice:":6" %}
+      {% for svc in services %}
       <a href="{% url 'specialists_by_service' svc.id %}" class="srv-card c-{{ forloop.counter|divisibleby:6|yesno:'rs,gd' }} reveal" style="transition-delay:{{ forloop.counter0 }}00ms">
         <div class="srv-ico {% cycle 'gd' 'vt' 'cy' 'em' 'bl' 'rs' %}">
           <i class="bi {{ svc.icon|default:'bi-heart-pulse' }}"></i>
         </div>
         <div class="srv-name">{{ svc.name }}</div>
         <div class="srv-desc">{{ svc.description|default:"Запись к специалисту онлайн."|truncatechars:90 }}</div>
-        <div class="srv-meta"><span>⏱ {{ svc.duration_minutes }} мин</span><span>👨‍⚕️ {{ svc.specialists.count }} врач{{ svc.specialists.count|pluralize:",,а,ей" }}</span></div>
+        <div class="srv-meta"><span>⏱ {{ svc.duration_minutes }} мин</span><span>👨‍⚕️ {{ svc.specialists.count }} специалист(ов)</span></div>
         <div class="srv-arrow">→</div>
-        {% if forloop.counter == 3 %}<span class="srv-new" style="position:absolute; top:1rem; right:1rem; background:linear-gradient(135deg,var(--gold),var(--blue)); color:#fff; font-size:.65rem; font-weight:800; padding:.2rem .6rem; border-radius:50px; text-transform:uppercase; letter-spacing:.5px;">NEW</span>{% endif %}
+        {% if svc.is_new %}<span class="srv-new" style="position:absolute; top:1rem; right:1rem; background:linear-gradient(135deg,var(--gold),var(--blue)); color:#fff; font-size:.65rem; font-weight:800; padding:.2rem .6rem; border-radius:50px; text-transform:uppercase; letter-spacing:.5px;">NEW</span>{% endif %}
       </a>
       {% empty %}
       <div class="srv-card c-gd reveal">
@@ -298,5 +343,52 @@ const obs = new IntersectionObserver((es)=>{
   });
 },{threshold:.5});
 nums.forEach(n=>obs.observe(n));
+
+// Search Autocomplete
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('hSearchInput');
+  const results = document.getElementById('hSearchResults');
+  let timeout = null;
+
+  if (input && results) {
+    input.addEventListener('input', function() {
+      clearTimeout(timeout);
+      const q = this.value.trim();
+      if (q.length < 2) {
+        results.style.display = 'none';
+        return;
+      }
+      timeout = setTimeout(() => {
+        fetch(`/api/specialists/?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.specialists && data.specialists.length > 0) {
+              results.innerHTML = data.specialists.map(s => `
+                <a href="/specialists/${s.id}/" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; text-decoration: none; border-bottom: 1px solid var(--border); transition: background .2s;" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='transparent'">
+                  <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--dark3); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border);">
+                    ${s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;">` : `<span style="color: var(--text-muted); font-weight: bold; font-size: 0.8rem;">${s.full_name.charAt(0)}</span>`}
+                  </div>
+                  <div>
+                    <div style="color: var(--text-main); font-weight: 700; font-size: 0.95rem;">${s.full_name}</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">${s.service} • Кабинет ${s.cabinet || 'уточняйте'}</div>
+                  </div>
+                </a>
+              `).join('');
+            } else {
+              results.innerHTML = `<div style="padding: 1rem; color: var(--text-muted); text-align: center; font-size: 0.9rem;">Ничего не найдено по запросу "${q}"</div>`;
+            }
+            results.style.display = 'block';
+          })
+          .catch(err => console.error("Autocomplete error:", err));
+      }, 300);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!input.contains(e.target) && !results.contains(e.target)) {
+        results.style.display = 'none';
+      }
+    });
+  }
+});
 </script>
 {% endblock %}

@@ -2,9 +2,13 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import date, time, timedelta
-from .models import Service, Specialist, TimeSlot, Appointment
+from .models import (
+    Service, Specialist, TimeSlot, Appointment,
+    Review, MedicalRecord, Notification, SpecialistAbsence, FavoriteSpecialist
+)
 
 User = get_user_model()
+
 
 
 class ServiceModelTest(TestCase):
@@ -140,7 +144,6 @@ class BookingViewTest(TestCase):
         self.assertRedirects(response, f'/booking/success/{appointment.pk}/')
 
     def test_cancel_appointment(self):
-        self.client.login(username='testuser2', password='testpass123')
         appointment = Appointment.objects.create(
             patient=self.user,
             service=self.service,
@@ -148,9 +151,17 @@ class BookingViewTest(TestCase):
             time_slot=self.slot,
             status='pending'
         )
-        response = self.client.post(f'/appointments/{appointment.pk}/cancel/')
+        self.slot.is_available = False
+        self.slot.save()
+
+        self.client.login(username='testuser2', password='testpass123')
+        response = self.client.post(f'/my-appointments/cancel/{appointment.id}/')
+        self.assertRedirects(response, '/my-appointments/')
+
         appointment.refresh_from_db()
         self.assertEqual(appointment.status, 'cancelled')
+        self.slot.refresh_from_db()
+        self.assertTrue(self.slot.is_available)
 
     def test_duplicate_booking_blocked(self):
         self.client.login(username='testuser2', password='testpass123')
@@ -193,3 +204,150 @@ class MyAppointmentsViewTest(TestCase):
         self.client.login(username='testuser3', password='testpass123')
         response = self.client.get('/my-appointments/')
         self.assertEqual(response.status_code, 200)
+
+
+# ─────────────────────────────────────────────────────────
+# Review тесттери
+# ─────────────────────────────────────────────────────────
+class ReviewModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='reviewer', email='rev@test.com',
+            password='pass123', phone='+996700000001'
+        )
+        self.service = Service.objects.create(name='Невролог', duration_minutes=30)
+        self.specialist = Specialist.objects.create(
+            first_name='Айгуль', last_name='Асанова',
+            service=self.service, work_start=time(9, 0), work_end=time(17, 0),
+        )
+        tomorrow = date.today() + timedelta(days=1)
+        self.slot = TimeSlot.objects.create(
+            specialist=self.specialist, date=tomorrow,
+            time=time(10, 0), is_available=True
+        )
+        self.appointment = Appointment.objects.create(
+            patient=self.user, service=self.service,
+            specialist=self.specialist, time_slot=self.slot,
+            status='completed'
+        )
+
+    def test_review_created(self):
+        review = Review.objects.create(
+            patient=self.user,
+            specialist=self.specialist,
+            appointment=self.appointment,
+            rating=5,
+            comment='Абдан жакшы дарыгер!'
+        )
+        self.assertEqual(review.rating, 5)
+        self.assertEqual(str(review.comment), 'Абдан жакшы дарыгер!')
+
+    def test_average_rating(self):
+        Review.objects.create(
+            patient=self.user, specialist=self.specialist,
+            appointment=self.appointment, rating=4
+        )
+        self.assertEqual(self.specialist.average_rating, 4.0)
+
+    def test_duplicate_review_blocked(self):
+        """Бир жазылуу үчүн эки жолу пикир жазылбасын."""
+        Review.objects.create(
+            patient=self.user, specialist=self.specialist,
+            appointment=self.appointment, rating=5
+        )
+        with self.assertRaises(Exception):
+            Review.objects.create(
+                patient=self.user, specialist=self.specialist,
+                appointment=self.appointment, rating=3
+            )
+
+
+# ─────────────────────────────────────────────────────────
+# MedicalRecord тесттери
+# ─────────────────────────────────────────────────────────
+class MedicalRecordTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='patient_med', email='med@test.com',
+            password='pass123', phone='+996700000002'
+        )
+        self.service = Service.objects.create(name='Терапевт', duration_minutes=30)
+        self.specialist = Specialist.objects.create(
+            first_name='Нурлан', last_name='Токтоматов',
+            service=self.service, work_start=time(9, 0), work_end=time(17, 0),
+        )
+        slot = TimeSlot.objects.create(
+            specialist=self.specialist,
+            date=date.today() + timedelta(days=2),
+            time=time(11, 0), is_available=True
+        )
+        self.appointment = Appointment.objects.create(
+            patient=self.user, service=self.service,
+            specialist=self.specialist, time_slot=slot,
+            status='completed'
+        )
+
+    def test_medical_record_created(self):
+        record = MedicalRecord.objects.create(
+            appointment=self.appointment,
+            diagnosis='ОРВИ',
+            recommendations='Суу көп ич, эс ал.'
+        )
+        self.assertIn('ОРВИ', record.diagnosis)
+        self.assertEqual(MedicalRecord.objects.count(), 1)
+
+
+# ─────────────────────────────────────────────────────────
+# SpecialistAbsence тесттери
+# ─────────────────────────────────────────────────────────
+class SpecialistAbsenceTest(TestCase):
+    def setUp(self):
+        self.service = Service.objects.create(name='Кардиолог', duration_minutes=30)
+        self.specialist = Specialist.objects.create(
+            first_name='Бекзат', last_name='Мамытов',
+            service=self.service, work_start=time(9, 0), work_end=time(17, 0),
+        )
+
+    def test_absence_created(self):
+        today = date.today()
+        absence = SpecialistAbsence.objects.create(
+            specialist=self.specialist,
+            start_date=today,
+            end_date=today + timedelta(days=5),
+            reason='Отпуск'
+        )
+        self.assertEqual(str(absence.reason), 'Отпуск')
+        self.assertTrue(
+            self.specialist.absences.filter(
+                start_date__lte=today,
+                end_date__gte=today
+            ).exists()
+        )
+
+
+# ─────────────────────────────────────────────────────────
+# FavoriteSpecialist тесттери
+# ─────────────────────────────────────────────────────────
+class FavoriteSpecialistTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='fav_user', email='fav@test.com',
+            password='pass123', phone='+996700000003'
+        )
+        self.service = Service.objects.create(name='ЛОР', duration_minutes=30)
+        self.specialist = Specialist.objects.create(
+            first_name='Гүлзат', last_name='Исакова',
+            service=self.service, work_start=time(9, 0), work_end=time(17, 0),
+        )
+
+    def test_add_favorite(self):
+        fav = FavoriteSpecialist.objects.create(
+            user=self.user, specialist=self.specialist
+        )
+        self.assertEqual(self.user.favorite_specialists.count(), 1)
+
+    def test_duplicate_favorite_blocked(self):
+        """Бир эле врачты эки жолу favorites-ка кошулбасын."""
+        FavoriteSpecialist.objects.create(user=self.user, specialist=self.specialist)
+        with self.assertRaises(Exception):
+            FavoriteSpecialist.objects.create(user=self.user, specialist=self.specialist)

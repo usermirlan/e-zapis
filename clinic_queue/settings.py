@@ -33,11 +33,13 @@ def _cfg(key, default=None, cast=None):
 
 SECRET_KEY = _cfg(
     'SECRET_KEY',
-    default='django-insecure-clinic-queue-secret-key-change-in-production-2024'
+    default='django-insecure-CHANGE-ME-in-production!'
 )
 
-ALLOWED_HOSTS = ['ezapis.pythonanywhere.com', 'localhost', '127.0.0.1', '*']
-DEBUG = True
+DEBUG = _cfg('DEBUG', default=True, cast=bool)
+
+_allowed = _cfg('ALLOWED_HOSTS', default='localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # CSRF & Session Security for Production
@@ -61,10 +63,17 @@ INSTALLED_APPS = [
     # Наши приложения
     'accounts',   # Аутентификация и пользователи
     'queue_app',  # Очереди, услуги, специалисты
+
+    # API и интеграции
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files (production)
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',  # i18n
     'django.middleware.common.CommonMiddleware',
@@ -73,6 +82,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+STATICFILES_STORAGE = (
+    'whitenoise.storage.CompressedStaticFilesStorage'
+    if DEBUG
+    else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+)
 
 ROOT_URLCONF = 'clinic_queue.urls'
 
@@ -95,13 +110,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'clinic_queue.wsgi.application'
 
-# ─── База данных (SQLite) ──────────────────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# ─── База данных (PostgreSQL / SQLite fallback) ───────────────────────────────
+_db_url = _cfg('DATABASE_URL', default='')
+if _db_url:
+    try:
+        import dj_database_url
+        DATABASES = {'default': dj_database_url.parse(_db_url, conn_max_age=600)}
+    except ImportError:
+        import warnings
+        warnings.warn('dj-database-url not installed, falling back to SQLite')
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+else:
+    # Localhost SQLite (development)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 # ─── Кастомная модель пользователя ────────────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -114,25 +145,22 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 
 # ─── Allauth Configuration ────────────────────────────────────────────────────
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not any(x in ALLOWED_HOSTS for x in ['localhost', '127.0.0.1']) else 'http'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http' if DEBUG else 'https'
 ACCOUNT_EMAIL_SUBJECT_PREFIX = '[MedZapis] '
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
         'OAUTH_PKCE_ENABLED': True,
         'APP': {
-            'client_id': '64890493821-0l7u8i3m36lk3l9n0bjujdivv7jtigll.apps.googleusercontent.com',
-            'secret': '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',
+            'client_id': _cfg('GOOGLE_CLIENT_ID', default=''),
+            'secret': _cfg('GOOGLE_CLIENT_SECRET', default=''),
         }
     }
 }
@@ -232,3 +260,60 @@ try:
         INSTALLED_APPS.append('channels')
 except ImportError:
     pass
+
+# ─── Django REST Framework & CORS ──────────────────────────────────────────────
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+
+# Production-до DEBUG=False болгондо CORS_ALLOW_ALL_ORIGINS=False болот
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [
+        h for h in [
+            f'https://{host}' for host in ALLOWED_HOSTS
+            if host not in ('localhost', '127.0.0.1', '*')
+        ]
+    ]
+
+# ─── Logging ──────────────────────────────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {module}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'queue_app': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}

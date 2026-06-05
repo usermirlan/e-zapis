@@ -1,5 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from rest_framework.authtoken.views import obtain_auth_token
 from . import views
+from .api_views import ServiceViewSet, SpecialistViewSet, AppointmentViewSet
+
+router = DefaultRouter()
+router.register(r'services', ServiceViewSet, basename='api_services_v1')
+router.register(r'specialists', SpecialistViewSet, basename='api_specialists_v1')
+router.register(r'appointments', AppointmentViewSet, basename='api_appointments_v1')
 
 urlpatterns = [
     # ─── Основные страницы ─────────────────────────────────────────────────────
@@ -23,6 +31,7 @@ urlpatterns = [
 
     # ─── Личный кабинет ────────────────────────────────────────────────────────
     path('my-appointments/', views.my_appointments_view, name='my_appointments'),
+    path('favorites/', views.favorites_view, name='favorites'),
     path('my-appointments/cancel/<int:appointment_id>/', views.cancel_appointment_view, name='cancel_appointment'),
     path('notifications/', views.patient_notifications_view, name='patient_notifications'),
     path('notifications/read-all/', views.patient_mark_all_read_view, name='patient_mark_all_read'),
@@ -34,13 +43,18 @@ urlpatterns = [
     path('staff/doctor/add/', views.staff_add_doctor_view, name='staff_add_doctor'),
 
     path('staff/appointments/<int:appointment_id>/status/', views.update_appointment_status_view, name='update_appointment_status'),
-    path('staff/appointments/<int:appointment_id>/status/', views.update_appointment_status_view, name='update_appointment_status_view'),
 
 
-    # ─── API-эндпоинты (JSON) ──────────────────────────────────────────────────
+    # ─── API-эндпоинты (старые, для шаблонов) ──────────────────────────────────
     path('api/services/', views.api_services, name='api_services'),
     path('api/specialists/', views.api_specialists, name='api_specialists'),
     path('api/specialists/<int:specialist_id>/slots/', views.api_time_slots, name='api_time_slots'),
+    path('api/favorites/toggle/', views.api_toggle_favorite, name='api_toggle_favorite'),
+
+    # ─── API v1 (Для Мобильного приложения) ────────────────────────────────────
+    path('api/v1/', include(router.urls)),
+    path('api/v1/auth/login/', obtain_auth_token, name='api_token_auth'),
+
 
     # ─── Кабинет врача ────────────────────────────────────────────────────────
     path('doctor/dashboard/', views.doctor_dashboard_view, name='doctor_dashboard'),

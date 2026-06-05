@@ -23,11 +23,11 @@
         
         <div class="srv-meta">
           <span><i class="bi bi-clock" style="color:var(--gold); margin-right:5px;"></i> {{ service.duration_minutes }} мин</span>
-          <span><i class="bi bi-people" style="color:var(--cyan); margin-right:5px;"></i> {{ service.specialists.count }} врач{{ service.specialists.count|pluralize:",,а,ей" }}</span>
+          <span><i class="bi bi-people" style="color:var(--cyan); margin-right:5px;"></i> {{ service.specialists.count }} специалист(ов)</span>
         </div>
         
         <div class="srv-arrow">→</div>
-        {% if forloop.counter == 3 %}<span class="srv-new" style="position:absolute; top:1rem; right:1rem; background:linear-gradient(135deg,var(--gold),#ff9f43); color:var(--dark); font-size:.65rem; font-weight:800; padding:.2rem .6rem; border-radius:50px; text-transform:uppercase; letter-spacing:.5px;">NEW</span>{% endif %}
+        {% if service.is_new %}<span class="srv-new" style="position:absolute; top:1rem; right:1rem; background:linear-gradient(135deg,var(--gold),var(--blue)); color:#fff; font-size:.65rem; font-weight:800; padding:.2rem .6rem; border-radius:50px; text-transform:uppercase; letter-spacing:.5px;">NEW</span>{% endif %}
       </a>
       {% empty %}
       <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: rgba(0,0,0,0.02); border-radius: 20px; border: 1px dashed rgba(0,0,0,0.1);" class="reveal">

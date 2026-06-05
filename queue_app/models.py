@@ -18,7 +18,9 @@ class Service(models.Model):
         verbose_name='Длительность приёма (мин)'
     )
     is_active = models.BooleanField(default=True, verbose_name='Активна')
+    is_new = models.BooleanField(default=False, verbose_name='Новая услуга', help_text='Показывать значок NEW на карточке')
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     class Meta:
         verbose_name = 'Услуга'
@@ -328,5 +330,29 @@ class SpecialistAbsence(models.Model):
         ordering = ['-start_date']
 
     def __str__(self):
-        return f'{self.specialist.last_name} | {self.start_date} — {self.end_date}'
+        return f"{self.specialist} - Отсутствие с {self.start_date} по {self.end_date}"
 
+
+class FavoriteSpecialist(models.Model):
+    """Избранные специалисты пациентов."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='favorite_specialists',
+        verbose_name='Пользователь'
+    )
+    specialist = models.ForeignKey(
+        Specialist,
+        on_delete=models.CASCADE,
+        related_name='favorited_by',
+        verbose_name='Специалист'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Избранный врач'
+        verbose_name_plural = 'Избранные врачи'
+        unique_together = ('user', 'specialist')
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} -> {self.specialist.last_name}"

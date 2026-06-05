@@ -4,10 +4,28 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
 from .forms import RegisterForm, LoginForm, ProfileEditForm
 from .models import CustomUser, EmailVerificationCode
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Rate limiting (django-ratelimit) — graceful fallback
+try:
+    from ratelimit.decorators import ratelimit
+    _RATELIMIT_AVAILABLE = True
+except ImportError:
+    _RATELIMIT_AVAILABLE = False
+    def ratelimit(*args, **kwargs):
+        """No-op decorator if django-ratelimit is not installed."""
+        def decorator(func): return func
+        return decorator
 
 
+
+@ratelimit(key='ip', rate='3/m', method='POST', block=False)
 def register_view(request):
     if request.user.is_authenticated:
         if request.user.is_superuser or request.user.is_staff:
@@ -117,7 +135,14 @@ def resend_code_view(request, user_id):
 
 
 
+@ratelimit(key='ip', rate='5/m', method='POST', block=False)
 def login_view(request):
+    # Rate limit exceeded?  
+    was_limited = getattr(request, 'limited', False)
+    if was_limited:
+        messages.error(request, 'Өтүнмө: Өтө көп аракет. 1 мүнөттөн кийин кайра аракет кылыңыз.')
+        return render(request, 'accounts/login.html', {'form': LoginForm()})
+
     if request.user.is_authenticated:
         if request.user.is_superuser or request.user.is_staff:
             return redirect('admin_dashboard')
@@ -181,3 +206,11 @@ def profile_view(request):
         'appointments': appointments,
         'form': form,
     })
+
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = 'accounts/password_change.html'
+    success_url = reverse_lazy('profile')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Ваш пароль успешно изменен!')
+        return super().form_valid(form)

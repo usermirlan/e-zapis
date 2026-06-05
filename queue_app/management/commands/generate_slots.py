@@ -57,11 +57,18 @@ class Command(BaseCommand):
             for day_offset in range(days):
                 current_date = today + timedelta(days=day_offset)
 
-                # Пропускаем воскресенье (weekday=6)
-                if current_date.weekday() == 6:
+                # Пропускаем воскресенье (weekday=6) и субботу (weekday=5)
+                if current_date.weekday() >= 5:
                     continue
 
-                # Генерируем слоты от work_start до work_end
+                # Пропускаем дни отсутствия специалиста (отпуск, больничный)
+                if specialist.absences.filter(
+                    start_date__lte=current_date,
+                    end_date__gte=current_date
+                ).exists():
+                    self.stdout.write(f'  ⏭️  {current_date} — отсутствие, пропускаем.')
+                    continue
+
                 current_time = datetime.combine(current_date, work_start)
                 end_time = datetime.combine(current_date, work_end)
 

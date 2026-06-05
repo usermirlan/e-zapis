@@ -1,0 +1,62 @@
+{% extends 'base_premium.html' %}
+{% load static %}
+
+{% block title %}Избранные врачи — МедЗапись Premium{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="s-inner">
+    <div class="s-head reveal">
+      <div class="s-tag" style="color: #ff4757; background: rgba(255, 71, 87, 0.1);">❤️ Сохраненные</div>
+      <h1 class="s-title">Мои избранные врачи</h1>
+      <p class="s-desc">Здесь список врачей, которых вы добавили в избранное для быстрой записи в будущем.</p>
+    </div>
+
+    <!-- Сетка специалистов -->
+    <div class="docs-grid">
+      {% for spec in specialists %}
+      <div class="doc-card reveal" style="transition-delay: {{ forloop.counter0|add:2 }}00ms">
+        <div class="doc-card-top">
+          <div class="doc-verified">⚕️ Врач</div>
+          <div class="doc-avatar">
+            {% if spec.photo %}
+              <img src="{{ spec.photo.url }}" alt="{{ spec.get_full_name }}">
+            {% else %}
+              <div class="initials">{{ spec.first_name|first|default:"D" }}{{ spec.last_name|first|default:"R" }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="doc-body">
+          <div class="doc-name">{{ spec.get_full_name }}</div>
+          <div class="doc-spec">{{ spec.service.name }}</div>
+          
+          <div class="doc-stats">
+            {% if spec.experience_years %}
+            <div class="ds"><div class="ds-v">{{ spec.experience_years }}</div><div class="ds-l">лет стажа</div></div>
+            {% endif %}
+            {% if spec.avg_rating %}
+            <div class="ds"><div class="ds-v gold">★ {{ spec.avg_rating|floatformat:1 }}</div><div class="ds-l">рейтинг</div></div>
+            {% endif %}
+            {% if spec.cabinet %}
+            <div class="ds"><div class="ds-v">{{ spec.cabinet }}</div><div class="ds-l">кабинет</div></div>
+            {% endif %}
+          </div>
+
+          <p class="doc-bio">{{ spec.bio|default:"Профессиональный врач с многолетним опытом работы. Индивидуальный подход к каждому пациенту."|truncatechars:90 }}</p>
+
+          <a href="{% url 'specialist_detail' spec.id %}" class="btn-book">📅 Записаться на приём</a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: rgba(0,0,0,0.02); border-radius: 20px; border: 1px dashed rgba(0,0,0,0.1);" class="reveal">
+        <div style="font-size: 3rem; margin-bottom: 1rem; color: rgba(255, 71, 87, 0.4);">💔</div>
+        <h3 style="color: var(--text-main); font-family: var(--f2); margin-bottom: 0.5rem;">Список пуст</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Вы еще не добавили ни одного врача в избранное. Перейдите в список специалистов и нажмите на сердечко.</p>
+        <a href="{% url 'specialists' %}" class="btn-primary-h" style="padding: .8rem 2rem; border-radius: 10px; background: linear-gradient(135deg, var(--gold), var(--blue)); color:#fff; text-decoration:none; font-weight:700;">Найти врача</a>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

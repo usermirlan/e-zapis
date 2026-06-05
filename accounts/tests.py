@@ -19,8 +19,8 @@ class RegistrationTest(TestCase):
             'password2': 'SecurePass123!',
         })
         self.assertEqual(User.objects.filter(username='newuser').count(), 1)
-        # После регистрации — редирект на главную
-        self.assertRedirects(response, '/')
+        # После регистрации — редирект на verify-email
+        self.assertRedirects(response, '/accounts/verify-email/1/')
 
     def test_register_duplicate_email(self):
         User.objects.create_user(
@@ -78,12 +78,12 @@ class LoginTest(TestCase):
 
     def test_profile_edit_get(self):
         self.client.login(username='logintest', password='testpass123')
-        response = self.client.get('/accounts/profile/edit/')
+        response = self.client.get('/accounts/profile/')
         self.assertEqual(response.status_code, 200)
 
     def test_profile_edit_post(self):
         self.client.login(username='logintest', password='testpass123')
-        response = self.client.post('/accounts/profile/edit/', {
+        response = self.client.post('/accounts/profile/', {
             'first_name': 'Обновлён',
             'last_name': 'Профиль',
             'email': 'updated@test.com',

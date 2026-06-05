@@ -15,7 +15,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 
-from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification, SpecialistAbsence
+from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification, SpecialistAbsence, FavoriteSpecialist
 from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm, ManualSlotForm
 from accounts.forms import DoctorRegisterForm
 
@@ -30,31 +30,47 @@ def is_staff_user(user):
 def home_view(request):
     if request.user.is_authenticated and request.user.is_doctor:
         return redirect('doctor_dashboard')
-        
+
     services = Service.objects.filter(is_active=True)
     specialists_count = Specialist.objects.filter(is_active=True).count()
     appointments_count = Appointment.objects.count()
 
-    # Динамический расчет времени ожидания
     today = timezone.now().date()
+    now = timezone.now()
+
+    # Динамический расчет времени ожидания
     active_appointments = Appointment.objects.filter(
         time_slot__date=today,
         status__in=['pending', 'confirmed']
     ).count()
 
     if specialists_count > 0:
-        # Примерный расчет: (количество активных записей / кол-во врачей) * 10 минут
         wait_time = (active_appointments // specialists_count) * 10
     else:
         wait_time = 0
 
+    # Записей сегодня
+    today_appointments_count = Appointment.objects.filter(
+        time_slot__date=today
+    ).count()
+
+    # Ближайший приём (следующий подтверждённый слот)
+    next_slot = TimeSlot.objects.filter(
+        date=today,
+        is_available=False,
+        time__gte=now.time()
+    ).order_by('time').first()
+
     return render(request, 'queue_app/home.html', {
         'services': services,
-        'specialists': Specialist.objects.filter(is_active=True).select_related('service').annotate(avg_rating=Avg('reviews__rating'))[:8],
+        'specialists': Specialist.objects.filter(is_active=True).select_related('service').annotate(avg_rating=Avg('reviews__rating'))[:6],
         'specialists_count': specialists_count,
         'appointments_count': appointments_count,
         'wait_time': wait_time,
+        'today_appointments_count': today_appointments_count,
+        'next_slot': next_slot,
     })
+
 
 
 # ─── Услуги ───────────────────────────────────────────────────────────────────
@@ -116,14 +132,37 @@ def specialists_view(request, service_id=None):
 def specialist_detail_view(request, specialist_id):
     if request.user.is_authenticated and request.user.is_doctor:
         return redirect('doctor_dashboard')
-        
-    specialist = get_object_or_404(Specialist, pk=specialist_id, is_active=True)
+
+    specialist = get_object_or_404(
+        Specialist.objects.annotate(avg_rating=Avg('reviews__rating')).prefetch_related('reviews'),
+        pk=specialist_id,
+        is_active=True
+    )
 
     today = timezone.now().date()
+
+    # ── Отсутствия (отпуск, больничный) специалиста ──
+    absences = SpecialistAbsence.objects.filter(
+        specialist=specialist,
+        end_date__gte=today
+    )
+
+    # Собираем даты, когда специалист отсутствует
+    absent_dates = set()
+    for absence in absences:
+        current = absence.start_date
+        while current <= absence.end_date:
+            if current >= today:
+                absent_dates.add(current)
+            import datetime
+            current += datetime.timedelta(days=1)
+
     available_slots = TimeSlot.objects.filter(
         specialist=specialist,
         is_available=True,
         date__gte=today
+    ).exclude(
+        date__in=absent_dates  # Исключаем слоты в период отсутствия
     ).order_by('date', 'time')
 
     slots_by_date = {}
@@ -133,11 +172,18 @@ def specialist_detail_view(request, specialist_id):
             slots_by_date[date_key] = []
         slots_by_date[date_key].append(slot)
 
+    is_favorite = False
+    if request.user.is_authenticated and not request.user.is_doctor:
+        is_favorite = FavoriteSpecialist.objects.filter(user=request.user, specialist=specialist).exists()
+
     return render(request, 'queue_app/specialist_detail.html', {
         'specialist': specialist,
         'slots_by_date': slots_by_date,
         'today': today,
+        'absent_dates': sorted(absent_dates),
+        'is_favorite': is_favorite,
     })
+
 
 
 # ─── Запись на приём ──────────────────────────────────────────────────────────
@@ -230,12 +276,27 @@ def my_appointments_view(request):
         patient=request.user
     ).select_related('specialist', 'service', 'time_slot').order_by('-created_at')
 
+    import json
+    events = []
+    for appt in appointments_qs:
+        color = '#f5c842' # pending yellow
+        if appt.status == 'confirmed': color = '#10b981' # emerald
+        elif appt.status == 'cancelled': color = '#f43f5e' # rose
+        elif appt.status == 'completed': color = '#3b82f6' # blue
+        events.append({
+            'title': f"{appt.specialist.last_name} - {appt.service.name}",
+            'start': f"{appt.time_slot.date}T{appt.time_slot.time}",
+            'color': color,
+        })
+    events_json = json.dumps(events)
+
     paginator = Paginator(appointments_qs, 10)
     page = request.GET.get('page', 1)
     appointments = paginator.get_page(page)
 
     return render(request, 'queue_app/my_appointments.html', {
         'appointments': appointments,
+        'events_json': events_json,
     })
 
 
@@ -461,10 +522,20 @@ def api_services(request):
 
 def api_specialists(request):
     service_id = request.GET.get('service_id')
+    search_query = request.GET.get('q', '').strip()
+    
     qs = Specialist.objects.filter(is_active=True).select_related('service')
 
     if service_id:
         qs = qs.filter(service_id=service_id)
+        
+    if search_query:
+        qs = qs.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(middle_name__icontains=search_query) |
+            Q(service__name__icontains=search_query)
+        )
 
     data = []
     for s in qs:
@@ -503,6 +574,23 @@ def api_time_slots(request, specialist_id):
     return JsonResponse({'slots': data, 'specialist_id': specialist_id})
 
 
+@login_required
+@require_POST
+def api_toggle_favorite(request):
+    if request.user.is_doctor:
+        return JsonResponse({'error': 'Врачи не могут добавлять в избранное'}, status=403)
+        
+    specialist_id = request.POST.get('specialist_id')
+    specialist = get_object_or_404(Specialist, id=specialist_id)
+    
+    fav, created = FavoriteSpecialist.objects.get_or_create(user=request.user, specialist=specialist)
+    if not created:
+        fav.delete()
+        is_favorite = False
+    else:
+        is_favorite = True
+        
+    return JsonResponse({'is_favorite': is_favorite})
 
 
 # ─── Утилита: проверка "является ли врачом" ───────────────────────────────────
@@ -803,8 +891,15 @@ def doctor_profile_view(request):
         
         specialist.bio = request.POST.get('bio', specialist.bio)
         specialist.cabinet = request.POST.get('cabinet', specialist.cabinet)
-        specialist.work_start = request.POST.get('work_start', '09:00')
-        specialist.work_end = request.POST.get('work_end', '18:00')
+        
+        work_start = request.POST.get('work_start')
+        if work_start:
+            specialist.work_start = work_start
+            
+        work_end = request.POST.get('work_end')
+        if work_end:
+            specialist.work_end = work_end
+            
         experience = request.POST.get('experience_years', 0)
         specialist.experience_years = int(experience) if experience else 0
 
@@ -1508,3 +1603,16 @@ def admin_delete_review_view(request, review_id):
 def custom_404_view(request, exception=None):
     """Принудительный показ премиальной страницы 404 (даже при DEBUG=True)."""
     return render(request, '404.html', status=404)
+
+
+@login_required
+def favorites_view(request):
+    if request.user.is_doctor:
+        return redirect('doctor_dashboard')
+        
+    favorites = FavoriteSpecialist.objects.filter(user=request.user).select_related('specialist__service')
+    specialists = [f.specialist for f in favorites]
+    
+    return render(request, 'queue_app/favorites.html', {
+        'specialists': specialists,
+    })

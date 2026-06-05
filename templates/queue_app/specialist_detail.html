@@ -25,20 +25,27 @@
           </div>
         </div>
         <div class="doc-body" style="padding-top: 4.5rem; text-align: center;">
-          <h1 class="doc-name" style="font-size: 1.4rem; margin-bottom: 0.5rem;">{{ specialist.get_full_name }}</h1>
+          <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <h1 class="doc-name" style="font-size: 1.4rem; margin-bottom: 0;">{{ specialist.get_full_name }}</h1>
+            {% if user.is_authenticated and not user.is_doctor %}
+            <button id="favBtn" onclick="toggleFavorite({{ specialist.id }})" style="background: none; border: none; color: {% if is_favorite %}#ff4757{% else %}var(--text-muted){% endif %}; font-size: 1.2rem; cursor: pointer; transition: all .2s; padding: 0;">
+                <i id="favIcon" class="bi {% if is_favorite %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+            </button>
+            {% endif %}
+          </div>
           <div class="doc-spec" style="margin-bottom: 1.5rem;">{{ specialist.service.name }}</div>
           
           <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; color: #f59e0b;">
             {% for i in "12345" %}
-              {% if forloop.counter <= specialist.average_rating %}
+              {% if forloop.counter <= specialist.avg_rating %}
                 <i class="bi bi-star-fill"></i>
-              {% elif forloop.counter <= specialist.average_rating|add:0.5 %}
+              {% elif forloop.counter <= specialist.avg_rating|add:0.5 %}
                 <i class="bi bi-star-half"></i>
               {% else %}
                 <i class="bi bi-star"></i>
               {% endif %}
             {% endfor %}
-            <span style="font-weight: 800; color: var(--text-main); margin-left: 0.2rem;">{{ specialist.average_rating }}</span>
+            <span style="font-weight: 800; color: var(--text-main); margin-left: 0.2rem;">{{ specialist.avg_rating|default:"—" }}</span>
             <span style="color: var(--text-light); font-size: 0.8rem; margin-left: 0.3rem;">({{ specialist.reviews.count }} отзывов)</span>
           </div>
           
@@ -122,9 +129,10 @@
         <div style="margin-top: 4rem;">
           <h2 style="font-family: var(--f2); font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 1.5rem;" class="reveal">Отзывы пациентов</h2>
           
-          {% if specialist.reviews.all %}
+        {% with reviews=specialist.reviews.all %}
+          {% if reviews %}
             <div style="display: flex; flex-direction: column; gap: 1rem;">
-              {% for review in specialist.reviews.all %}
+              {% for review in reviews %}
               <div class="reveal" style="background: var(--dark2); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem;">
                   <div>
@@ -149,6 +157,7 @@
               <p style="color: var(--text-muted); margin-bottom: 0;">У этого специалиста пока нет отзывов. Станьте первым!</p>
             </div>
           {% endif %}
+        {% endwith %}
         </div>
         
       </div>
@@ -162,4 +171,33 @@
     }
   </style>
 </section>
+
+<script>
+function toggleFavorite(specialistId) {
+    fetch("{% url 'api_toggle_favorite' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'specialist_id=' + specialistId
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.error) { alert(data.error); return; }
+        const icon = document.getElementById('favIcon');
+        const btn = document.getElementById('favBtn');
+        if(data.is_favorite) {
+            icon.classList.remove('bi-heart');
+            icon.classList.add('bi-heart-fill');
+            btn.style.color = '#ff4757';
+        } else {
+            icon.classList.remove('bi-heart-fill');
+            icon.classList.add('bi-heart');
+            btn.style.color = 'var(--text-muted)';
+        }
+    })
+    .catch(err => console.error(err));
+}
+</script>
 {% endblock %}
