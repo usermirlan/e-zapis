@@ -276,27 +276,12 @@ def my_appointments_view(request):
         patient=request.user
     ).select_related('specialist', 'service', 'time_slot').order_by('-created_at')
 
-    import json
-    events = []
-    for appt in appointments_qs:
-        color = '#f5c842' # pending yellow
-        if appt.status == 'confirmed': color = '#10b981' # emerald
-        elif appt.status == 'cancelled': color = '#f43f5e' # rose
-        elif appt.status == 'completed': color = '#3b82f6' # blue
-        events.append({
-            'title': f"{appt.specialist.last_name} - {appt.service.name}",
-            'start': f"{appt.time_slot.date}T{appt.time_slot.time}",
-            'color': color,
-        })
-    events_json = json.dumps(events)
-
     paginator = Paginator(appointments_qs, 10)
     page = request.GET.get('page', 1)
     appointments = paginator.get_page(page)
 
     return render(request, 'queue_app/my_appointments.html', {
         'appointments': appointments,
-        'events_json': events_json,
     })
 
 
