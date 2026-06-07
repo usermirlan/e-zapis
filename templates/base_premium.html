@@ -11,6 +11,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  
+  <!-- AOS CSS for advanced scroll animations -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <!-- Lottie Player for high-quality vector animations -->
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+  <!-- Typed.js for typing animation -->
+  <script src="https://unpkg.com/typed.js@2.0.16/dist/typed.umd.js"></script>
 
   <style>
     /* ============================================================
@@ -143,6 +152,39 @@
     ::-webkit-scrollbar-thumb { background: var(--gold-d); border-radius: 4px; }
 
     /* ============================================================
+       CUSTOM CURSOR
+    ============================================================ */
+    @media (pointer: fine) {
+      body { cursor: none; }
+      a, button, input, textarea, select { cursor: none; }
+      .custom-cursor, .custom-cursor-follower {
+        position: fixed; top: 0; left: 0;
+        pointer-events: none; border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+      }
+      .custom-cursor {
+        width: 8px; height: 8px;
+        background: var(--gold);
+        transition: transform 0.1s, opacity 0.2s;
+      }
+      .custom-cursor-follower {
+        width: 40px; height: 40px;
+        border: 1.5px solid rgba(14,165,233,0.5);
+        transition: transform 0.15s ease-out, width 0.2s, height 0.2s, background 0.2s, border-color 0.2s;
+      }
+      .custom-cursor-follower.hover {
+        width: 70px; height: 70px;
+        background: rgba(14,165,233,0.1);
+        border-color: var(--gold);
+      }
+      .custom-cursor.hover {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0.5;
+      }
+    }
+
+    /* ============================================================
        CANVAS PARTICLES
     ============================================================ */
     #bg-canvas {
@@ -172,34 +214,36 @@
     }
 
     .nav-logo { display: flex; align-items: center; gap: .75rem; text-decoration: none; }
-    .logo-cube-wrap {
+    .logo-pulse-wrap {
       width: 42px; height: 42px;
-      perspective: 300px;
+      background: rgba(14,165,233,0.1);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
       flex-shrink: 0;
     }
-    .logo-cube {
-      width: 42px; height: 42px;
-      position: relative;
-      transform-style: preserve-3d;
-      animation: spinCube 9s linear infinite;
+    .logo-pulse-wrap::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 12px;
+      border: 1.5px solid var(--gold);
+      animation: pulsePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
-    @keyframes spinCube {
-      from { transform: rotateX(0) rotateY(0); }
-      to   { transform: rotateX(360deg) rotateY(360deg); }
+    .logo-pulse-icon {
+      font-size: 1.4rem;
+      color: var(--gold-d);
+      animation: heartbeat 1.5s ease-in-out infinite;
     }
-    .cube-face {
-      position: absolute; width: 42px; height: 42px;
-      border-radius: 9px; border: 1px solid rgba(14,165,233,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.15rem; background: rgba(14,165,233,0.08);
-      color: var(--text-main);
+    @keyframes pulsePing {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.4); opacity: 0; }
     }
-    .cube-face.f  { transform: translateZ(21px); }
-    .cube-face.ba { transform: rotateY(180deg) translateZ(21px); background: rgba(99,102,241,0.1); }
-    .cube-face.l  { transform: rotateY(-90deg) translateZ(21px); background: rgba(59,130,246,0.1); }
-    .cube-face.r  { transform: rotateY(90deg) translateZ(21px);  background: rgba(6,182,212,0.1);}
-    .cube-face.t  { transform: rotateX(90deg) translateZ(21px);  background: rgba(16,185,129,0.1);}
-    .cube-face.bo { transform: rotateX(-90deg) translateZ(21px); background: rgba(244,63,94,0.1); }
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      15% { transform: scale(1.15); }
+      30% { transform: scale(1); }
+      45% { transform: scale(1.15); }
+    }
 
     .logo-txt { font-family: var(--f2); font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: -.3px; }
     .logo-txt span { color: var(--gold); }
@@ -655,20 +699,17 @@
 </head>
 <body>
 
+<!-- Custom Cursor Elements -->
+<div class="custom-cursor"></div>
+<div class="custom-cursor-follower"></div>
+
 <canvas id="bg-canvas"></canvas>
 
 <!-- ===================== NAVBAR ===================== -->
 <nav class="pnav" id="pnav">
   <a href="{% url 'home' %}" class="nav-logo">
-    <div class="logo-cube-wrap">
-      <div class="logo-cube">
-        <div class="cube-face f">🏥</div>
-        <div class="cube-face ba">⚕️</div>
-        <div class="cube-face l">💊</div>
-        <div class="cube-face r">🩺</div>
-        <div class="cube-face t">❤️</div>
-        <div class="cube-face bo">🔬</div>
-      </div>
+    <div class="logo-pulse-wrap">
+      <div class="logo-pulse-icon"><i class="bi bi-heart-pulse-fill"></i></div>
     </div>
     <span class="logo-txt">Мед<span>Запись</span></span>
   </a>
@@ -875,7 +916,7 @@ if(nav){
 }
 
 /* ================================================
-   SCROLL REVEAL
+   AOS & LOTTIE SCROLL INIT
 ================================================ */
 const revs = document.querySelectorAll('.reveal');
 if(revs.length > 0 && window.IntersectionObserver){
@@ -884,6 +925,21 @@ if(revs.length > 0 && window.IntersectionObserver){
   },{threshold:.12});
   revs.forEach(el=>ro.observe(el));
 }
+
+// Init AOS
+document.addEventListener('DOMContentLoaded', function() {
+  const script = document.createElement('script');
+  script.src = 'https://unpkg.com/aos@2.3.1/dist/aos.js';
+  script.onload = () => {
+    AOS.init({
+      duration: 800,
+      easing: 'ease-out-cubic',
+      once: true,
+      offset: 50,
+    });
+  };
+  document.body.appendChild(script);
+});
 
 /* ================================================
    3D TILT EFFECT
@@ -950,6 +1006,54 @@ document.querySelectorAll('.srv-card, .doc-card').forEach(card=>{
       dropdown.classList.remove('show');
     }
   });
+})();
+
+/* ================================================
+   CUSTOM CURSOR JS
+================================================ */
+(function(){
+  const cursor = document.querySelector('.custom-cursor');
+  const follower = document.querySelector('.custom-cursor-follower');
+  if(cursor && follower && window.matchMedia("(pointer: fine)").matches) {
+    let cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+    let fx = cx, fy = cy;
+    
+    window.addEventListener('mousemove', e => {
+      cx = e.clientX; cy = e.clientY;
+      cursor.style.transform = `translate(calc(${cx}px - 50%), calc(${cy}px - 50%))`;
+    });
+    
+    const render = () => {
+      fx += (cx - fx) * 0.15;
+      fy += (cy - fy) * 0.15;
+      follower.style.transform = `translate(calc(${fx}px - 50%), calc(${fy}px - 50%))`;
+      requestAnimationFrame(render);
+    };
+    requestAnimationFrame(render);
+
+    const addHover = () => {
+      follower.classList.add('hover');
+      cursor.classList.add('hover');
+    };
+    const removeHover = () => {
+      follower.classList.remove('hover');
+      cursor.classList.remove('hover');
+    };
+
+    // Attach to interactive elements
+    const attachInteractive = () => {
+      document.querySelectorAll('a, button, input, textarea, select, .doc-card, .srv-card, .theme-toggle').forEach(el => {
+        el.addEventListener('mouseenter', addHover);
+        el.addEventListener('mouseleave', removeHover);
+      });
+    };
+    
+    attachInteractive();
+    
+    // Re-attach if DOM changes (useful for dynamically loaded elements)
+    const observer = new MutationObserver(attachInteractive);
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
 })();
 </script>
 {% block extra_js %}{% endblock %}

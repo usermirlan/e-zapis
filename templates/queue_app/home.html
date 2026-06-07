@@ -45,12 +45,12 @@
     <!-- Left -->
     <div class="h-left">
       <div class="h-badge" style="display: inline-flex; align-items: center; gap: .5rem; background: rgba(14,165,233,.1); border: 1px solid rgba(14,165,233,.2); color: var(--gold-d); padding: .38rem .95rem; border-radius: 50px; font-size: .78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem; animation: fadeDown .6s ease forwards;">
-        <span class="dot" style="width: 6px; height: 6px; background: var(--gold-d); border-radius: 50%; animation: blinkDot 1.5s ease-in-out infinite;"></span> Medical Premium 3D
+        <span class="dot" style="width: 6px; height: 6px; background: var(--gold-d); border-radius: 50%; animation: blinkDot 1.5s ease-in-out infinite;"></span> Онлайн-запись 24/7
       </div>
 
       <h1 class="h-title" style="font-family: var(--f2); font-size: clamp(2.4rem,4.5vw,3.8rem); font-weight: 900; line-height: 1.1; letter-spacing: -1.5px; color: var(--text-main); margin-bottom: 1.4rem; animation: fadeLeft .8s ease .1s forwards; opacity: 0;">
         Ваше здоровье —<br>
-        наш <span class="grad-txt" style="background: linear-gradient(135deg, var(--gold), var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shineText 4s linear infinite;">Приоритет</span>
+        наш <span class="grad-txt" id="typed-text" style="background: linear-gradient(135deg, var(--gold), var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shineText 4s linear infinite;">Приоритет</span>
       </h1>
 
       <p class="h-sub" style="font-size: 1.08rem; color: var(--text-muted); line-height: 1.78; max-width: 470px; margin-bottom: 2.2rem; animation: fadeLeft .8s ease .2s forwards; opacity: 0;">
@@ -86,7 +86,6 @@
         .c-orb { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 190px; height: 190px; }
         .c-sphere { width: 190px; height: 190px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(14,165,233,.9) 0%, rgba(59,130,246,.7) 28%, rgba(6,182,212,.5) 58%, rgba(16,185,129,.3) 100%); box-shadow: 0 0 55px rgba(14,165,233,.4), 0 0 110px rgba(14,165,233,.2), inset 0 0 40px rgba(255,255,255,.6); animation: sphereFloat 5.5s ease-in-out infinite, spherePulse 3s ease-in-out infinite; position: relative; z-index: 5; }
         .c-sphere::before { content: ''; position: absolute; top: 14%; left: 18%; width: 42%; height: 26%; background: rgba(255,255,255,.5); border-radius: 50%; filter: blur(8px); transform: rotate(-28deg); }
-        .c-sphere::after { content: '🏥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 3.5rem; filter: drop-shadow(0 0 12px rgba(255,255,255,.5)); }
         @keyframes sphereFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-22px) rotate(5deg)} }
         @keyframes spherePulse { 0%,100%{box-shadow:0 0 55px rgba(14,165,233,.4),0 0 110px rgba(14,165,233,.2),inset 0 0 40px rgba(255,255,255,.6)} 50%{box-shadow:0 0 80px rgba(14,165,233,.6),0 0 160px rgba(14,165,233,.3),inset 0 0 50px rgba(255,255,255,.7)} }
         .o-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; border: 1.5px solid; }
@@ -131,7 +130,7 @@
         <div class="o-ring o-ring-2"><div class="o-dot vt"></div></div>
         <div class="o-ring o-ring-3"><div class="o-dot cy"></div></div>
         <!-- Orb -->
-        <div class="c-orb"><div class="c-sphere"></div></div>
+        <div class="c-orb"><div class="c-sphere"><i class="bi bi-shield-plus" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:4.5rem; color:#fff; filter:drop-shadow(0 0 20px rgba(255,255,255,0.9)); z-index:10;"></i></div></div>
         <!-- Floating cards -->
         <div class="fc fc1">
           <div class="fc-ico gd">📅</div>
@@ -168,19 +167,19 @@
 </style>
 <div class="stats-bar-sec">
   <div class="stats-grid-wrap">
-    <div class="s-item reveal" style="text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+    <div class="s-item" data-aos="zoom-in" data-aos-delay="0" style="text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
       <span class="s-num" data-target="{{ appointments_count|default:500 }}" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
       <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">Счастливых пациентов</div>
     </div>
-    <div class="s-item reveal" style="transition-delay:.1s; text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+    <div class="s-item" data-aos="zoom-in" data-aos-delay="100" style="text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
       <span class="s-num" data-target="{{ specialists_count|default:50 }}" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
       <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">Опытных врачей</div>
     </div>
-    <div class="s-item reveal" style="transition-delay:.2s; text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+    <div class="s-item" data-aos="zoom-in" data-aos-delay="200" style="text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
       <span class="s-num" data-target="15" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
       <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">Специализаций</div>
     </div>
-    <div class="s-item reveal" style="transition-delay:.3s; text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
+    <div class="s-item" data-aos="zoom-in" data-aos-delay="300" style="text-align: center; padding: 1.5rem; border-radius: 16px; cursor: default; position: relative; transition: all .3s;">
       <span class="s-num" data-target="99" style="font-family: var(--f2); font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; display: block; transition: transform .3s;">0</span>
       <div class="s-lbl" style="font-size: .78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; margin-top: .45rem; font-weight: 700;">% Удовлетворённости</div>
     </div>
@@ -191,7 +190,7 @@
 {% if specialists %}
 <section class="section">
   <div class="s-inner">
-    <div class="s-head reveal">
+    <div class="s-head" data-aos="fade-down">
       <div class="s-tag">✦ Наши специалисты</div>
       <h2 class="s-title">Лучшие врачи города</h2>
       <p class="s-desc">Опытные специалисты, которым доверяют тысячи пациентов</p>
@@ -199,7 +198,7 @@
 
     <div class="docs-grid">
       {% for spec in specialists %}
-      <div class="doc-card reveal" style="transition-delay:{{ forloop.counter0 }}00ms">
+      <div class="doc-card" data-aos="fade-up" data-aos-delay="{% widthratio forloop.counter0 1 100 %}">
         <div class="doc-card-top">
           <div class="doc-verified">⚕️ Врач</div>
           <div class="doc-avatar">
@@ -230,7 +229,7 @@
       {% endfor %}
     </div>
 
-    <div class="view-all-wrap reveal" style="text-align: center; margin-top: 3.5rem;">
+    <div class="view-all-wrap" data-aos="fade-up" style="text-align: center; margin-top: 3.5rem;">
       <a href="{% url 'specialists' %}" class="btn-outline-g" style="padding: .85rem 2.2rem; font-size: 1rem;">Все специалисты →</a>
     </div>
   </div>
@@ -240,7 +239,7 @@
 <!-- ===================== SERVICES ===================== -->
 <section class="section" style="background: var(--dark3);">
   <div class="s-inner">
-    <div class="s-head reveal">
+    <div class="s-head" data-aos="fade-down">
       <div class="s-tag">✦ Наши услуги</div>
       <h2 class="s-title">Всё для вашего здоровья</h2>
       <p class="s-desc">Современная медицина, доступная каждому — записывайтесь онлайн за секунды</p>
@@ -248,7 +247,7 @@
 
     <div class="srv-grid">
       {% for svc in services %}
-      <a href="{% url 'specialists_by_service' svc.id %}" class="srv-card c-{{ forloop.counter|divisibleby:6|yesno:'rs,gd' }} reveal" style="transition-delay:{{ forloop.counter0 }}00ms">
+      <a href="{% url 'specialists_by_service' svc.id %}" class="srv-card c-{{ forloop.counter|divisibleby:6|yesno:'rs,gd' }}" data-aos="flip-left" data-aos-delay="{% widthratio forloop.counter0 1 100 %}">
         <div class="srv-ico {% cycle 'gd' 'vt' 'cy' 'em' 'bl' 'rs' %}">
           <i class="bi {{ svc.icon|default:'bi-heart-pulse' }}"></i>
         </div>
@@ -286,12 +285,12 @@
 <!-- ===================== HOW IT WORKS ===================== -->
 <section class="section" id="how" style="background: var(--dark);">
   <div class="s-inner">
-    <div class="s-head reveal">
+    <div class="s-head" data-aos="fade-down">
       <div class="s-tag">✦ Простой процесс</div>
       <h2 class="s-title">Запись за 4 простых шага</h2>
       <p class="s-desc">От регистрации до консультации — быстро, удобно и надёжно</p>
     </div>
-    <div class="timeline reveal">
+    <div class="timeline" data-aos="fade-up" data-aos-duration="1000">
       <style>
         .timeline { position: relative; display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
         .timeline::before { content: ''; position: absolute; top: 54px; left: 12.5%; right: 12.5%; height: 2px; background: linear-gradient(90deg, var(--gold), var(--violet), var(--cyan), var(--emerald)); z-index: 0; }
@@ -390,5 +389,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Typed.js Animation for Hero Title
+if (document.getElementById('typed-text')) {
+  new Typed('#typed-text', {
+    strings: ['Приоритет', 'Забота', 'Будущее', 'Уверенность'],
+    typeSpeed: 60,
+    backSpeed: 40,
+    loop: true,
+    backDelay: 2500,
+    showCursor: true,
+    cursorChar: '|'
+  });
+}
 </script>
 {% endblock %}
