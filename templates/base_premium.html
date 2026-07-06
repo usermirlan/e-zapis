@@ -151,38 +151,6 @@
     ::-webkit-scrollbar-track { background: var(--dark3); }
     ::-webkit-scrollbar-thumb { background: var(--gold-d); border-radius: 4px; }
 
-    /* ============================================================
-       CUSTOM CURSOR
-    ============================================================ */
-    @media (pointer: fine) {
-      body { cursor: none; }
-      a, button, input, textarea, select { cursor: none; }
-      .custom-cursor, .custom-cursor-follower {
-        position: fixed; top: 0; left: 0;
-        pointer-events: none; border-radius: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 9999;
-      }
-      .custom-cursor {
-        width: 8px; height: 8px;
-        background: var(--gold);
-        transition: transform 0.1s, opacity 0.2s;
-      }
-      .custom-cursor-follower {
-        width: 40px; height: 40px;
-        border: 1.5px solid rgba(14,165,233,0.5);
-        transition: transform 0.15s ease-out, width 0.2s, height 0.2s, background 0.2s, border-color 0.2s;
-      }
-      .custom-cursor-follower.hover {
-        width: 70px; height: 70px;
-        background: rgba(14,165,233,0.1);
-        border-color: var(--gold);
-      }
-      .custom-cursor.hover {
-        transform: translate(-50%, -50%) scale(0.5);
-        opacity: 0.5;
-      }
-    }
 
     /* ============================================================
        CANVAS PARTICLES
@@ -699,9 +667,7 @@
 </head>
 <body>
 
-<!-- Custom Cursor Elements -->
-<div class="custom-cursor"></div>
-<div class="custom-cursor-follower"></div>
+
 
 <canvas id="bg-canvas"></canvas>
 
@@ -1006,54 +972,6 @@ document.querySelectorAll('.srv-card, .doc-card').forEach(card=>{
       dropdown.classList.remove('show');
     }
   });
-})();
-
-/* ================================================
-   CUSTOM CURSOR JS
-================================================ */
-(function(){
-  const cursor = document.querySelector('.custom-cursor');
-  const follower = document.querySelector('.custom-cursor-follower');
-  if(cursor && follower && window.matchMedia("(pointer: fine)").matches) {
-    let cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-    let fx = cx, fy = cy;
-    
-    window.addEventListener('mousemove', e => {
-      cx = e.clientX; cy = e.clientY;
-      cursor.style.transform = `translate(calc(${cx}px - 50%), calc(${cy}px - 50%))`;
-    });
-    
-    const render = () => {
-      fx += (cx - fx) * 0.15;
-      fy += (cy - fy) * 0.15;
-      follower.style.transform = `translate(calc(${fx}px - 50%), calc(${fy}px - 50%))`;
-      requestAnimationFrame(render);
-    };
-    requestAnimationFrame(render);
-
-    const addHover = () => {
-      follower.classList.add('hover');
-      cursor.classList.add('hover');
-    };
-    const removeHover = () => {
-      follower.classList.remove('hover');
-      cursor.classList.remove('hover');
-    };
-
-    // Attach to interactive elements
-    const attachInteractive = () => {
-      document.querySelectorAll('a, button, input, textarea, select, .doc-card, .srv-card, .theme-toggle').forEach(el => {
-        el.addEventListener('mouseenter', addHover);
-        el.addEventListener('mouseleave', removeHover);
-      });
-    };
-    
-    attachInteractive();
-    
-    // Re-attach if DOM changes (useful for dynamically loaded elements)
-    const observer = new MutationObserver(attachInteractive);
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
 })();
 </script>
 {% block extra_js %}{% endblock %}
