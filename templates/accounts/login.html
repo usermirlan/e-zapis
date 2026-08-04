@@ -1,89 +1,309 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
 {% load socialaccount %}
 
 {% block title %}Вход — МедЗапись{% endblock %}
 
-{% block content %}
-<div class="min-vh-100 d-flex align-items-center auth-page">
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-5 col-lg-4">
+{% block extra_css %}
+<style>
+  /* Fix main-content for auth pages */
+  .main-content {
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
 
-                <div class="auth-card card shadow-lg border-0">
-                    <div class="card-body p-5">
+  .auth-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5.5rem 1rem 2rem;
+    min-height: calc(100vh - 80px);
+    width: 100%;
+  }
 
-                        <!-- Заголовок -->
-                        <div class="text-center mb-4">
-                            <div class="auth-icon-wrap mx-auto mb-3">
-                                <i class="bi bi-box-arrow-in-right"></i>
-                            </div>
-                            <h1 class="h3 fw-bold">Вход в систему</h1>
-                            <p class="text-muted">Войдите для записи к врачу</p>
-                        </div>
+  .auth-glass-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 20px 60px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
 
-                        <!-- Форма -->
-                        <form method="POST" novalidate>
-                            {% csrf_token %}
+  body:not(.dark-theme) .auth-glass-card {
+    background: rgba(255,255,255,0.82);
+    border-color: rgba(14,165,233,0.15);
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 20px 60px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+  }
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold text-muted small">
-                                    <i class="bi bi-person me-1"></i> {{ form.username.label }}
-                                </label>
-                                {{ form.username }}
-                                {% if form.username.errors %}
-                                <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
-                                {% endif %}
-                            </div>
+  .auth-icon-circle {
+    width: 68px; height: 68px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(99,102,241,0.2));
+    border: 1px solid rgba(14,165,233,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    color: var(--gold);
+    margin: 0 auto 1.2rem;
+    box-shadow: 0 0 25px rgba(14,165,233,0.25);
+    position: relative;
+  }
+  .auth-icon-circle::before {
+    content: ''; position: absolute;
+    inset: -4px;
+    border-radius: 24px;
+    border: 2px solid rgba(14,165,233,0.6);
+    animation: pulsePing72 0.833s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    pointer-events: none;
+  }
+  .auth-icon-circle i {
+    animation: heartbeat72 0.833s ease-in-out infinite;
+    display: inline-block;
+  }
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold text-muted small">
-                                    <i class="bi bi-lock me-1"></i> {{ form.password.label }}
-                                </label>
-                                {{ form.password }}
-                                {% if form.password.errors %}
-                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
-                                {% endif %}
-                            </div>
+  .auth-title {
+    font-family: var(--f2);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-align: center;
+    margin-bottom: .3rem;
+  }
 
-                            <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg fw-semibold">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>
-                                    Войти
-                                </button>
-                            </div>
-                        </form>
+  .auth-subtitle {
+    color: var(--text-muted);
+    text-align: center;
+    font-size: .9rem;
+    margin-bottom: 1.8rem;
+  }
 
-                        <!-- Google OAuth -->
-                        <div class="text-center my-4 position-relative">
-                            <hr class="text-muted">
-                            <span class="text-muted px-3 bg-white position-absolute top-50 start-50 translate-middle" style="font-size: 0.9rem;">Или войти через</span>
-                        </div>
-                        
-                        <div class="d-grid mb-4">
-                            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark btn-lg fw-semibold d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-google text-danger"></i> Google
-                            </a>
-                        </div>
+  .auth-label {
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: .4rem;
+    display: block;
+  }
 
-                        <div class="text-center mt-3 mb-2">
-                            <a href="{% url 'password_reset' %}" class="text-muted small text-decoration-none">
-                                <i class="bi bi-key me-1"></i>Забыли пароль?
-                            </a>
-                        </div>
+  .auth-input {
+    width: 100%;
+    padding: .75rem 1rem;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-main);
+    font-family: var(--f1);
+    font-size: .95rem;
+    transition: all .25s;
+    outline: none;
+  }
+  body:not(.dark-theme) .auth-input {
+    background: rgba(255,255,255,0.8);
+  }
+  .auth-input:focus {
+    border-color: var(--gold);
+    background: rgba(14,165,233,0.05);
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+  }
 
-                        <hr class="my-3">
-                        <p class="text-center text-muted mb-0">
-                            Нет аккаунта?
-                            <a href="{% url 'register' %}" class="text-primary fw-semibold text-decoration-none">
-                                Зарегистрироваться
-                            </a>
-                        </p>
+  .auth-btn-primary {
+    width: 100%;
+    padding: .85rem;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    color: #fff;
+    font-family: var(--f2);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .3s var(--ease);
+    box-shadow: 0 8px 24px rgba(14,165,233,0.35);
+    margin-top: .5rem;
+  }
+  .auth-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(14,165,233,0.5);
+  }
+  .auth-btn-primary:active { transform: translateY(0); }
 
-                    </div>
-                </div>
+  .auth-divider {
+    display: flex; align-items: center; gap: .8rem;
+    margin: 1.4rem 0;
+    color: var(--text-light);
+    font-size: .8rem;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ''; flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
 
-            </div>
-        </div>
-    </div>
-</div>
+  .auth-btn-google {
+    width: 100%;
+    padding: .75rem;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text-main);
+    font-family: var(--f1);
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    text-decoration: none;
+    transition: all .25s;
+  }
+  .auth-btn-google:hover {
+    border-color: rgba(14,165,233,0.4);
+    background: rgba(14,165,233,0.06);
+    color: var(--text-main);
+  }
+
+  .auth-footer-links {
+    text-align: center;
+    margin-top: 1.2rem;
+    font-size: .85rem;
+    color: var(--text-muted);
+  }
+  .auth-footer-links a {
+    color: var(--gold);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .auth-footer-links a:hover { text-decoration: underline; }
+
+  .auth-error {
+    color: #f43f5e;
+    font-size: .82rem;
+    margin-top: .25rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .auth-wrap {
+      padding: 4.5rem .75rem 1.5rem;
+      align-items: flex-start;
+      padding-top: 5rem;
+    }
+    .auth-glass-card {
+      border-radius: 20px;
+      padding: 1.8rem 1.4rem;
+      max-width: 100%;
+    }
+    .auth-icon-circle {
+      width: 56px; height: 56px;
+      font-size: 1.5rem;
+      border-radius: 16px;
+    }
+    .auth-title { font-size: 1.35rem; }
+    .auth-subtitle { font-size: .82rem; margin-bottom: 1.4rem; }
+    .auth-btn-primary { font-size: .9rem; padding: .75rem; }
+    .auth-input { font-size: .9rem; padding: .65rem .85rem; }
+  }
+
+  @media (max-width: 360px) {
+    .auth-glass-card { padding: 1.5rem 1.1rem; }
+    .auth-title { font-size: 1.2rem; }
+  }
+
+  @media (min-height: 800px) and (max-width: 480px) {
+    .auth-wrap { align-items: center; }
+  }
+</style>
+
 {% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-glass-card">
+
+    <!-- Icon & Title -->
+    <div class="auth-icon-circle">
+      <i class="bi bi-heart-pulse-fill"></i>
+    </div>
+    <div class="auth-title">Вход в систему</div>
+    <div class="auth-subtitle">Войдите для записи к врачу</div>
+
+    <!-- Form -->
+    <form method="POST" novalidate>
+      {% csrf_token %}
+
+      <div style="margin-bottom:1rem;">
+        <label class="auth-label"><i class="bi bi-person me-1"></i>{{ form.username.label }}</label>
+        <input
+          type="text"
+          name="{{ form.username.html_name }}"
+          class="auth-input"
+          placeholder="Ваш логин"
+          value="{{ form.username.value|default:'' }}"
+          autocomplete="username"
+        >
+        {% if form.username.errors %}
+          <div class="auth-error">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div style="margin-bottom:.5rem;">
+        <label class="auth-label"><i class="bi bi-lock me-1"></i>{{ form.password.label }}</label>
+        <input
+          type="password"
+          name="{{ form.password.html_name }}"
+          class="auth-input"
+          placeholder="Ваш пароль"
+          autocomplete="current-password"
+        >
+        {% if form.password.errors %}
+          <div class="auth-error">{{ form.password.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="auth-error" style="margin-bottom:.5rem;">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <button type="submit" class="auth-btn-primary">
+        <i class="bi bi-box-arrow-in-right" style="margin-right:.4rem;"></i> Войти
+      </button>
+    </form>
+
+    <!-- Divider -->
+    <div class="auth-divider">Или войти через</div>
+
+    <!-- Google -->
+    <a href="{% provider_login_url 'google' %}" class="auth-btn-google">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
+        <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+        <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+      </svg>
+      Google
+    </a>
+
+    <!-- Footer links -->
+    <div class="auth-footer-links" style="margin-top:1rem;">
+      <a href="{% url 'password_reset' %}">
+        <i class="bi bi-key me-1"></i>Забыли пароль?
+      </a>
+    </div>
+    <div class="auth-footer-links">
+      Нет аккаунта?
+      <a href="{% url 'register' %}">Зарегистрироваться</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

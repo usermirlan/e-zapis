@@ -60,15 +60,98 @@
        DARK THEME
     ============================================================ */
     body.dark-theme {
-      --dark:       #0a0f1e;
-      --dark2:      #111827;
-      --dark3:      #1e293b;
+      --dark:       #060d1f;
+      --dark2:      #0d1b35;
+      --dark3:      #1a2845;
       --text-main:  #f1f5f9;
       --text-muted: #94a3b8;
       --text-light: #64748b;
-      --glass:      rgba(17,24,39,0.7);
-      --glass-b:    rgba(17,24,39,0.9);
+      --glass:      rgba(6,13,31,0.7);
+      --glass-b:    rgba(6,13,31,0.92);
       --border:     rgba(255,255,255,0.08);
+    }
+
+    /* ============================================================
+       ANIMATED BACKGROUND - DARK THEME
+    ============================================================ */
+    body.dark-theme::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(14,165,233,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(99,102,241,0.16) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 55% 50%, rgba(6,182,212,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 10% 90%, rgba(16,185,129,0.10) 0%, transparent 50%),
+        #060d1f;
+      animation: bgShift 14s ease-in-out infinite alternate;
+    }
+    body.dark-theme::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(14,165,233,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14,165,233,0.04) 1px, transparent 1px);
+      background-size: 50px 50px;
+      mask-image: radial-gradient(ellipse at 50% 50%, black 30%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 30%, transparent 80%);
+    }
+    @keyframes bgShift {
+      0%   { background-position: 0% 0%, 100% 100%, 50% 50%, 0% 100%; }
+      50%  { background-position: 15% 20%, 85% 75%, 60% 40%, 10% 85%; }
+      100% { background-position: 30% 10%, 70% 90%, 40% 60%, 5% 95%; }
+    }
+
+    /* Floating orbs */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+      animation: orbFloat linear infinite;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    body.dark-theme .bg-orb { opacity: 1; }
+    .bg-orb-1 {
+      width: 500px; height: 500px;
+      top: -100px; left: -100px;
+      background: radial-gradient(circle, rgba(14,165,233,0.22) 0%, transparent 70%);
+      animation-duration: 20s;
+    }
+    .bg-orb-2 {
+      width: 400px; height: 400px;
+      bottom: -80px; right: -80px;
+      background: radial-gradient(circle, rgba(99,102,241,0.20) 0%, transparent 70%);
+      animation-duration: 25s;
+      animation-direction: reverse;
+    }
+    .bg-orb-3 {
+      width: 300px; height: 300px;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: radial-gradient(circle, rgba(6,182,212,0.12) 0%, transparent 70%);
+      animation-duration: 18s;
+    }
+    @keyframes orbFloat {
+      0%   { transform: translate(0px, 0px) scale(1); }
+      25%  { transform: translate(30px, -40px) scale(1.05); }
+      50%  { transform: translate(-20px, 30px) scale(0.97); }
+      75%  { transform: translate(40px, 20px) scale(1.03); }
+      100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .bg-orb-3 { animation-name: orbFloat3; }
+    @keyframes orbFloat3 {
+      0%   { transform: translate(-50%,-50%) scale(1); }
+      33%  { transform: translate(calc(-50% + 50px), calc(-50% - 30px)) scale(1.1); }
+      66%  { transform: translate(calc(-50% - 40px), calc(-50% + 50px)) scale(0.9); }
+      100% { transform: translate(-50%,-50%) scale(1); }
     }
     body.dark-theme .pnav {
       background: rgba(10,15,30,0.6);
@@ -145,6 +228,21 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
+    }
+
+    /* Light theme soft background */
+    body:not(.dark-theme) {
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 10%, rgba(14,165,233,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(99,102,241,0.07) 0%, transparent 55%),
+        #f8fafc;
+    }
+
+    /* Ensure content is above bg layers */
+    .pnav, .main-content, .pfooter {
+      position: relative;
+      z-index: 1;
     }
 
     ::-webkit-scrollbar { width: 6px; }
@@ -183,35 +281,86 @@
 
     .nav-logo { display: flex; align-items: center; gap: .75rem; text-decoration: none; }
     .logo-pulse-wrap {
-      width: 42px; height: 42px;
-      background: rgba(14,165,233,0.1);
-      border-radius: 12px;
+      width: 44px; height: 44px;
+      background: rgba(14,165,233,0.12);
+      border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
       position: relative;
       flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(14,165,233,0.25);
+    }
+    /* Dual Pulse Ping Light Waves */
+    .logo-pulse-wrap::before,
+    .logo-pulse-wrap::after {
+      content: ''; position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      border: 2px solid var(--gold);
+      pointer-events: none;
     }
     .logo-pulse-wrap::before {
-      content: ''; position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      border-radius: 12px;
-      border: 1.5px solid var(--gold);
-      animation: pulsePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      animation: pulsePing72 0.833s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
     }
+    .logo-pulse-wrap::after {
+      animation: pulsePing72 0.833s cubic-bezier(0.215, 0.61, 0.355, 1) 0.15s infinite;
+    }
+
     .logo-pulse-icon {
-      font-size: 1.4rem;
-      color: var(--gold-d);
-      animation: heartbeat 1.5s ease-in-out infinite;
+      font-size: 1.45rem;
+      color: #0ea5e9;
+      animation: heartbeat72 0.833s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8));
     }
-    @keyframes pulsePing {
-      0% { transform: scale(1); opacity: 0.8; }
-      100% { transform: scale(1.4); opacity: 0; }
+
+    /* Real 72 BPM Dual Pulse Keyframes (0.833s per beat) */
+    @keyframes pulsePing72 {
+      0% {
+        transform: scale(1);
+        opacity: 0.9;
+        border-color: rgba(14, 165, 233, 0.9);
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.6);
+      }
+      50% {
+        opacity: 0.5;
+        border-color: rgba(99, 102, 241, 0.5);
+      }
+      100% {
+        transform: scale(1.65);
+        opacity: 0;
+        border-color: rgba(6, 182, 212, 0);
+        box-shadow: 0 0 25px rgba(14, 165, 233, 0);
+      }
     }
-    @keyframes heartbeat {
-      0%, 100% { transform: scale(1); }
-      15% { transform: scale(1.15); }
-      30% { transform: scale(1); }
-      45% { transform: scale(1.15); }
+
+    @keyframes heartbeat72 {
+      0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5));
+      }
+      12% {
+        /* Lub (First systole pulse) */
+        transform: scale(1.22);
+        color: #38bdf8;
+        filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.95)) drop-shadow(0 0 25px rgba(14, 165, 233, 0.8));
+      }
+      24% {
+        transform: scale(1.06);
+        filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.6));
+      }
+      38% {
+        /* Dub (Second systole pulse) */
+        transform: scale(1.32);
+        color: #60a5fa;
+        filter: drop-shadow(0 0 22px rgba(96, 165, 250, 1)) drop-shadow(0 0 35px rgba(14, 165, 233, 0.9));
+      }
+      60%, 100% {
+        /* Diastole rest */
+        transform: scale(1);
+        color: #0ea5e9;
+        filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5));
+      }
     }
+
 
     .logo-txt { font-family: var(--f2); font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: -.3px; }
     .logo-txt span { color: var(--gold); }
@@ -665,11 +814,16 @@
     {% block extra_css %}{% endblock %}
   </style>
 </head>
-<body>
+<body class="dark-theme">
 
 
 
 <canvas id="bg-canvas"></canvas>
+
+<!-- Floating background orbs -->
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
 
 <!-- ===================== NAVBAR ===================== -->
 <nav class="pnav" id="pnav">
@@ -800,9 +954,15 @@
    THEME TOGGLE
 ================================================ */
 (function(){
+  // Force dark theme by default, reset any stale 'light' preference
   const saved = localStorage.getItem('med-theme');
-  if(saved === 'dark') document.body.classList.add('dark-theme');
+  if (!saved || saved === 'light') {
+    localStorage.setItem('med-theme', 'dark');
+  }
+  document.body.classList.add('dark-theme');
 })();
+
+
 
 document.addEventListener('DOMContentLoaded', function(){
   const btn = document.getElementById('themeToggle');
@@ -818,58 +978,252 @@ document.addEventListener('DOMContentLoaded', function(){
 /* ================================================
    PARTICLE CANVAS (adapts to theme)
 ================================================ */
+/* ================================================
+   MEDICAL CANVAS ANIMATION (ECG, Crosses, Pulses)
+================================================ */
 (function(){
   const cv = document.getElementById('bg-canvas');
   if(!cv) return;
   const cx = cv.getContext('2d');
-  let W, H, pts = [];
-  const N = 50;
+  let W, H;
 
   function isDark(){ return document.body.classList.contains('dark-theme'); }
 
-  function resize(){ W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+  function resize(){
+    W = cv.width = window.innerWidth;
+    H = cv.height = window.innerHeight;
+  }
   resize();
   window.addEventListener('resize', resize);
 
-  class P {
+  // --- 1. Floating Hexagonal Bio-Molecules & Micro-Capsules ---
+  class BioMolecule {
     constructor(){ this.reset(); }
     reset(){
-      this.x = Math.random()*W; this.y = Math.random()*H;
-      this.vx=(Math.random()-.5)*.3; this.vy=(Math.random()-.5)*.3;
-      this.r = Math.random()*2.5+.5;
-      const hs=[190, 200, 210, 160];
-      this.h=hs[Math.floor(Math.random()*hs.length)];
+      this.x = Math.random() * W;
+      this.y = H + Math.random() * 100;
+      this.size = Math.random() * 12 + 8;
+      this.speed = Math.random() * 0.35 + 0.15;
+      this.alpha = Math.random() * 0.3 + 0.08;
+      this.rot = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.008;
+      this.isHex = Math.random() > 0.4; // 60% hexagons, 40% micro-capsules
+      this.hue = Math.random() > 0.5 ? 'rgba(14, 165, 233, ' : 'rgba(99, 102, 241, ';
     }
-    tick(){ this.x+=this.vx; this.y+=this.vy; if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset(); }
+    update(){
+      this.y -= this.speed;
+      this.rot += this.rotSpeed;
+      if(this.y < -50) this.reset();
+    }
     draw(){
-      const a = isDark() ? Math.random()*.5+.15 : Math.random()*.3+.1;
-      cx.beginPath(); cx.arc(this.x,this.y,this.r,0,Math.PI*2);
-      cx.fillStyle=`hsla(${this.h}, 70%, ${isDark()?60:50}%, ${a})`; cx.fill();
+      const opacity = isDark() ? this.alpha : this.alpha * 0.4;
+      cx.save();
+      cx.translate(this.x, this.y);
+      cx.rotate(this.rot);
+      cx.strokeStyle = this.hue + opacity + ')';
+      cx.fillStyle = this.hue + (opacity * 0.25) + ')';
+      cx.lineWidth = 1.2;
+
+      const r = this.size;
+      cx.beginPath();
+      if(this.isHex) {
+        // Draw 6-sided Hexagon (Medical Molecule)
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI / 3);
+          const px = r * Math.cos(angle);
+          const py = r * Math.sin(angle);
+          if (i === 0) cx.moveTo(px, py);
+          else cx.lineTo(px, py);
+        }
+        cx.closePath();
+        cx.fill();
+        cx.stroke();
+
+        // Inner nucleus dot
+        cx.beginPath();
+        cx.arc(0, 0, 2, 0, Math.PI * 2);
+        cx.fillStyle = this.hue + (opacity * 1.2) + ')';
+        cx.fill();
+      } else {
+        // Draw Pill/Capsule shape
+        const w = r * 1.6, h = r * 0.8;
+        cx.roundRect(-w/2, -h/2, w, h, h/2);
+        cx.fill();
+        cx.stroke();
+      }
+      cx.restore();
     }
   }
 
-  for(let i=0;i<N;i++) pts.push(new P());
+  // --- 2. ECG Heartbeat Line Wave ---
+  let ecgX = 0;
+  const ecgSpeed = 2.5;
+  const ecgPoints = [];
+  const maxEcgPoints = 300;
 
-  let mx=W/2, my=H/2;
-  window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  function getEcgY(x, baseY) {
+    const cycle = (x % 350);
+    // PQRST Heartbeat waveform pattern
+    if (cycle > 80 && cycle < 95) {
+      // P wave
+      return baseY - Math.sin((cycle - 80) / 15 * Math.PI) * 12;
+    } else if (cycle >= 105 && cycle < 112) {
+      // Q drop
+      return baseY + 10;
+    } else if (cycle >= 112 && cycle < 125) {
+      // R spike UP
+      return baseY - 65;
+    } else if (cycle >= 125 && cycle < 135) {
+      // S drop DOWN
+      return baseY + 25;
+    } else if (cycle >= 150 && cycle < 180) {
+      // T wave
+      return baseY - Math.sin((cycle - 150) / 30 * Math.PI) * 18;
+    }
+    // Small random noise (biometric line effect)
+    return baseY + (Math.random() - 0.5) * 1.5;
+  }
+
+  // --- 3. Heartbeat Pulse Rings (Sonar/Ultrasound) ---
+  class PulseRing {
+    constructor(){ this.reset(); }
+    reset(){
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.r = 0;
+      this.maxR = Math.random() * 80 + 40;
+      this.speed = Math.random() * 0.8 + 0.4;
+      this.alpha = 0.6;
+    }
+    update(){
+      this.r += this.speed;
+      this.alpha = 0.6 * (1 - this.r / this.maxR);
+      if (this.r >= this.maxR) this.reset();
+    }
+    draw(){
+      if (this.alpha <= 0) return;
+      const opacity = isDark() ? this.alpha : this.alpha * 0.4;
+      cx.beginPath();
+      cx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      cx.strokeStyle = `rgba(14, 165, 233, ${opacity})`;
+      cx.lineWidth = 1.2;
+      cx.stroke();
+
+      // Center dot
+      cx.beginPath();
+      cx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(6, 182, 212, ${opacity * 1.5})`;
+      cx.fill();
+    }
+  }
+
+  // --- 4. Micro Floating Cells/Particles ---
+  class BioCell {
+    constructor(){ this.reset(); }
+    reset(){
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.vx = (Math.random() - 0.5) * 0.3;
+      this.vy = (Math.random() - 0.5) * 0.3;
+      this.r = Math.random() * 3 + 1.5;
+    }
+    update(){
+      this.x += this.vx; this.y += this.vy;
+      if(this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+    }
+    draw(){
+      const a = isDark() ? 0.35 : 0.15;
+      cx.beginPath();
+      cx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(14, 165, 233, ${a})`;
+      cx.fill();
+    }
+  }
+
+  // Init objects
+  const bioMolecules = Array.from({length: 10}, () => new BioMolecule());
+  const rings = Array.from({length: 6}, () => new PulseRing());
+  const cells = Array.from({length: 35}, () => new BioCell());
+
+  let mx = W/2, my = H/2;
+  window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
 
   function draw(){
-    cx.clearRect(0,0,W,H);
-    const glowA = isDark() ? 0.06 : 0.03;
-    const lineA = isDark() ? 0.15 : 0.08;
-    const g=cx.createRadialGradient(mx,my,0,mx,my,300);
-    g.addColorStop(0,`rgba(14,165,233,${glowA})`); g.addColorStop(1,'transparent');
-    cx.fillStyle=g; cx.fillRect(0,0,W,H);
-    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
-      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.sqrt(dx*dx+dy*dy);
-      if(d<140){
-        cx.beginPath(); cx.moveTo(pts[i].x,pts[i].y); cx.lineTo(pts[j].x,pts[j].y);
-        cx.strokeStyle=`rgba(14,165,233,${lineA*(1-d/140)})`; cx.lineWidth=.8; cx.stroke();
+    cx.clearRect(0, 0, W, H);
+
+    // Mouse glow spot
+    if (isDark()) {
+      const mg = cx.createRadialGradient(mx, my, 0, mx, my, 280);
+      mg.addColorStop(0, 'rgba(14, 165, 233, 0.08)');
+      mg.addColorStop(0.5, 'rgba(99, 102, 241, 0.04)');
+      mg.addColorStop(1, 'transparent');
+      cx.fillStyle = mg;
+      cx.fillRect(0, 0, W, H);
+    }
+
+    // --- Draw Bio Cells & Connections ---
+    cells.forEach(c => { c.update(); c.draw(); });
+    const lineA = isDark() ? 0.15 : 0.06;
+    for(let i=0; i<cells.length; i++){
+      for(let j=i+1; j<cells.length; j++){
+        const dx = cells[i].x - cells[j].x;
+        const dy = cells[i].y - cells[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if(d < 110){
+          cx.beginPath();
+          cx.moveTo(cells[i].x, cells[i].y);
+          cx.lineTo(cells[j].x, cells[j].y);
+          cx.strokeStyle = `rgba(14, 165, 233, ${lineA * (1 - d/110)})`;
+          cx.lineWidth = 0.6;
+          cx.stroke();
+        }
       }
     }
-    pts.forEach(p=>{p.tick();p.draw();});
+
+    // --- Draw Pulse Rings ---
+    rings.forEach(r => { r.update(); r.draw(); });
+
+    // --- Draw Floating Bio-Molecules & Micro-Capsules ---
+    bioMolecules.forEach(b => { b.update(); b.draw(); });
+
+    // --- Draw ECG Line ---
+    ecgX = (ecgX + ecgSpeed) % (W + 200);
+    const ecgY = getEcgY(ecgX, H * 0.45);
+    ecgPoints.push({ x: ecgX, y: ecgY, alpha: 1 });
+    if (ecgPoints.length > maxEcgPoints) ecgPoints.shift();
+
+    if (ecgPoints.length > 1) {
+      for (let i = 1; i < ecgPoints.length; i++) {
+        const p1 = ecgPoints[i - 1];
+        const p2 = ecgPoints[i];
+        const age = (i / ecgPoints.length); // fade tail
+        const lineAlpha = isDark() ? age * 0.6 : age * 0.3;
+
+        cx.beginPath();
+        cx.moveTo(p1.x, p1.y);
+        cx.lineTo(p2.x, p2.y);
+        cx.strokeStyle = `rgba(14, 165, 233, ${lineAlpha})`;
+        cx.lineWidth = 1.8;
+        cx.shadowColor = '#0ea5e9';
+        cx.shadowBlur = isDark() ? 8 : 0;
+        cx.stroke();
+        cx.shadowBlur = 0; // reset
+      }
+
+      // ECG leading glowing pulse dot
+      const lastP = ecgPoints[ecgPoints.length - 1];
+      cx.beginPath();
+      cx.arc(lastP.x, lastP.y, 3.5, 0, Math.PI * 2);
+      cx.fillStyle = isDark() ? '#38bdf8' : '#0284c7';
+      cx.shadowColor = '#38bdf8';
+      cx.shadowBlur = 12;
+      cx.fill();
+      cx.shadowBlur = 0;
+    }
+
     requestAnimationFrame(draw);
   }
+
   draw();
 })();
 
