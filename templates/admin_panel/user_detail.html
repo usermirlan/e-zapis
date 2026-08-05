@@ -1,0 +1,140 @@
+{% extends "admin_panel/base_admin.html" %}
+
+{% block title %}{{ patient.get_full_name }} — Карта пациента{% endblock %}
+{% block page_title %}Карта пациента{% endblock %}
+{% block breadcrumb %}Главная → Пациенты → {{ patient.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .patient-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+    .patient-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .patient-profile { padding: 2rem; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(160deg, rgba(59,130,246,0.06), rgba(99,102,241,0.03)); }
+    .patient-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #6366f1); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: white; margin: 0 auto 1rem; box-shadow: 0 8px 24px var(--accent-glow); }
+    .patient-name { font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 0.25rem; }
+    .patient-username { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .status-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .status-badge.active { background: rgba(16,185,129,0.12); color: #059669; }
+    .status-badge.blocked { background: rgba(239,68,68,0.12); color: var(--danger); }
+    .info-list { list-style: none; padding: 1.25rem 1.5rem; margin: 0; }
+    .info-list li { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list li i { width: 20px; text-align: center; color: var(--accent); flex-shrink: 0; }
+    .info-list li span { color: var(--muted); min-width: 85px; font-size: 0.75rem; }
+    .info-list li strong { color: var(--text); font-weight: 600; }
+    .history-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .history-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+    .history-icon { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--purple), #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
+    .appt-item { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 1rem; transition: var(--transition); }
+    .appt-item:last-child { border-bottom: none; }
+    .appt-item:hover { background: #f8fafc; }
+    .appt-date-box { min-width: 56px; text-align: center; background: #f1f5f9; border-radius: 10px; padding: 0.5rem 0.65rem; flex-shrink: 0; }
+    .appt-date-box .day { font-size: 1.3rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .appt-date-box .mon { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .appt-info { flex: 1; min-width: 0; }
+    .appt-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+    .appt-meta { font-size: 0.78rem; color: var(--muted); }
+    .badge-status { padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+    .badge-pending  { background: rgba(245,158,11,0.12); color: var(--warning); }
+    .badge-confirmed{ background: rgba(59,130,246,0.12);  color: var(--accent); }
+    .badge-completed{ background: rgba(16,185,129,0.12);  color: var(--success); }
+    .badge-cancelled{ background: rgba(239,68,68,0.12);   color: var(--danger); }
+    .badge-no_show  { background: rgba(107,114,128,0.12); color: #6b7280; }
+    .med-notes { margin-top: 0.5rem; padding: 0.6rem 0.875rem; background: #f0fdf4; border-radius: 8px; border-left: 3px solid var(--success); font-size: 0.78rem; color: #166534; }
+    .wa-link { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.875rem; background: #25d366; color: white; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: var(--transition); margin-top: 0.75rem; }
+    .wa-link:hover { background: #1dab52; color: white; transform: translateY(-1px); }
+    .btn-back { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; border: 1.5px solid var(--border); border-radius: 9px; background: #f8fafc; color: var(--muted); font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: var(--transition); margin-bottom: 1.25rem; }
+    .btn-back:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 768px) { .patient-layout { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<a href="{% url 'admin_users' %}" class="btn-back"><i class="bi bi-arrow-left"></i> Назад к пациентам</a>
+
+<div class="patient-layout">
+
+    <!-- Левая колонка — профиль пациента -->
+    <div>
+        <div class="patient-card" style="margin-bottom:1rem;">
+            <div class="patient-profile">
+                <div class="patient-avatar">{{ patient.first_name|first|upper }}{{ patient.last_name|first|upper }}</div>
+                <div class="patient-name">{{ patient.get_full_name|default:patient.username }}</div>
+                <div class="patient-username">@{{ patient.username }}</div>
+                <span class="status-badge {% if patient.is_active %}active{% else %}blocked{% endif %}">
+                    <i class="bi bi-{% if patient.is_active %}check-circle{% else %}x-circle{% endif %}"></i>
+                    {% if patient.is_active %}Активен{% else %}Заблокирован{% endif %}
+                </span>
+                {% if patient.phone %}
+                <div>
+                    <a href="https://wa.me/{{ patient.phone|cut:'+' }}" target="_blank" class="wa-link">
+                        <i class="bi bi-whatsapp"></i> Написать в WhatsApp
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <ul class="info-list">
+                <li><i class="bi bi-telephone"></i><span>Телефон</span><strong>{{ patient.phone|default:"—" }}</strong></li>
+                <li><i class="bi bi-envelope"></i><span>Email</span><strong>{{ patient.email|default:"—" }}</strong></li>
+                <li><i class="bi bi-calendar-heart"></i><span>Дата рожд.</span><strong>{% if patient.date_of_birth %}{{ patient.date_of_birth|date:"d.m.Y" }}{% else %}—{% endif %}</strong></li>
+                <li><i class="bi bi-person-plus"></i><span>Регистрация</span><strong>{{ patient.date_joined|date:"d.m.Y" }}</strong></li>
+            </ul>
+        </div>
+
+        <!-- Stats summary -->
+        <div class="patient-card">
+            <div style="padding:1rem 1.5rem; border-bottom:1px solid var(--border); font-weight:700; font-size:0.875rem;">Статистика</div>
+            <div style="padding:1rem 1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                <div style="text-align:center; background:#f0f7ff; border-radius:10px; padding:0.875rem;">
+                    <div style="font-size:1.6rem; font-weight:800; color:var(--accent);">{{ appointments.count }}</div>
+                    <div style="font-size:0.72rem; color:var(--muted);">Всего записей</div>
+                </div>
+                <div style="text-align:center; background:#f0fdf4; border-radius:10px; padding:0.875rem;">
+                    <div style="font-size:1.6rem; font-weight:800; color:var(--success);">{{ appointments|length }}</div>
+                    <div style="font-size:0.72rem; color:var(--muted);">История</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Правая колонка — история посещений (EHR) -->
+    <div class="history-card">
+        <div class="history-header">
+            <div class="history-icon"><i class="bi bi-journal-medical"></i></div>
+            <div>
+                <div style="font-size:0.95rem; font-weight:700; color:var(--text);">История посещений</div>
+                <div style="font-size:0.75rem; color:var(--muted);">Электронная медицинская карта (ЭМК)</div>
+            </div>
+        </div>
+
+        {% for appt in appointments %}
+        <div class="appt-item">
+            <div class="appt-date-box">
+                <div class="day">{% if appt.time_slot %}{{ appt.time_slot.date|date:"d" }}{% else %}—{% endif %}</div>
+                <div class="mon">{% if appt.time_slot %}{{ appt.time_slot.date|date:"M" }}{% else %}—{% endif %}</div>
+            </div>
+            <div class="appt-info">
+                <div class="appt-title">{{ appt.service.name }}</div>
+                <div class="appt-meta">
+                    <i class="bi bi-person-badge"></i> {{ appt.specialist.get_full_name }}
+                    {% if appt.time_slot %} &nbsp;·&nbsp; <i class="bi bi-clock"></i> {{ appt.time_slot.time|time:"H:i" }}{% endif %}
+                    &nbsp;·&nbsp; Талон №{{ appt.queue_number }}
+                </div>
+                {% if appt.medical_record and appt.medical_record.notes %}
+                <div class="med-notes"><i class="bi bi-file-medical"></i> {{ appt.medical_record.notes }}</div>
+                {% endif %}
+            </div>
+            <div style="flex-shrink:0;">
+                <span class="badge-status badge-{{ appt.status }}">{{ appt.get_status_display }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="bi bi-journal-x"></i>
+            <p>Нет истории посещений</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

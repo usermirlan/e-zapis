@@ -1,0 +1,111 @@
+{% extends "admin_panel/base_admin.html" %}
+
+{% block title %}Календарь — МедЗапись{% endblock %}
+{% block page_title %}Расписание врачей{% endblock %}
+{% block breadcrumb %}Главная → Инструменты → Календарь{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cal-nav {
+        display: flex; align-items: center; gap: 1rem; background: var(--card-bg);
+        border: 1px solid var(--border); border-radius: var(--radius); padding: 0.875rem 1.25rem;
+        margin-bottom: 1.5rem; box-shadow: var(--shadow); flex-wrap: wrap;
+    }
+    .cal-nav-date { font-size: 1.2rem; font-weight: 800; color: var(--text); flex: 1; text-align: center; }
+    .btn-nav { display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; border: 1.5px solid var(--border); border-radius: 9px; background: #f8fafc; color: var(--muted); font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: var(--transition); }
+    .btn-nav:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,130,246,0.05); }
+    .btn-today { background: linear-gradient(135deg, var(--accent), #6366f1); color: white; border-color: transparent; }
+    .btn-today:hover { color: white; opacity: 0.9; }
+    .cal-grid { display: grid; gap: 1rem; }
+    .spec-row { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .spec-header { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.875rem; border-bottom: 1px solid var(--border); background: linear-gradient(90deg, rgba(59,130,246,0.04), transparent); }
+    .spec-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #6366f1); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
+    .spec-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+    .spec-dept { font-size: 0.75rem; color: var(--muted); }
+    .spec-stats { margin-left: auto; display: flex; gap: 0.5rem; }
+    .stat-pill { padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+    .stat-pill.booked { background: rgba(59,130,246,0.1); color: var(--accent); }
+    .stat-pill.free   { background: rgba(16,185,129,0.1); color: var(--success); }
+    .slots-row { padding: 1rem 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .slot-chip { padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.78rem; font-weight: 600; transition: var(--transition); cursor: default; }
+    .slot-chip.free    { background: rgba(16,185,129,0.1); color: #059669; border: 1.5px solid rgba(16,185,129,0.25); }
+    .slot-chip.booked  { background: rgba(59,130,246,0.1); color: var(--accent); border: 1.5px solid rgba(59,130,246,0.2); }
+    .slot-chip.no-show { background: rgba(239,68,68,0.1);  color: var(--danger); border: 1.5px solid rgba(239,68,68,0.2); }
+    .slot-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+    .no-slots { color: var(--muted); font-size: 0.85rem; font-style: italic; padding: 0.5rem 0; }
+    @media (max-width: 576px) { .spec-stats { display: none; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Date Navigation -->
+<div class="cal-nav">
+    <a href="?date={{ prev_date }}" class="btn-nav"><i class="bi bi-chevron-left"></i> Назад</a>
+    <div class="cal-nav-date">
+        <i class="bi bi-calendar3"></i>
+        {% load i18n %}
+        {{ selected_date|date:"d E Y" }} г.
+        {% if selected_date|date:"Y-m-d" == today_date %}<span style="font-size:0.7rem; background:rgba(59,130,246,0.12); color:var(--accent); border-radius:20px; padding:0.15rem 0.6rem; margin-left:0.5rem;">Сегодня</span>{% endif %}
+    </div>
+    <a href="?date={{ today_date }}" class="btn-nav btn-today"><i class="bi bi-calendar-check"></i> Сегодня</a>
+    <a href="?date={{ next_date }}" class="btn-nav">Вперёд <i class="bi bi-chevron-right"></i></a>
+</div>
+
+<!-- Specialist Calendar Grid -->
+<div class="cal-grid">
+    {% for spec in specialists %}
+    {% with slots=spec.day_slots %}
+    {% with booked_count=slots|length %}
+    <div class="spec-row">
+        <div class="spec-header">
+            <div class="spec-avatar">{{ spec.first_name|first|upper }}{{ spec.last_name|first|upper }}</div>
+            <div>
+                <div class="spec-name">{{ spec.get_full_name }}</div>
+                <div class="spec-dept">{{ spec.service.name }}</div>
+            </div>
+            <div class="spec-stats">
+                {% with free_slots=slots|length %}
+                <span class="stat-pill booked"><i class="bi bi-calendar-check"></i> {{ booked_count }} слотов</span>
+                {% endwith %}
+            </div>
+        </div>
+        <div class="slots-row">
+            {% if slots %}
+                {% for slot in slots %}
+                <div class="slot-chip {% if slot.is_available %}free{% elif slot.appointment %}booked{% else %}no-show{% endif %}"
+                     title="{% if slot.appointment %}{{ slot.appointment.patient.get_full_name }} — {{ slot.appointment.service.name }}{% else %}Свободно{% endif %}">
+                    {{ slot.time|time:"H:i" }}
+                    {% if slot.appointment %}<i class="bi bi-person-fill" style="font-size:0.7rem; opacity:0.7;"></i>{% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-slots"><i class="bi bi-calendar-x"></i> Слоты на этот день не созданы</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endwith %}
+    {% endwith %}
+    {% empty %}
+    <div class="empty-state">
+        <i class="bi bi-people"></i>
+        <p>Нет активных врачей</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Legend -->
+<div style="display:flex; gap:1rem; margin-top:1.25rem; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; color:var(--muted);">
+        <span class="slot-chip free" style="margin:0;">09:00</span> Свободный слот
+    </div>
+    <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; color:var(--muted);">
+        <span class="slot-chip booked" style="margin:0;">10:00</span> Занят пациентом
+    </div>
+    <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; color:var(--muted);">
+        <span class="slot-chip no-show" style="margin:0;">11:00</span> Не пришёл
+    </div>
+    <div style="margin-left:auto; font-size:0.75rem; color:var(--muted);"><i class="bi bi-cursor"></i> Наводите курсор на слот чтобы увидеть детали</div>
+</div>
+
+{% endblock %}

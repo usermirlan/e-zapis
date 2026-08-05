@@ -1,122 +1,279 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
 
 {% block title %}Запись к {{ specialist.get_full_name }} — МедЗапись{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Center main-content container */
+  .main-content {
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .booking-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6.5rem 1rem 3rem;
+    min-height: calc(100vh - 80px);
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .booking-glass-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 20px 60px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+    box-sizing: border-box;
+  }
+
+  body:not(.dark-theme) .booking-glass-card {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(14,165,233,0.15);
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 20px 60px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  .spec-head-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .spec-avatar-glow {
+    width: 76px; height: 76px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(99,102,241,0.25));
+    border: 2px solid rgba(14,165,233,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gold);
+    box-shadow: 0 0 25px rgba(14,165,233,0.25);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .spec-avatar-glow img { width: 100%; height: 100%; object-fit: cover; }
+
+  .booking-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .booking-info-tile {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem 1.15rem;
+    transition: all .25s var(--ease);
+  }
+  body:not(.dark-theme) .booking-info-tile {
+    background: rgba(255,255,255,0.7);
+  }
+  .booking-info-tile:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(14,165,233,0.15);
+  }
+
+  .booking-tile-label {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: .3rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  .booking-tile-label i { color: var(--gold); }
+
+  .booking-tile-val {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    font-family: var(--f2);
+  }
+
+  .complaint-textarea {
+    width: 100%;
+    padding: .85rem 1rem;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-main);
+    font-family: var(--f1);
+    font-size: .95rem;
+    transition: all .25s;
+    outline: none;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  body:not(.dark-theme) .complaint-textarea {
+    background: rgba(255,255,255,0.8);
+  }
+  .complaint-textarea:focus {
+    border-color: var(--gold);
+    background: rgba(14,165,233,0.05);
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+  }
+
+  .btn-booking-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-confirm-neon {
+    width: 100%;
+    padding: .9rem;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    color: #fff;
+    font-family: var(--f2);
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .3s var(--ease);
+    box-shadow: 0 8px 24px rgba(14,165,233,0.35);
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+  .btn-confirm-neon:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(14,165,233,0.5);
+  }
+
+  .btn-back-neon {
+    width: 100%;
+    padding: .8rem;
+    border-radius: 14px;
+    border: 1.5px solid rgba(14,165,233,0.4);
+    background: transparent;
+    color: var(--gold);
+    font-family: var(--f2);
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .3s var(--ease);
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+  .btn-back-neon:hover {
+    background: rgba(14,165,233,0.1);
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+
+  @media (max-width: 576px) {
+    .booking-wrap { padding: 5rem .75rem 2rem; }
+    .booking-info-grid { grid-template-columns: 1fr; }
+    .booking-glass-card { padding: 1.5rem 1.25rem; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-header py-4">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'specialist_detail' specialist.id %}">{{ specialist.get_full_name }}</a></li>
-                <li class="breadcrumb-item active">Подтверждение записи</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+<div class="booking-wrap">
+  <div class="booking-glass-card fade-in">
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <div class="booking-card card border-0 shadow">
-                <div class="card-header py-3">
-                    <h1 class="h5 fw-bold mb-0">
-                        <i class="bi bi-calendar-check me-2 text-primary"></i>
-                        Подтверждение записи
-                    </h1>
-                </div>
-                <div class="card-body p-4">
-
-                    <!-- Информация о записи -->
-                    <div class="booking-info mb-4">
-                        <div class="booking-info-row">
-                            <div class="booking-avatar">
-                                {% if specialist.photo %}
-                                <img src="{{ specialist.photo.url }}" alt="">
-                                {% else %}
-                                <i class="bi bi-person-fill"></i>
-                                {% endif %}
-                            </div>
-                            <div class="flex-grow-1">
-                                <h2 class="h6 fw-bold mb-1">{{ specialist.get_full_name }}</h2>
-                                <span class="badge bg-primary-soft text-primary">{{ specialist.service.name }}</span>
-                                {% if specialist.cabinet %}
-                                <span class="text-muted small ms-2">Каб. {{ specialist.cabinet }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <div class="row g-3">
-                            <div class="col-sm-6">
-                                <div class="info-block">
-                                    <div class="info-label">
-                                        <i class="bi bi-calendar3 text-primary me-1"></i> Дата
-                                    </div>
-                                    <div class="info-value fw-semibold">{{ slot.date|date:"d E Y г." }}</div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="info-block">
-                                    <div class="info-label">
-                                        <i class="bi bi-clock text-primary me-1"></i> Время
-                                    </div>
-                                    <div class="info-value fw-semibold">{{ slot.time|time:"H:i" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="info-block">
-                                    <div class="info-label">
-                                        <i class="bi bi-stopwatch text-primary me-1"></i> Длительность
-                                    </div>
-                                    <div class="info-value fw-semibold">{{ specialist.service.duration_minutes }} минут
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="info-block">
-                                    <div class="info-label">
-                                        <i class="bi bi-person text-primary me-1"></i> Пациент
-                                    </div>
-                                    <div class="info-value fw-semibold">{{ user.get_full_name }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Форма подтверждения -->
-                    <form method="POST">
-                        {% csrf_token %}
-
-                        <div class="mb-4">
-                            <label for="id_complaint" class="form-label fw-semibold text-muted small">
-                                <i class="bi bi-chat-text me-1"></i>
-                                Причина обращения <span class="fw-normal">(необязательно)</span>
-                            </label>
-                            {{ form.complaint }}
-                            {% if form.complaint.help_text %}
-                            <div class="form-text text-muted">{{ form.complaint.help_text }}</div>
-                            {% endif %}
-                            {% for error in form.complaint.errors %}
-                            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-                            </div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg fw-semibold">
-                                <i class="bi bi-check-circle me-2"></i>
-                                Подтвердить запись
-                            </button>
-                            <a href="{% url 'specialist_detail' specialist.id %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-2"></i>Выбрать другое время
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <!-- Header Doctor Box -->
+    <div class="spec-head-row">
+      <div class="spec-avatar-glow">
+        {% if specialist.photo %}
+        <img src="{{ specialist.photo.url }}" alt="">
+        {% else %}
+        <span>{{ specialist.first_name|first|upper }}{{ specialist.last_name|first|upper }}</span>
+        {% endif %}
+      </div>
+      <div>
+        <h1 class="h4 fw-extrabold text-main mb-1" style="font-family:var(--f2);">{{ specialist.get_full_name }}</h1>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-info-subtle text-info border border-info-subtle fw-bold rounded-pill px-3">
+            {{ specialist.service.name }}
+          </span>
+          {% if specialist.cabinet %}
+          <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>Кабинет {{ specialist.cabinet }}</span>
+          {% endif %}
         </div>
+      </div>
     </div>
+
+    <!-- Info Grid -->
+    <div class="booking-info-grid">
+      <div class="booking-info-tile">
+        <div class="booking-tile-label"><i class="bi bi-calendar3"></i> Дата приёма</div>
+        <div class="booking-tile-val">{{ slot.date|date:"d E Y г." }}</div>
+      </div>
+      <div class="booking-info-tile">
+        <div class="booking-tile-label"><i class="bi bi-clock"></i> Время приёма</div>
+        <div class="booking-tile-val">{{ slot.time|time:"H:i" }}</div>
+      </div>
+      <div class="booking-info-tile">
+        <div class="booking-tile-label"><i class="bi bi-stopwatch"></i> Длительность</div>
+        <div class="booking-tile-val">{{ specialist.service.duration_minutes }} минут</div>
+      </div>
+      <div class="booking-info-tile">
+        <div class="booking-tile-label"><i class="bi bi-person"></i> Пациент</div>
+        <div class="booking-tile-val">{{ user.get_full_name|default:user.username }}</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="mb-4">
+        <label for="id_complaint" class="form-label fw-bold text-muted small uppercase tracking-wider mb-2">
+          <i class="bi bi-chat-left-text text-gold me-1"></i>
+          Причина обращения <span class="fw-normal text-muted">(необязательно)</span>
+        </label>
+        <textarea name="complaint" id="id_complaint" class="complaint-textarea" rows="3" placeholder="Опишите симптомы или жалобы, чтобы врач мог подготовиться к приёму…">{{ form.complaint.value|default:'' }}</textarea>
+        <div class="form-text text-muted small mt-1">Краткое описание поможет врачу подготовиться к приёму.</div>
+        {% for error in form.complaint.errors %}
+        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="btn-booking-actions">
+        <button type="submit" class="btn-confirm-neon">
+          <i class="bi bi-check2-circle"></i> Подтвердить запись
+        </button>
+        <a href="{% url 'specialist_detail' specialist.id %}" class="btn-back-neon">
+          <i class="bi bi-arrow-left"></i> Выбрать другое время
+        </a>
+      </div>
+    </form>
+
+  </div>
 </div>
 {% endblock %}

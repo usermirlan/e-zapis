@@ -80,6 +80,9 @@
         <a href="{% url 'admin_appointments' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">
             <i class="bi bi-x"></i> Сбросить
         </a>
+        <a href="{% url 'admin_export_appointments_csv' %}" class="btn-admin" style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;text-decoration:none;" title="Скачать Excel">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
     </div>
     <div class="filter-count ms-sm-auto" style="align-self:flex-end;">
         <span style="font-size:0.8rem; color:var(--muted);">Найдено: <strong>{{ appointments.paginator.count }}</strong></span>
@@ -98,6 +101,7 @@
                     <th>Дата / Время</th>
                     <th>Кабинет</th>
                     <th>Статус</th>
+                    <th>WhatsApp</th>
                     <th>Действие</th>
                 </tr>
             </thead>
@@ -129,6 +133,16 @@
                     <td style="font-size:0.825rem;">{{ appt.specialist.cabinet|default:"—" }}</td>
                     <td>
                         <span class="badge-status badge-{{ appt.status }}">{{ appt.get_status_display }}</span>
+                    </td>
+                    <td>
+                        {% if appt.patient.phone %}
+                        <a href="https://wa.me/{{ appt.patient.phone|cut:'+' }}?text=%D0%94%D0%BE%D0%B1%D1%80%D1%8B%D0%B9%20%D0%B4%D0%B5%D0%BD%D1%8C%21%20%D0%92%D0%B0%D1%88%D0%B0%20%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D1%8C%20%E2%84%96{{ appt.queue_number }}%20{{ appt.time_slot.date|date:'d.m.Y' }}%20%D0%B2%20{{ appt.time_slot.time|time:'H:i' }}" target="_blank"
+                           style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.65rem;background:#25d366;color:white;border-radius:8px;font-size:0.72rem;font-weight:600;text-decoration:none;transition:var(--transition);" title="WhatsApp напоминание">
+                            <i class="bi bi-whatsapp"></i> WA
+                        </a>
+                        {% else %}
+                        <span style="font-size:0.72rem; color:var(--muted);">—</span>
+                        {% endif %}
                     </td>
                     <td>
                         <div class="d-flex gap-1 flex-nowrap align-items-center">

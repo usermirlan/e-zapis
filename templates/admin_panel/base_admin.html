@@ -49,7 +49,7 @@
         /* ── Sidebar ── */
         .sidebar {
             width: var(--sidebar-w);
-            min-height: 100vh;
+            height: 100vh;
             background: var(--sidebar-bg);
             position: fixed;
             top: 0; left: 0;
@@ -58,7 +58,18 @@
             z-index: 1000;
             transition: var(--transition);
             border-right: 1px solid var(--sidebar-border);
+            overflow: hidden;
         }
+        .sidebar-nav-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.12) transparent;
+        }
+        .sidebar-nav-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
         .sidebar-logo {
             padding: 1.25rem 1.25rem;
             border-bottom: 1px solid var(--sidebar-border);
@@ -516,6 +527,103 @@
         .mini-bar { height: 6px; border-radius: 10px; background: #e2e8f0; overflow: hidden; }
         .mini-bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
 
+        /* ── Global Search Modal ── */
+        .gsearch-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.75);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 10vh;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .gsearch-overlay.open { opacity: 1; visibility: visible; }
+        .gsearch-box {
+            background: #fff;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 580px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            overflow: hidden;
+            transform: translateY(-20px) scale(0.97);
+            transition: var(--transition);
+        }
+        .gsearch-overlay.open .gsearch-box { transform: translateY(0) scale(1); }
+        .gsearch-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .gsearch-header i { color: var(--muted); font-size: 1.1rem; }
+        #gsearchInput {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            font-family: var(--font);
+            color: var(--text);
+            background: transparent;
+        }
+        .gsearch-kbd {
+            font-size: 0.7rem;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 0.2em 0.5em;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        #gsearchResults {
+            max-height: 380px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .gsearch-result-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.875rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text);
+        }
+        .gsearch-result-item:hover, .gsearch-result-item.active {
+            background: #f0f7ff;
+            color: var(--accent);
+        }
+        .gsearch-result-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--accent), #6366f1);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .gsearch-result-icon.green { background: linear-gradient(135deg, var(--success), #059669); }
+        .gsearch-result-icon.purple { background: linear-gradient(135deg, var(--purple), #7c3aed); }
+        .gsearch-result-icon.orange { background: linear-gradient(135deg, var(--warning), #d97706); }
+        .gsearch-result-text small { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+        .gsearch-empty { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.875rem; }
+        .gsearch-empty i { font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.4; }
+        .gsearch-section-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            padding: 0.5rem 0.875rem 0.25rem;
+            font-weight: 600;
+        }
+
         /* select/input/form */
         .form-control, .form-select, select.admin-select, input.admin-input {
             padding: 0.75rem 1rem;
@@ -569,7 +677,9 @@
         </button>
     </div>
 
-    <!-- Main nav -->
+    <!-- Main nav (scrollable) -->
+    <div class="sidebar-nav-scroll">
+
     <div class="sidebar-section">
         <div class="sidebar-section-title">Главное</div>
         <a href="{% url 'admin_dashboard' %}" class="nav-link-admin {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
@@ -597,8 +707,20 @@
     </div>
 
     <div class="sidebar-section">
-        <div class="sidebar-section-title">Ссылки</div>
+        <div class="sidebar-section-title">Инструменты</div>
+        <a href="{% url 'admin_calendar' %}" class="nav-link-admin {% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}">
+            <i class="bi bi-calendar3"></i> Календарь
+        </a>
+        <a href="{% url 'admin_generate_slots' %}" class="nav-link-admin {% if request.resolver_match.url_name == 'admin_generate_slots' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i> Генератор слотов
+        </a>
+    </div>
 
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Система</div>
+        <a href="{% url 'admin_settings' %}" class="nav-link-admin {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
+            <i class="bi bi-gear"></i> Настройки клиники
+        </a>
         <a href="{% url 'home' %}" class="nav-link-admin" target="_blank">
             <i class="bi bi-globe"></i> Открыть сайт
         </a>
@@ -606,6 +728,8 @@
             <i class="bi bi-database-gear"></i> Django Admin
         </a>
     </div>
+
+    </div><!-- end sidebar-nav-scroll -->
 
     <!-- Footer user -->
     <div class="sidebar-footer">
@@ -635,6 +759,9 @@
             <div class="breadcrumb">{% block breadcrumb %}Главная{% endblock %}</div>
         </div>
         <div class="topbar-actions">
+            <button class="topbar-btn" id="gsearchToggle" title="Поиск (Ctrl+K)">
+                <i class="bi bi-search"></i>
+            </button>
         </div>
     </header>
 
@@ -653,6 +780,44 @@
         {% block content %}{% endblock %}
     </div>
 
+</div>
+
+<!-- ══ GLOBAL SEARCH MODAL ════════════════════════════════════════════════ -->
+<div class="gsearch-overlay" id="gsearchOverlay">
+    <div class="gsearch-box">
+        <div class="gsearch-header">
+            <i class="bi bi-search"></i>
+            <input type="text" id="gsearchInput" placeholder="Поиск пациентов, записей, врачей…" autocomplete="off">
+            <span class="gsearch-kbd">ESC — закрыть</span>
+        </div>
+        <div id="gsearchResults">
+            <div class="gsearch-section-label">Быстрые ссылки</div>
+            <a href="{% url 'admin_dashboard' %}" class="gsearch-result-item">
+                <div class="gsearch-result-icon"><i class="bi bi-speedometer2"></i></div>
+                <div class="gsearch-result-text">Дашборд <small>Главная страница</small></div>
+            </a>
+            <a href="{% url 'admin_appointments' %}" class="gsearch-result-item">
+                <div class="gsearch-result-icon green"><i class="bi bi-calendar-check"></i></div>
+                <div class="gsearch-result-text">Все записи <small>Управление записями</small></div>
+            </a>
+            <a href="{% url 'admin_users' %}" class="gsearch-result-item">
+                <div class="gsearch-result-icon purple"><i class="bi bi-people"></i></div>
+                <div class="gsearch-result-text">Пациенты <small>Список пользователей</small></div>
+            </a>
+            <a href="{% url 'admin_calendar' %}" class="gsearch-result-item">
+                <div class="gsearch-result-icon orange"><i class="bi bi-calendar3"></i></div>
+                <div class="gsearch-result-text">Календарь <small>Расписание врачей</small></div>
+            </a>
+            <a href="{% url 'admin_generate_slots' %}" class="gsearch-result-item">
+                <div class="gsearch-result-icon"><i class="bi bi-clock-history"></i></div>
+                <div class="gsearch-result-text">Генератор слотов <small>Создать расписание</small></div>
+            </a>
+            <a href="{% url 'admin_settings' %}" class="gsearch-result-item">
+                <div class="gsearch-result-icon green"><i class="bi bi-gear"></i></div>
+                <div class="gsearch-result-text">Настройки клиники <small>Конфигурация системы</small></div>
+            </a>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -701,6 +866,85 @@
                 closeSidebar();
             }
         });
+    })();
+
+    /* ── Global Search ── */
+    (function() {
+        const overlay = document.getElementById('gsearchOverlay');
+        const input   = document.getElementById('gsearchInput');
+        const results = document.getElementById('gsearchResults');
+        const toggle  = document.getElementById('gsearchToggle');
+        let searchTimeout;
+
+        const quickLinks = results.innerHTML;
+
+        function openSearch() {
+            overlay.classList.add('open');
+            input.value = '';
+            results.innerHTML = quickLinks;
+            setTimeout(() => input.focus(), 50);
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSearch() {
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        toggle?.addEventListener('click', openSearch);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSearch(); });
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
+            if (e.key === 'Escape' && overlay.classList.contains('open')) closeSearch();
+        });
+
+        input.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            const q = input.value.trim();
+            if (!q) { results.innerHTML = quickLinks; return; }
+            searchTimeout = setTimeout(() => fetchResults(q), 280);
+        });
+
+        async function fetchResults(q) {
+            results.innerHTML = '<div class="gsearch-empty"><i class="bi bi-hourglass-split"></i>Поиск…</div>';
+            try {
+                const res = await fetch(`{% url 'admin_global_search_api' %}?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                renderResults(data, q);
+            } catch { results.innerHTML = '<div class="gsearch-empty"><i class="bi bi-wifi-off"></i>Ошибка соединения</div>'; }
+        }
+
+        function renderResults(data, q) {
+            let html = '';
+            if (data.patients?.length) {
+                html += '<div class="gsearch-section-label">Пациенты</div>';
+                data.patients.forEach(p => {
+                    html += `<a href="${p.url}" class="gsearch-result-item">
+                        <div class="gsearch-result-icon purple"><i class="bi bi-person"></i></div>
+                        <div class="gsearch-result-text">${p.name} <small>${p.phone || '—'}</small></div>
+                    </a>`;
+                });
+            }
+            if (data.appointments?.length) {
+                html += '<div class="gsearch-section-label">Записи</div>';
+                data.appointments.forEach(a => {
+                    html += `<a href="${a.url}" class="gsearch-result-item">
+                        <div class="gsearch-result-icon green"><i class="bi bi-calendar-check"></i></div>
+                        <div class="gsearch-result-text">${a.patient} <small>${a.date} — ${a.specialist}</small></div>
+                    </a>`;
+                });
+            }
+            if (data.specialists?.length) {
+                html += '<div class="gsearch-section-label">Врачи</div>';
+                data.specialists.forEach(s => {
+                    html += `<a href="${s.url}" class="gsearch-result-item">
+                        <div class="gsearch-result-icon orange"><i class="bi bi-person-badge"></i></div>
+                        <div class="gsearch-result-text">${s.name} <small>${s.specialty}</small></div>
+                    </a>`;
+                });
+            }
+            if (!html) html = '<div class="gsearch-empty"><i class="bi bi-search"></i>Ничего не найдено по «' + q + '»</div>';
+            results.innerHTML = html;
+        }
     })();
 </script>
 {% block extra_js %}{% endblock %}

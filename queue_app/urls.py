@@ -94,4 +94,13 @@ urlpatterns = [
     path('dashboard/users/<int:user_id>/password/', views.admin_user_change_password_view, name='admin_user_change_password'),
     path('dashboard/reviews/', views.admin_reviews_view, name='admin_reviews'),
     path('dashboard/reviews/<int:review_id>/delete/', views.admin_delete_review_view, name='admin_delete_review'),
+
+    # ─── New Feature Extensions ─────────────────────────────────────────────────
+    path('dashboard/settings/', views.admin_settings_view, name='admin_settings'),
+    path('dashboard/generate-slots/', views.admin_generate_slots_view, name='admin_generate_slots'),
+    path('dashboard/appointments/export/', views.admin_export_appointments_csv, name='admin_export_appointments_csv'),
+    path('dashboard/users/export/', views.admin_export_users_csv, name='admin_export_users_csv'),
+    path('dashboard/calendar/', views.admin_calendar_view, name='admin_calendar'),
+    path('dashboard/users/<int:user_id>/detail/', views.admin_user_detail_view, name='admin_user_detail'),
+    path('dashboard/api/global-search/', views.admin_global_search_api, name='admin_global_search_api'),
 ]

@@ -15,6 +15,9 @@
         {% if search_query %}
         <a href="{% url 'admin_users' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Сбросить</a>
         {% endif %}
+        <a href="{% url 'admin_export_users_csv' %}" class="btn-admin" style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;text-decoration:none;" title="Скачать Excel">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
     </div>
 </form>
 
@@ -73,6 +76,21 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'admin_user_detail' u.pk %}" class="btn-admin btn-admin-outline" 
+                               style="padding:0.3rem 0.6rem; font-size:0.75rem;" 
+                               title="Карта пациента (ЭМК)">
+                                <i class="bi bi-journal-medical text-primary"></i>
+                            </a>
+
+                            {% if u.phone %}
+                            <a href="https://wa.me/{{ u.phone|cut:'+' }}" target="_blank"
+                               class="btn-admin" 
+                               style="padding:0.3rem 0.6rem; font-size:0.75rem; background:#25d366; color:white; border:none;" 
+                               title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            {% endif %}
+
                             <a href="{% url 'admin_user_change_password' u.pk %}" class="btn-admin btn-admin-outline" 
                                style="padding:0.3rem 0.6rem; font-size:0.75rem;" 
                                title="Сменить пароль">

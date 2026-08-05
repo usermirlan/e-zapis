@@ -1,0 +1,203 @@
+{% extends "admin_panel/base_admin.html" %}
+
+{% block title %}Генератор слотов — МедЗапись{% endblock %}
+{% block page_title %}Генератор расписания{% endblock %}
+{% block breadcrumb %}Главная → Инструменты → Генератор слотов{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gen-layout { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+    .gen-card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .gen-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+    .gen-card-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #6366f1); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; }
+    .gen-card-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .gen-card-body { padding: 1.5rem; }
+    .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .btn-generate { width: 100%; background: linear-gradient(135deg, var(--accent), #6366f1); color: white; border: none; border-radius: 10px; padding: 0.875rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-glow); }
+    .duration-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+    .duration-btn { padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 8px; background: #f8fafc; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition); text-align: center; }
+    .duration-btn.selected, .duration-btn:hover { border-color: var(--accent); background: rgba(59,130,246,0.08); color: var(--accent); }
+    .tip-box { background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(99,102,241,0.04)); border: 1px solid rgba(59,130,246,0.15); border-radius: 10px; padding: 1rem; }
+    .tip-box li { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
+    @media (max-width: 768px) { .gen-layout { grid-template-columns: 1fr; } .time-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="genForm">
+{% csrf_token %}
+<input type="hidden" name="duration" id="hiddenDuration" value="30">
+
+<div class="gen-layout">
+    <!-- Левая панель — форма -->
+    <div class="gen-card">
+        <div class="gen-card-header">
+            <div class="gen-card-icon"><i class="bi bi-clock-history"></i></div>
+            <div>
+                <div class="gen-card-title">Параметры генерации</div>
+                <div style="font-size:0.75rem; color:var(--muted);">Автоматическое создание временных слотов</div>
+            </div>
+        </div>
+        <div class="gen-card-body">
+
+            <div class="field-group" style="margin-bottom:1.25rem;">
+                <label class="form-label">Врач / специалист</label>
+                <select name="specialist_id" class="form-select">
+                    <option value="all">🔀 Все активные врачи</option>
+                    {% for spec in specialists %}
+                    <option value="{{ spec.id }}">{{ spec.get_full_name }} — {{ spec.service.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="time-row" style="margin-bottom:1.25rem;">
+                <div>
+                    <label class="form-label">Дата начала</label>
+                    <input type="date" name="start_date" class="form-control" required>
+                </div>
+                <div>
+                    <label class="form-label">Дата окончания</label>
+                    <input type="date" name="end_date" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="time-row" style="margin-bottom:1.25rem;">
+                <div>
+                    <label class="form-label">Начало рабочего дня</label>
+                    <input type="time" name="work_start" class="form-control" value="09:00">
+                </div>
+                <div>
+                    <label class="form-label">Конец рабочего дня</label>
+                    <input type="time" name="work_end" class="form-control" value="18:00">
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.25rem;">
+                <label class="form-label">Длительность приёма</label>
+                <div class="duration-grid">
+                    <div class="duration-btn selected" onclick="setDuration(15)">15 мин</div>
+                    <div class="duration-btn selected" onclick="setDuration(20)">20 мин</div>
+                    <div class="duration-btn" onclick="setDuration(30)">30 мин</div>
+                    <div class="duration-btn" onclick="setDuration(45)">45 мин</div>
+                    <div class="duration-btn" onclick="setDuration(60)">1 час</div>
+                    <div class="duration-btn" onclick="setDuration(90)">1.5 ч</div>
+                    <div class="duration-btn" onclick="setDuration(120)">2 часа</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.5rem;">
+                <label style="display:flex; align-items:center; gap:0.65rem; cursor:pointer; font-size:0.875rem; font-weight:500; color:var(--text);">
+                    <input type="checkbox" name="skip_weekends" class="form-check-input" checked>
+                    Пропускать выходные (Сб, Вс)
+                </label>
+            </div>
+
+            <button type="submit" class="btn-generate">
+                <i class="bi bi-lightning-charge-fill"></i> Сгенерировать расписание
+            </button>
+        </div>
+    </div>
+
+    <!-- Правая панель — инфо и подсказки -->
+    <div>
+        <div class="gen-card" style="margin-bottom:1rem;">
+            <div class="gen-card-header">
+                <div class="gen-card-icon" style="background: linear-gradient(135deg, var(--success), #059669);"><i class="bi bi-info-circle"></i></div>
+                <div class="gen-card-title">Как это работает</div>
+            </div>
+            <div class="gen-card-body">
+                <div class="tip-box">
+                    <ul style="padding-left:1.25rem; margin:0;">
+                        <li>Система создаёт слоты для каждого выбранного дня</li>
+                        <li>Уже существующие слоты НЕ удаляются и НЕ дублируются</li>
+                        <li>Созданные слоты будут доступны для записи пациентов</li>
+                        <li>Отмечайте «пропускать выходные» для рабочих дней</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="gen-card">
+            <div class="gen-card-header">
+                <div class="gen-card-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);"><i class="bi bi-calculator"></i></div>
+                <div class="gen-card-title">Калькулятор</div>
+            </div>
+            <div class="gen-card-body">
+                <div id="calcResult" style="font-size:0.85rem; color:var(--muted);">
+                    Заполните форму чтобы увидеть расчёт
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setDuration(val) {
+    document.getElementById('hiddenDuration').value = val;
+    document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    calcSlots();
+}
+
+function calcSlots() {
+    const start = document.querySelector('[name=start_date]').value;
+    const end   = document.querySelector('[name=end_date]').value;
+    const wStart = document.querySelector('[name=work_start]').value;
+    const wEnd   = document.querySelector('[name=work_end]').value;
+    const dur    = parseInt(document.getElementById('hiddenDuration').value) || 30;
+    const skipWe = document.querySelector('[name=skip_weekends]').checked;
+
+    if (!start || !end || !wStart || !wEnd) { return; }
+    const s = new Date(start), e = new Date(end);
+    if (s > e) { document.getElementById('calcResult').innerHTML = '<span style="color:var(--danger)">Дата начала позже конца!</span>'; return; }
+
+    let days = 0;
+    let d = new Date(s);
+    while (d <= e) {
+        if (!skipWe || (d.getDay() !== 0 && d.getDay() !== 6)) days++;
+        d.setDate(d.getDate() + 1);
+    }
+
+    const [sh, sm] = wStart.split(':').map(Number);
+    const [eh, em] = wEnd.split(':').map(Number);
+    const workMinutes = (eh * 60 + em) - (sh * 60 + sm);
+    const slotsPerDay = Math.floor(workMinutes / dur);
+    const specCount = document.querySelector('[name=specialist_id]').value === 'all'
+        ? {{ specialists|length }}
+        : 1;
+    const total = days * slotsPerDay * specCount;
+
+    document.getElementById('calcResult').innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+            <div style="background:#f0f7ff; border-radius:8px; padding:0.75rem; text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:var(--accent);">${days}</div>
+                <div style="font-size:0.72rem; color:var(--muted);">рабочих дней</div>
+            </div>
+            <div style="background:#f0fdf4; border-radius:8px; padding:0.75rem; text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:var(--success);">${slotsPerDay}</div>
+                <div style="font-size:0.72rem; color:var(--muted);">слотов/день</div>
+            </div>
+            <div style="background:#fefce8; border-radius:8px; padding:0.75rem; text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:var(--warning);">${specCount}</div>
+                <div style="font-size:0.72rem; color:var(--muted);">врачей</div>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(99,102,241,0.08)); border-radius:8px; padding:0.75rem; text-align:center;">
+                <div style="font-size:1.4rem; font-weight:800; color:var(--accent);">${total}</div>
+                <div style="font-size:0.72rem; color:var(--muted);">итого слотов</div>
+            </div>
+        </div>`;
+}
+
+document.querySelectorAll('input[type=date], input[type=time], select').forEach(el => el.addEventListener('change', calcSlots));
+document.querySelector('[name=skip_weekends]').addEventListener('change', calcSlots);
+
+// Set default duration button
+document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+document.querySelectorAll('.duration-btn')[2].classList.add('selected'); // 30 min default
+</script>
+{% endblock %}

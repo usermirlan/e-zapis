@@ -1,21 +1,22 @@
 import json
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db.models import Q, Avg, Count
+from django.db.models import Q, Avg, Count, Prefetch
 from django.core.exceptions import PermissionDenied
 from django.views.generic import TemplateView, View, CreateView, UpdateView
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 
-from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification, SpecialistAbsence, FavoriteSpecialist
+from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification, SpecialistAbsence, FavoriteSpecialist, ClinicSetting
 from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm, ManualSlotForm
 from accounts.forms import DoctorRegisterForm
 
@@ -1601,3 +1602,241 @@ def favorites_view(request):
     return render(request, 'queue_app/favorites.html', {
         'specialists': specialists,
     })
+
+
+# ─── НОВЫЕ АДМИН-ФУНКЦИИ ───────────────────────────────────────────────────
+
+@admin_required
+def admin_settings_view(request):
+    """Управление настройками клиники."""
+    settings_obj = ClinicSetting.get_settings()
+    if request.method == 'POST':
+        settings_obj.clinic_name = request.POST.get('clinic_name', settings_obj.clinic_name)
+        settings_obj.phone = request.POST.get('phone', settings_obj.phone)
+        settings_obj.email = request.POST.get('email', settings_obj.email)
+        settings_obj.address = request.POST.get('address', settings_obj.address)
+        settings_obj.work_hours = request.POST.get('work_hours', settings_obj.work_hours)
+        settings_obj.whatsapp_number = request.POST.get('whatsapp_number', settings_obj.whatsapp_number)
+        settings_obj.instagram_url = request.POST.get('instagram_url', '')
+        settings_obj.telegram_url = request.POST.get('telegram_url', '')
+        settings_obj.save()
+        messages.success(request, 'Настройки клиники успешно сохранены!')
+        return redirect('admin_settings')
+
+    return render(request, 'admin_panel/settings.html', {'settings': settings_obj})
+
+
+@admin_required
+def admin_generate_slots_view(request):
+    """Массовая генерация слотов врачей."""
+    specialists = Specialist.objects.filter(is_active=True)
+    if request.method == 'POST':
+        spec_id = request.POST.get('specialist_id')
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
+        duration = int(request.POST.get('duration', 30))
+        work_start = request.POST.get('work_start', '09:00')
+        work_end = request.POST.get('work_end', '18:00')
+        skip_weekends = request.POST.get('skip_weekends') == 'on'
+
+        if not start_date_str or not end_date_str:
+            messages.error(request, 'Укажите начальную и конечную дату.')
+            return redirect('admin_generate_slots')
+
+        try:
+            start_d = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_d = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            start_t = datetime.strptime(work_start, '%H:%M').time()
+            end_t = datetime.strptime(work_end, '%H:%M').time()
+        except ValueError:
+            messages.error(request, 'Неверный формат даты или времени.')
+            return redirect('admin_generate_slots')
+
+        target_specs = specialists if spec_id == 'all' else specialists.filter(id=spec_id)
+        created_count = 0
+
+        current_d = start_d
+        while current_d <= end_d:
+            if skip_weekends and current_d.weekday() >= 5:
+                current_d += timedelta(days=1)
+                continue
+
+            for spec in target_specs:
+                curr_dt = datetime.combine(current_d, start_t)
+                end_dt = datetime.combine(current_d, end_t)
+
+                while curr_dt + timedelta(minutes=duration) <= end_dt:
+                    slot_time = curr_dt.time()
+                    slot, created = TimeSlot.objects.get_or_create(
+                        specialist=spec,
+                        date=current_d,
+                        time=slot_time,
+                        defaults={'is_available': True}
+                    )
+                    if created:
+                        created_count += 1
+                    curr_dt += timedelta(minutes=duration)
+
+            current_d += timedelta(days=1)
+
+        messages.success(request, f'Успешно создано временных слотов: {created_count}')
+        return redirect('admin_generate_slots')
+
+    return render(request, 'admin_panel/generate_slots.html', {'specialists': specialists})
+
+
+@admin_required
+def admin_export_appointments_csv(request):
+    """Экспорт записей в Excel/CSV с кодировкой UTF-8 BOM."""
+    import csv
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="appointments_export.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['Талон №', 'Пациент', 'Телефон', 'Врач', 'Услуга', 'Дата', 'Время', 'Кабинет', 'Статус'])
+
+    qs = Appointment.objects.select_related('patient', 'specialist', 'service', 'time_slot').order_by('-created_at')
+    for app in qs:
+        writer.writerow([
+            app.queue_number,
+            app.patient.get_full_name(),
+            app.patient.phone or app.patient.email,
+            app.specialist.get_full_name(),
+            app.service.name,
+            app.time_slot.date.strftime('%d.%m.%Y'),
+            app.time_slot.time.strftime('%H:%M'),
+            app.specialist.cabinet or '—',
+            app.get_status_display()
+        ])
+
+    return response
+
+
+@admin_required
+def admin_export_users_csv(request):
+    """Экспорт пациентов в Excel/CSV."""
+    import csv
+    from accounts.models import CustomUser
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="patients_export.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['ID', 'ФИО', 'Логин', 'Телефон', 'Email', 'Дата рождения', 'Дата регистрации', 'Статус'])
+
+    users = CustomUser.objects.filter(is_doctor=False, is_staff=False, is_superuser=False).order_by('-date_joined')
+    for u in users:
+        writer.writerow([
+            u.id,
+            u.get_full_name(),
+            u.username,
+            u.phone or '—',
+            u.email or '—',
+            u.date_of_birth.strftime('%d.%m.%Y') if u.date_of_birth else '—',
+            u.date_joined.strftime('%d.%m.%Y %H:%M'),
+            'Активен' if u.is_active else 'Заблокирован'
+        ])
+
+    return response
+
+
+@admin_required
+def admin_calendar_view(request):
+    """Интерактивный календарь приёмов клиники."""
+    selected_date_str = request.GET.get('date', timezone.now().strftime('%Y-%m-%d'))
+    try:
+        selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    specialists = Specialist.objects.filter(is_active=True).prefetch_related(
+        Prefetch(
+            'time_slots',
+            queryset=TimeSlot.objects.filter(date=selected_date).select_related('appointment__patient', 'appointment__service').order_by('time'),
+            to_attr='day_slots'
+        )
+    )
+
+    return render(request, 'admin_panel/calendar.html', {
+        'specialists': specialists,
+        'selected_date': selected_date,
+        'prev_date': (selected_date - timedelta(days=1)).strftime('%Y-%m-%d'),
+        'next_date': (selected_date + timedelta(days=1)).strftime('%Y-%m-%d'),
+        'today_date': timezone.now().strftime('%Y-%m-%d')
+    })
+
+
+@admin_required
+def admin_user_detail_view(request, user_id):
+    """Электронная мед-карта и история пациента."""
+    from accounts.models import CustomUser
+    patient = get_object_or_404(CustomUser, pk=user_id)
+    appointments = Appointment.objects.filter(patient=patient).select_related(
+        'specialist', 'service', 'time_slot', 'medical_record'
+    ).order_by('-created_at')
+
+    return render(request, 'admin_panel/user_detail.html', {
+        'patient': patient,
+        'appointments': appointments
+    })
+
+
+@admin_required
+def admin_global_search_api(request):
+    """Быстрый глобальный поиск (AJAX) — возвращает patients/appointments/specialists."""
+    from accounts.models import CustomUser
+    from django.urls import reverse
+
+    q = request.GET.get('q', '').strip()
+    if not q or len(q) < 2:
+        return JsonResponse({'patients': [], 'appointments': [], 'specialists': []})
+
+    # Пациенты
+    patients_qs = CustomUser.objects.filter(
+        Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+        Q(phone__icontains=q) | Q(email__icontains=q),
+        is_staff=False, is_superuser=False
+    )[:6]
+    patients = [
+        {
+            'name': p.get_full_name() or p.username,
+            'phone': getattr(p, 'phone', '') or p.email or '',
+            'url': reverse('admin_user_detail', args=[p.id])
+        }
+        for p in patients_qs
+    ]
+
+    # Записи
+    apps_qs = Appointment.objects.filter(
+        Q(patient__first_name__icontains=q) | Q(patient__last_name__icontains=q) |
+        Q(patient__phone__icontains=q)
+    ).select_related('patient', 'specialist', 'time_slot')[:6]
+    appointments = [
+        {
+            'patient': a.patient.get_full_name() or a.patient.username,
+            'date': a.time_slot.date.strftime('%d.%m.%Y') if a.time_slot else '—',
+            'specialist': a.specialist.get_full_name() if a.specialist else '—',
+            'url': reverse('admin_appointments')
+        }
+        for a in apps_qs
+    ]
+
+    # Врачи
+    specs_qs = Specialist.objects.filter(
+        Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+        Q(service__name__icontains=q)
+    ).select_related('service')[:6]
+    specialists = [
+        {
+            'name': s.get_full_name(),
+            'specialty': s.service.name if s.service else '—',
+            'url': reverse('admin_edit_specialist', args=[s.id])
+        }
+        for s in specs_qs
+    ]
+
+    return JsonResponse({'patients': patients, 'appointments': appointments, 'specialists': specialists})
+

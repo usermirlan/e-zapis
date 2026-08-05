@@ -1,213 +1,347 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
 {% load static %}
 
 {% block title %}Запись подтверждена №{{ appointment.queue_number }} — МедЗапись{% endblock %}
 
 {% block extra_css %}
 <style>
-    .status-live-card {
-        border: 2px solid rgba(37, 99, 235, 0.2);
-        border-radius: 20px;
-        background: linear-gradient(135deg, #fff 0%, #F0F9FF 100%);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.5s ease;
-    }
-    .status-live-card.updated {
-        border-color: #10B981;
-        background: linear-gradient(135deg, #fff 0%, #ECFDF5 100%);
-        animation: statusPulse 0.8s ease;
-    }
-    @keyframes statusPulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-    .live-dot {
-        width: 10px; height: 10px;
-        background: #10B981;
-        border-radius: 50%;
-        display: inline-block;
-        animation: blink 1.5s infinite;
-    }
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.2; }
-    }
-    .status-badge-live {
-        font-size: 1rem;
-        font-weight: 700;
-        padding: 0.5rem 1.5rem;
-        border-radius: 50px;
-        display: inline-block;
-        transition: all 0.5s ease;
-    }
-    .queue-ticket { 
-        background: linear-gradient(135deg, var(--primary), #6366F1);
-        border-radius: 20px;
-        padding: 2rem;
-        color: white;
-        max-width: 260px;
-    }
-    .ticket-label { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
-    .ticket-number { font-size: 3rem; font-weight: 900; line-height: 1; }
-    .ticket-date { font-size: 0.9rem; opacity: 0.85; margin-top: 0.5rem; }
-    
-    .bg-primary-soft { background-color: rgba(37, 99, 235, 0.1); }
-    .bg-success-soft { background-color: rgba(16, 185, 129, 0.1); }
+  /* Center main-content container */
+  .main-content {
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .success-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6.5rem 1rem 4rem;
+    min-height: calc(100vh - 80px);
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .success-glass-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 580px;
+    margin: 0 auto;
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 20px 60px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  body:not(.dark-theme) .success-glass-card {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(14,165,233,0.15);
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 20px 60px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  .success-pulse-icon {
+    width: 80px; height: 80px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(14,165,233,0.2));
+    border: 2px solid rgba(16,185,129,0.4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    color: #10b981;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 0 30px rgba(16,185,129,0.3);
+    position: relative;
+  }
+  .success-pulse-icon::before {
+    content: ''; position: absolute;
+    inset: -6px;
+    border-radius: 28px;
+    border: 2px solid rgba(16,185,129,0.5);
+    animation: pingPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pingPulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.08); opacity: 0.3; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+  }
+
+  .queue-ticket-neon {
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
+    color: #fff;
+    max-width: 320px;
+    margin: 1.5rem auto 2rem;
+    box-shadow: 0 15px 35px rgba(14,165,233,0.35);
+    position: relative;
+    overflow: hidden;
+  }
+  .queue-ticket-neon::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; right: -20px;
+    width: 100px; height: 100px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 50%;
+  }
+
+  .ticket-lbl { font-size: .78rem; opacity: .85; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; }
+  .ticket-num { font-size: 3.5rem; font-weight: 900; line-height: 1; margin: .4rem 0; font-family: var(--f2); }
+  .ticket-dt { font-size: .95rem; opacity: .9; font-weight: 600; }
+
+  .live-status-card {
+    border: 1px solid rgba(14,165,233,0.3);
+    border-radius: 18px;
+    background: rgba(14,165,233,0.06);
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    transition: all .5s ease;
+  }
+  .live-dot-pulse {
+    width: 10px; height: 10px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    animation: blinkDot 1.5s infinite;
+  }
+  @keyframes blinkDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .status-badge-neon {
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: .6rem 2rem;
+    border-radius: 50px;
+    display: inline-block;
+    transition: all .5s ease;
+  }
+
+  .detail-neon-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .85rem 1.15rem;
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    margin-bottom: .65rem;
+    border: 1px solid var(--border);
+  }
+  body:not(.dark-theme) .detail-neon-item {
+    background: rgba(255,255,255,0.7);
+  }
+  .detail-neon-item .lbl {
+    font-size: .825rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .detail-neon-item .val {
+    font-size: .95rem;
+    color: var(--text-main);
+    font-weight: 800;
+    font-family: var(--f2);
+  }
+
+  .btn-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
+
+  .btn-neon-main {
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: .9rem 1.5rem;
+    font-family: var(--f2);
+    font-weight: 700;
+    font-size: .95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    box-shadow: 0 8px 24px rgba(14,165,233,0.35);
+    transition: all .2s ease;
+    text-decoration: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .btn-neon-main:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(14,165,233,0.5);
+  }
+
+  .btn-sub-group {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .btn-neon-sub {
+    background: transparent;
+    color: var(--text-main);
+    border: 1.5px solid rgba(14,165,233,0.4);
+    border-radius: 14px;
+    padding: .85rem 1.2rem;
+    font-family: var(--f2);
+    font-weight: 700;
+    font-size: .88rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    transition: all .2s ease;
+    text-decoration: none;
+    flex: 1;
+    box-sizing: border-box;
+  }
+  .btn-neon-sub:hover {
+    background: rgba(14,165,233,0.1);
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+
+  @media print {
+    nav, footer, .no-print { display: none !important; }
+    .success-glass-card { background: white !important; color: black !important; box-shadow: none; border: 1px solid #ccc; }
+  }
+
+  @media (max-width: 576px) {
+    .success-wrap { padding: 5rem .75rem 2rem; }
+    .success-glass-card { padding: 1.5rem 1.25rem; }
+    .btn-sub-group { flex-direction: column; gap: .75rem; }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5 mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
+<div class="success-wrap">
+  <div class="success-glass-card fade-in">
 
-            <!-- Success Icon -->
-            <div class="text-center mb-4">
-                <div class="success-icon-wrap mx-auto mb-3 bg-success-soft text-success d-inline-flex align-items-center justify-content-center rounded-circle" style="width:80px;height:80px;font-size:2.5rem;">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-                <h1 class="h3 fw-bold mb-1">Запись подтверждена!</h1>
-                <p class="text-muted">Ваш талон готов. Статус обновляется в реальном времени.</p>
-            </div>
-
-            <!-- Ticket -->
-            <div class="queue-ticket mx-auto mb-4 text-center shadow-lg">
-                <div class="ticket-label">Номер талона</div>
-                <div class="ticket-number">#{{ appointment.queue_number }}</div>
-                <div class="ticket-date">{{ appointment.time_slot.date|date:"d E Y" }}</div>
-            </div>
-
-            <!-- ⚡ LIVE STATUS CARD -->
-            <div class="status-live-card text-center" id="liveStatusCard">
-                <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
-                    <span class="live-dot" id="liveDot"></span>
-                    <span class="small fw-bold text-success" id="liveLabel">Онлайн-трекинг активен</span>
-                </div>
-                <p class="text-muted small mb-2">Текущий статус вашей записи</p>
-                <span class="status-badge-live bg-warning-subtle text-warning border border-warning-subtle" id="liveStatus">
-                    {{ appointment.get_status_display }}
-                </span>
-                <p class="text-muted xs-text mt-3 mb-0" style="font-size: 0.8rem;">
-                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
-                    Страница обновится автоматически при изменении статуса
-                </p>
-            </div>
-
-            <!-- Appointment Details -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3 text-muted small text-uppercase">Детали записи</h6>
-                    <div class="d-flex flex-column gap-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-3 bg-primary-soft p-2 text-primary" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-person-badge"></i></div>
-                            <div><div class="text-muted small">Врач</div><div class="fw-bold">{{ appointment.specialist.get_full_name }}</div></div>
-                        </div>
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-3 bg-primary-soft p-2 text-primary" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-calendar3"></i></div>
-                            <div><div class="text-muted small">Дата и время</div><div class="fw-bold">{{ appointment.time_slot.date|date:"d M Y г." }} в {{ appointment.time_slot.time|time:"H:i" }}</div></div>
-                        </div>
-                        {% if appointment.specialist.cabinet %}
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-3 bg-success-soft p-2 text-success" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-door-open"></i></div>
-                            <div><div class="text-muted small">Кабинет</div><div class="fw-bold">{{ appointment.specialist.cabinet }}</div></div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="d-grid gap-2">
-                <a href="{% url 'my_appointments' %}" class="btn btn-primary fw-semibold py-3 rounded-pill">
-                    <i class="bi bi-list-check me-2"></i> Мои записи
-                </a>
-                <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill py-2">
-                    <i class="bi bi-house me-2"></i> На главную
-                </a>
-            </div>
-
-            <p class="text-muted small text-center mt-3">
-                <i class="bi bi-clock me-1"></i> Приходите за 5–10 минут до назначенного времени
-            </p>
-
-        </div>
+    <!-- Pulse Icon -->
+    <div class="success-pulse-icon">
+      <i class="bi bi-check-lg"></i>
     </div>
+    <h1 class="h3 fw-extrabold text-main mb-1" style="font-family:var(--f2);">Запись подтверждена!</h1>
+    <p class="text-muted small mb-3">Ваш электронный талон успешно сформирован</p>
+
+    <!-- Ticket -->
+    <div class="queue-ticket-neon">
+      <div class="ticket-lbl">Номер талона</div>
+      <div class="ticket-num">#{{ appointment.queue_number }}</div>
+      <div class="ticket-dt"><i class="bi bi-calendar3 me-1"></i>{{ appointment.time_slot.date|date:"d E Y" }}</div>
+    </div>
+
+    <!-- Live Status Tracking -->
+    <div class="live-status-card" id="liveStatusCard">
+      <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+        <span class="live-dot-pulse" id="liveDot"></span>
+        <span class="small fw-bold text-success" id="liveLabel">Онлайн-трекинг активен</span>
+      </div>
+      <p class="text-muted small mb-2">Текущий статус вашей записи</p>
+      <span class="status-badge-neon bg-warning-subtle text-warning border border-warning-subtle" id="liveStatus">
+        {{ appointment.get_status_display }}
+      </span>
+      <div class="text-muted small mt-2" style="font-size: 0.78rem;">
+        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
+        Статус обновляется автоматически в режиме реального времени
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="text-start mb-3">
+      <h3 class="h6 fw-bold text-main mb-3" style="font-family:var(--f2);">
+        <i class="bi bi-info-circle-fill text-gold me-2"></i>Детали приёма
+      </h3>
+
+      <div class="detail-neon-item">
+        <span class="lbl"><i class="bi bi-person-badge me-1"></i> Врач</span>
+        <span class="val">{{ appointment.specialist.get_full_name }}</span>
+      </div>
+      <div class="detail-neon-item">
+        <span class="lbl"><i class="bi bi-grid-fill me-1"></i> Услуга</span>
+        <span class="val">{{ appointment.service.name }}</span>
+      </div>
+      <div class="detail-neon-item">
+        <span class="lbl"><i class="bi bi-clock-fill me-1"></i> Время</span>
+        <span class="val">{{ appointment.time_slot.time|time:"H:i" }}</span>
+      </div>
+      {% if appointment.specialist.cabinet %}
+      <div class="detail-neon-item">
+        <span class="lbl"><i class="bi bi-geo-alt-fill me-1"></i> Кабинет</span>
+        <span class="val">Каб. {{ appointment.specialist.cabinet }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Action Buttons with ample spacing -->
+    <div class="btn-actions-container no-print">
+      <a href="{% url 'profile' %}" class="btn-neon-main">
+        <i class="bi bi-person-circle"></i> Перейти в Личный кабинет
+      </a>
+      <div class="btn-sub-group">
+        <button onclick="window.print();" class="btn-neon-sub">
+          <i class="bi bi-printer-fill me-1"></i> Печать
+        </button>
+        <a href="{% url 'home' %}" class="btn-neon-sub">
+          <i class="bi bi-house-fill me-1"></i> На главную
+        </a>
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // ─── Real-Time WebSocket Queue Tracker ───────────────────────────────────
-    const APPOINTMENT_ID = {{ appointment.id }};
-    const SPECIALIST_ID = {{ appointment.specialist.id }};
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const WS_URL = `${protocol}//${window.location.host}/ws/queue/${SPECIALIST_ID}/`;
+  const appointmentId = "{{ appointment.id }}";
+  const statusMap = {
+    'pending': { text: 'Ожидает приёма', class: 'bg-warning-subtle text-warning border-warning-subtle' },
+    'confirmed': { text: 'Подтверждено', class: 'bg-primary-subtle text-primary border-primary-subtle' },
+    'completed': { text: 'Приём завершён', class: 'bg-success-subtle text-success border-success-subtle' },
+    'cancelled': { text: 'Отменено', class: 'bg-danger-subtle text-danger border-danger-subtle' },
+    'no_show': { text: 'Не явился', class: 'bg-secondary-subtle text-secondary border-secondary-subtle' }
+  };
 
-    const statusCard = document.getElementById('liveStatusCard');
-    const statusBadge = document.getElementById('liveStatus');
-    const liveLabel = document.getElementById('liveLabel');
-    const liveDot = document.getElementById('liveDot');
-
-    const STATUS_STYLES = {
-        'pending':   { cls: 'bg-warning-subtle text-warning border border-warning-subtle',   text: 'Ожидает' },
-        'confirmed': { cls: 'bg-primary-subtle text-primary border border-primary-subtle',   text: 'Подтверждена' },
-        'completed': { cls: 'bg-success-subtle text-success border border-success-subtle',   text: 'Завершена ✓' },
-        'cancelled': { cls: 'bg-danger-subtle text-danger border border-danger-subtle',      text: 'Отменена' },
-    };
-
-    function connectWebSocket() {
-        const socket = new WebSocket(WS_URL);
-
-        socket.onopen = () => {
-            console.log('[МедЗапись] WebSocket connected. Tracking queue...');
-            liveLabel.textContent = 'Онлайн-трекинг активен';
-            liveDot.style.background = '#10B981';
-            
-            setInterval(() => {
-                if (socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify({ type: 'ping' }));
-                }
-            }, 30000);
-        };
-
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'queue_update' && data.appointment_id === APPOINTMENT_ID) {
-                updateStatus(data.status, data.status_display);
-            }
-        };
-
-        socket.onclose = () => {
-            liveLabel.textContent = 'Подключение...';
-            liveDot.style.background = '#F59E0B';
-            setTimeout(connectWebSocket, 3000);
-        };
-    }
-
-    function updateStatus(status, displayText) {
-        const style = STATUS_STYLES[status] || { cls: 'bg-secondary-subtle text-secondary', text: displayText };
-        
-        statusBadge.className = `status-badge-live ${style.cls}`;
-        statusBadge.textContent = style.text;
-
-        statusCard.classList.add('updated');
-        setTimeout(() => statusCard.classList.remove('updated'), 1500);
-
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('МедЗапись', {
-                body: `Статус вашей записи изменён: ${style.text}`
-            });
+  function checkStatus() {
+    fetch(`/api/appointments/${appointmentId}/status/`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          const statusEl = document.getElementById('liveStatus');
+          const info = statusMap[data.status] || { text: data.status_display, class: 'bg-light text-dark' };
+          if (statusEl.innerText.trim() !== info.text) {
+            statusEl.innerText = info.text;
+            statusEl.className = 'status-badge-neon ' + info.class;
+          }
         }
-    }
+      })
+      .catch(() => {});
+  }
 
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-
-    connectWebSocket();
+  setInterval(checkStatus, 5000);
 </script>
 {% endblock %}

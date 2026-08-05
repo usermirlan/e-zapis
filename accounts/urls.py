@@ -18,6 +18,7 @@ urlpatterns = [
     # Профиль пользователя
     path('profile/', views.profile_view, name='profile'),
     path('password-change/', views.CustomPasswordChangeView.as_view(), name='password_change'),
+    path('password_change/', views.CustomPasswordChangeView.as_view(), name='password_change_legacy'),
     
     # Подтверждение email
     path('verify-email/<int:user_id>/', views.verify_email_view, name='verify_email'),
