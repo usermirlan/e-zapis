@@ -60,7 +60,7 @@
             border-right: 1px solid var(--sidebar-border);
         }
         .sidebar-logo {
-            padding: 1.5rem 1.25rem;
+            padding: 1.25rem 1.25rem;
             border-bottom: 1px solid var(--sidebar-border);
             display: flex;
             align-items: center;
@@ -78,6 +78,20 @@
         }
         .logo-text { font-size: 1rem; font-weight: 700; color: white; line-height: 1.2; }
         .logo-sub { font-size: 0.68rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; }
+
+        .btn-sidebar-close {
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: rgba(255,255,255,0.7);
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            margin-left: auto;
+        }
+        .btn-sidebar-close:hover { background: rgba(255,255,255,0.15); color: white; }
 
         .sidebar-section { padding: 1.25rem 0.75rem 0.5rem; }
         .sidebar-section-title {
@@ -136,10 +150,11 @@
         .sidebar-user {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.65rem;
             padding: 0.65rem 0.75rem;
             border-radius: 10px;
             background: rgba(255,255,255,0.05);
+            min-width: 0;
         }
         .sidebar-avatar {
             width: 36px; height: 36px;
@@ -147,12 +162,35 @@
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             color: white;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 700;
             flex-shrink: 0;
         }
-        .sidebar-user-name { font-size: 0.8rem; font-weight: 600; color: white; }
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .sidebar-user-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .sidebar-user-role { font-size: 0.68rem; color: rgba(255,255,255,0.4); }
+        .sidebar-logout-btn {
+            color: rgba(255,255,255,0.4);
+            font-size: 1.1rem;
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            transition: var(--transition);
+            text-decoration: none;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .sidebar-logout-btn:hover { background: rgba(239,68,68,0.2); color: #f87171; }
 
         /* ── Main Content ── */
         .main-content {
@@ -161,6 +199,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            width: calc(100% - var(--sidebar-w));
         }
 
         /* ── Topbar ── */
@@ -176,9 +215,9 @@
             z-index: 100;
             box-shadow: 0 1px 8px rgba(0,0,0,0.06);
         }
-        .page-title-bar { flex: 1; }
-        .page-title-bar h1 { font-size: 1.3rem; font-weight: 700; color: var(--text); margin: 0; }
-        .page-title-bar .breadcrumb { font-size: 0.8rem; color: var(--muted); margin: 2px 0 0; }
+        .page-title-bar { flex: 1; min-width: 0; }
+        .page-title-bar h1 { font-size: 1.3rem; font-weight: 700; color: var(--text); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .page-title-bar .breadcrumb { font-size: 0.8rem; color: var(--muted); margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .topbar-actions { display: flex; align-items: center; gap: 0.75rem; }
         .topbar-btn {
             width: 38px; height: 38px;
@@ -192,6 +231,7 @@
             font-size: 1rem;
             text-decoration: none;
             position: relative;
+            flex-shrink: 0;
         }
         .topbar-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
         .topbar-btn .notif-dot {
@@ -203,10 +243,24 @@
             border: 2px solid white;
         }
 
-
+        /* ── Mobile Overlay ── */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
 
         /* ── Page Body ── */
-        .page-body { padding: 1.75rem 2rem; flex: 1; }
+        .page-body { padding: 1.75rem 2rem; flex: 1; width: 100%; }
 
         /* ── Stats Cards ── */
         .stat-card {
@@ -312,6 +366,7 @@
             padding: 0.3em 0.75em;
             border-radius: 20px;
             display: inline-block;
+            white-space: nowrap;
         }
         .badge-pending { background: rgba(245,158,11,0.12); color: #d97706; }
         .badge-confirmed { background: rgba(59,130,246,0.12); color: #2563eb; }
@@ -322,6 +377,7 @@
         .btn-admin {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.4rem;
             padding: 0.5rem 1rem;
             border-radius: 8px;
@@ -331,6 +387,7 @@
             border: none;
             cursor: pointer;
             text-decoration: none;
+            white-space: nowrap;
         }
         .btn-admin-primary {
             background: var(--accent);
@@ -423,11 +480,32 @@
         .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
         .empty-state i { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem; }
 
-        /* ── Responsive ── */
+        /* ── Responsive Adaptation ── */
         @media (max-width: 992px) {
-            .sidebar { transform: translateX(-100%); }
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1050;
+                box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            }
             .sidebar.show { transform: translateX(0); }
-            .main-content { margin-left: 0; }
+            .main-content { margin-left: 0; width: 100%; }
+            .topbar { padding: 0.75rem 1.25rem; }
+            .alerts-wrapper { padding: 0 1.25rem !important; }
+            .page-body { padding: 1.25rem 1.25rem; }
+        }
+
+        @media (max-width: 576px) {
+            .topbar { padding: 0.65rem 0.875rem; }
+            .alerts-wrapper { padding: 0 0.875rem !important; }
+            .page-body { padding: 1rem 0.75rem; }
+            .page-title-bar h1 { font-size: 1.1rem; }
+            .page-title-bar .breadcrumb { font-size: 0.72rem; }
+            .stat-card { padding: 1rem 1.15rem; }
+            .stat-value { font-size: 1.6rem; }
+            .stat-icon { width: 42px; height: 42px; font-size: 1.2rem; margin-bottom: 0.75rem; }
+            .panel-card-header { padding: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+            .panel-card-body { padding: 1rem; }
+            .admin-table th, .admin-table td { padding: 0.65rem 0.75rem; }
         }
 
         /* ── Animations ── */
@@ -474,6 +552,9 @@
 </head>
 <body>
 
+<!-- ══ MOBILE OVERLAY ═══════════════════════════════════════════════════════ -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════════ -->
 <aside class="sidebar" id="adminSidebar">
     <!-- Logo -->
@@ -483,6 +564,9 @@
             <div class="logo-text">МедЗапись</div>
             <div class="logo-sub">Admin Panel</div>
         </div>
+        <button type="button" class="btn-sidebar-close d-lg-none" id="sidebarClose" aria-label="Закрыть">
+            <i class="bi bi-x-lg"></i>
+        </button>
     </div>
 
     <!-- Main nav -->
@@ -527,11 +611,11 @@
     <div class="sidebar-footer">
         <div class="sidebar-user">
             <div class="sidebar-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
-            <div>
-                <div class="sidebar-user-name">{{ request.user.get_full_name }}</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name" title="{{ request.user.get_full_name }}">{{ request.user.get_full_name }}</div>
                 <div class="sidebar-user-role">Администратор</div>
             </div>
-            <a href="{% url 'account_logout' %}" class="ms-auto" title="Выйти" style="color: rgba(255,255,255,0.3); font-size: 1.1rem;">
+            <a href="{% url 'account_logout' %}" class="sidebar-logout-btn" title="Выйти">
                 <i class="bi bi-box-arrow-right"></i>
             </a>
         </div>
@@ -543,7 +627,7 @@
 
     <!-- Topbar -->
     <header class="topbar">
-        <button class="topbar-btn d-lg-none" id="sidebarToggle">
+        <button class="topbar-btn d-lg-none" id="sidebarToggle" aria-label="Меню">
             <i class="bi bi-list"></i>
         </button>
         <div class="page-title-bar">
@@ -555,7 +639,7 @@
     </header>
 
     <!-- Alerts -->
-    <div style="padding: 0 2rem;">
+    <div class="alerts-wrapper" style="padding: 0 2rem;">
         {% for message in messages %}
         <div class="alert-admin alert-{{ message.tags }} mt-3">
             <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
@@ -573,10 +657,51 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Sidebar toggle mobile
-    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-        document.getElementById('adminSidebar').classList.toggle('show');
-    });
+    (function() {
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const closeBtn = document.getElementById('sidebarClose');
+
+        function openSidebar() {
+            sidebar?.classList.add('show');
+            overlay?.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar?.classList.remove('show');
+            overlay?.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        toggleBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        overlay?.addEventListener('click', closeSidebar);
+
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar?.classList.contains('show')) {
+                closeSidebar();
+            }
+        });
+
+        // Close sidebar on navigation link click on mobile
+        sidebar?.querySelectorAll('.nav-link-admin').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        // Auto close overlay if resized to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 992 && sidebar?.classList.contains('show')) {
+                closeSidebar();
+            }
+        });
+    })();
 </script>
 {% block extra_js %}{% endblock %}
 </body>

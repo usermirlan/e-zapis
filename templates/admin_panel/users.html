@@ -5,15 +5,17 @@
 
 {% block content %}
 <!-- Search -->
-<form method="get" class="d-flex gap-2 mb-4">
-    <div class="search-wrapper" style="flex:1; max-width:400px;">
+<form method="get" class="d-flex flex-wrap gap-2 mb-4">
+    <div class="search-wrapper" style="flex:1; min-width:240px; max-width:400px;">
         <i class="bi bi-search"></i>
         <input type="text" name="q" value="{{ search_query }}" placeholder="Поиск по имени, email, телефону…" class="search-input" style="width:100%;">
     </div>
-    <button type="submit" class="btn-admin btn-admin-primary"><i class="bi bi-search"></i> Найти</button>
-    {% if search_query %}
-    <a href="{% url 'admin_users' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Сбросить</a>
-    {% endif %}
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn-admin btn-admin-primary"><i class="bi bi-search"></i> Найти</button>
+        {% if search_query %}
+        <a href="{% url 'admin_users' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Сбросить</a>
+        {% endif %}
+    </div>
 </form>
 
 <div class="panel-card">
@@ -21,7 +23,7 @@
         <div class="panel-card-title"><i class="bi bi-people text-primary me-2"></i>Список пациентов</div>
         <span style="font-size:0.8rem; color:var(--muted);">{{ users.paginator.count }} записей</span>
     </div>
-    <div style="overflow-x:auto;">
+    <div style="overflow-x:auto; -webkit-overflow-scrolling: touch;">
         <table class="admin-table">
             <thead>
                 <tr>
