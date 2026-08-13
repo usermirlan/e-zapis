@@ -1,132 +1,376 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 — Доступ ограничен | МедЗапись</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block title %}403 — Доступ ограничен{% endblock %}
+        :root {
+            --red:        #ef4444;
+            --red-dark:   #b91c1c;
+            --amber:      #f59e0b;
+            --bg:         #0c0504;
+            --font:       'Plus Jakarta Sans', -apple-system, sans-serif;
+        }
 
-{% block extra_css %}
-<style>
-    .error-wrapper {
-        min-height: 85vh;
-        background: radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.08) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 40%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        position: relative;
-    }
+        html, body {
+            height: 100%;
+            font-family: var(--font);
+            background: var(--bg);
+            color: #fff;
+            overflow: hidden;
+        }
 
-    .glass-error-card {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px) saturate(160%);
-        -webkit-backdrop-filter: blur(20px) saturate(160%);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 40px;
-        padding: 4rem 3rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-        max-width: 600px;
-        width: 90%;
-        text-align: center;
-        position: relative;
-        z-index: 10;
-        animation: cardFloat 6s ease-in-out infinite;
-    }
+        /* ── Gradient orbs ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: 0.2;
+            z-index: 1;
+            animation: drift linear infinite;
+        }
+        .orb-1 { width: 550px; height: 550px; background: radial-gradient(circle, #ef4444, transparent); top: -150px; right: -100px; animation-duration: 28s; }
+        .orb-2 { width: 450px; height: 450px; background: radial-gradient(circle, #f59e0b, transparent); bottom: -100px; left: -80px; animation-duration: 22s; animation-direction: reverse; }
+        .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, #dc2626, transparent); top: 50%; left: 40%; animation-duration: 18s; opacity: 0.1; }
 
-    @keyframes cardFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-    }
+        @keyframes drift {
+            0%   { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(-40px, 40px) scale(1.05); }
+            66%  { transform: translate(30px, -30px) scale(0.97); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
 
-    .error-number {
-        font-size: 10rem;
-        font-weight: 900;
-        line-height: 0.8;
-        background: linear-gradient(135deg, #dc2626 0%, #f59e0b 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 2rem;
-        letter-spacing: -10px;
-        opacity: 0.9;
-        filter: drop-shadow(0 10px 20px rgba(220, 38, 38, 0.2));
-    }
+        /* ── Grid overlay ── */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background-image:
+                linear-gradient(rgba(239,68,68,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(239,68,68,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
 
-    .floating-shield {
-        font-size: 6rem;
-        color: #dc2626;
-        position: absolute;
-        top: -40px;
-        left: -30px;
-        opacity: 0.15;
-        transform: rotate(-15deg);
-        animation: shieldFloat 8s ease-in-out infinite;
-    }
+        /* ── Scanlines effect ── */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+        }
 
-    @keyframes shieldFloat {
-        0%, 100% { transform: rotate(-15deg) translate(0, 0); }
-        50% { transform: rotate(-5deg) translate(20px, 20px); }
-    }
+        /* ── Center card ── */
+        .page-center {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
 
-    .btn-premium-red {
-        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-        color: white;
-        border: none;
-        padding: 1.25rem 3rem;
-        border-radius: 50px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
+        .error-card {
+            max-width: 560px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
 
-    .btn-premium-red:hover {
-        transform: scale(1.05) translateY(-5px);
-        box-shadow: 0 20px 40px rgba(220, 38, 38, 0.6);
-        color: white;
-    }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-    .abstract-shape {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        z-index: 1;
-        opacity: 0.3;
-    }
+        /* ── Warning badge ── */
+        .error-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #fca5a5;
+            margin-bottom: 2rem;
+        }
+        .error-badge .dot {
+            width: 7px; height: 7px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+            box-shadow: 0 0 6px #ef4444;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.2; }
+        }
 
-    .shape-1 { width: 300px; height: 300px; background: #dc2626; top: 10%; left: 10%; animation: move 20s infinite alternate; }
-    .shape-2 { width: 400px; height: 400px; background: #f59e0b; bottom: 10%; right: 10%; animation: move 25s infinite alternate-reverse; }
+        /* ── Shield icon ── */
+        .hero-icon {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            filter: drop-shadow(0 0 25px rgba(239,68,68,0.5));
+            animation: shieldShake 5s ease-in-out infinite;
+        }
+        @keyframes shieldShake {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            10%       { transform: rotate(-5deg) scale(1.05); }
+            20%       { transform: rotate(5deg) scale(1.05); }
+            30%       { transform: rotate(0deg) scale(1); }
+        }
 
-    @keyframes move {
-        from { transform: translate(0, 0); }
-        to { transform: translate(100px, 100px); }
-    }
-</style>
-{% endblock %}
+        /* ── Big number ── */
+        .error-number {
+            font-size: clamp(7rem, 22vw, 12rem);
+            font-weight: 900;
+            line-height: 0.85;
+            letter-spacing: -0.05em;
+            background: linear-gradient(135deg, #ffffff 0%, #fca5a5 40%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 60px rgba(239, 68, 68, 0.55));
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
 
-{% block content %}
-<div class="error-wrapper">
-    <div class="abstract-shape shape-1"></div>
-    <div class="abstract-shape shape-2"></div>
+        /* Alarm flicker */
+        .error-number {
+            animation: alarm 4s ease-in-out infinite;
+        }
+        @keyframes alarm {
+            0%, 90%, 100% { filter: drop-shadow(0 0 60px rgba(239,68,68,0.55)); }
+            92%            { filter: drop-shadow(0 0 100px rgba(239,68,68,0.9)) brightness(1.2); }
+            94%            { filter: drop-shadow(0 0 60px rgba(239,68,68,0.55)); }
+            96%            { filter: drop-shadow(0 0 100px rgba(239,68,68,0.9)) brightness(1.2); }
+        }
 
-    <div class="glass-error-card">
-        <div class="floating-shield">
-            <i class="bi bi-shield-lock-fill"></i>
-        </div>
-        
-        <div class="error-number">403</div>
-        <h1 class="display-5 fw-bold mb-3 text-dark">Доступ ограничен</h1>
-        <p class="text-secondary lead mb-5 px-md-5">
-            Это защищенная зона поликлиники. Похоже, у вас недостаточно прав для посещения этого раздела.
-        </p>
-        
-        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-            <a href="{% url 'home' %}" class="btn-premium-red">
-                <i class="bi bi-house-heart"></i> На главную
-            </a>
+        /* ── Divider ── */
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #ef4444, #f59e0b);
+            border-radius: 2px;
+            margin: 1.5rem auto;
+        }
+
+        .error-title {
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            font-weight: 800;
+            color: #fef2f2;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .error-desc {
+            font-size: 1rem;
+            color: #94a3b8;
+            line-height: 1.8;
+            max-width: 420px;
+            margin: 0 auto 2.5rem;
+        }
+
+        /* ── Info box ── */
+        .info-box {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.82rem;
+            color: #fca5a5;
+            margin: 0 auto 2rem;
+            max-width: 380px;
+            text-align: left;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+        }
+
+        /* ── Buttons ── */
+        .btn-group-error {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-danger-glow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.85rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.4);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-danger-glow:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 16px 48px rgba(239, 68, 68, 0.6);
+            color: #fff;
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255,255,255,0.05);
+            color: #cbd5e1;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            padding: 0.85rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 600;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* ── Logo ── */
+        .logo-link {
+            position: fixed;
+            top: 1.5rem;
+            left: 2rem;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .logo-link:hover { opacity: 1; color: #fff; }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #ef4444, #f59e0b);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Floating lock icons */
+        .deco-floats { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+        .deco-item {
+            position: absolute;
+            color: rgba(239,68,68,0.1);
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            from { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.2; }
+            to   { transform: translateY(-100vh) rotate(180deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+    <div class="scanlines"></div>
+
+    <!-- Floating decorations -->
+    <div class="deco-floats" id="floats"></div>
+
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="logo-link">
+        <div class="logo-icon">✚</div>
+        МедЗапись
+    </a>
+
+    <!-- Main content -->
+    <div class="page-center">
+        <div class="error-card">
+
+            <div class="error-badge">
+                <span class="dot"></span>
+                Доступ запрещён
+            </div>
+
+            <span class="hero-icon">🛡️</span>
+
+            <div class="error-number">403</div>
+
+            <div class="divider"></div>
+
+            <h1 class="error-title">Доступ ограничен</h1>
+            <p class="error-desc">
+                Это защищённая зона поликлиники. У вас недостаточно прав для просмотра этого раздела.
+            </p>
+
+            <div class="info-box">
+                <span>ℹ️</span>
+                <span>Если вы считаете, что это ошибка — войдите в систему или обратитесь к администратору.</span>
+            </div>
+
+            <div class="btn-group-error">
+                <a href="{% url 'home' %}" class="btn-danger-glow">
+                    🏠 На главную
+                </a>
+                <a href="{% url 'login' %}" class="btn-ghost">
+                    🔑 Войти
+                </a>
+            </div>
+
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <script>
+        const floatContainer = document.getElementById('floats');
+        const icons = ['🔒', '⚠️', '🛡️', '🔐'];
+        for (let i = 0; i < 12; i++) {
+            const el = document.createElement('div');
+            el.className = 'deco-item';
+            el.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+            el.style.left  = Math.random() * 100 + 'vw';
+            el.style.top   = (80 + Math.random() * 20) + 'vh';
+            el.style.fontSize = (0.8 + Math.random() * 1) + 'rem';
+            el.style.animationDuration = (12 + Math.random() * 18) + 's';
+            el.style.animationDelay    = '-' + (Math.random() * 20) + 's';
+            el.style.opacity = '0.15';
+            floatContainer.appendChild(el);
+        }
+    </script>
+</body>
+</html>

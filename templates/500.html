@@ -1,134 +1,404 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 — Ошибка сервера | МедЗапись</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block title %}500 — Ошибка сервера{% endblock %}
+        :root {
+            --slate:      #64748b;
+            --slate-dark: #1e293b;
+            --teal:       #14b8a6;
+            --bg:         #030711;
+            --font:       'Plus Jakarta Sans', -apple-system, sans-serif;
+        }
 
-{% block extra_css %}
-<style>
-    .error-wrapper {
-        min-height: 85vh;
-        background: radial-gradient(circle at 10% 20%, rgba(71, 85, 105, 0.08) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(30, 41, 59, 0.08) 0%, transparent 40%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        position: relative;
-    }
+        html, body {
+            height: 100%;
+            font-family: var(--font);
+            background: var(--bg);
+            color: #fff;
+            overflow: hidden;
+        }
 
-    .glass-error-card {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px) saturate(160%);
-        -webkit-backdrop-filter: blur(20px) saturate(160%);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 40px;
-        padding: 4rem 3rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-        max-width: 600px;
-        width: 90%;
-        text-align: center;
-        position: relative;
-        z-index: 10;
-        animation: cardFloat 6s ease-in-out infinite;
-    }
+        /* ── Gradient orbs ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: 0.18;
+            z-index: 1;
+            animation: drift linear infinite;
+        }
+        .orb-1 { width: 600px; height: 600px; background: radial-gradient(circle, #14b8a6, transparent); top: -200px; left: -100px; animation-duration: 32s; }
+        .orb-2 { width: 500px; height: 500px; background: radial-gradient(circle, #1e293b, #475569); bottom: -100px; right: -100px; animation-duration: 26s; animation-direction: reverse; }
+        .orb-3 { width: 350px; height: 350px; background: radial-gradient(circle, #0f766e, transparent); top: 35%; left: 45%; animation-duration: 20s; opacity: 0.12; }
 
-    @keyframes cardFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-    }
+        @keyframes drift {
+            0%   { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(50px, -30px) scale(1.05); }
+            66%  { transform: translate(-30px, 40px) scale(0.97); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
 
-    .error-number {
-        font-size: 10rem;
-        font-weight: 900;
-        line-height: 0.8;
-        background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 2rem;
-        letter-spacing: -10px;
-        opacity: 0.9;
-        filter: drop-shadow(0 10px 20px rgba(71, 85, 105, 0.2));
-    }
+        /* ── Grid overlay ── */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background-image:
+                linear-gradient(rgba(20,184,166,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(20,184,166,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
 
-    .floating-gear {
-        font-size: 6rem;
-        color: #64748b;
-        position: absolute;
-        top: -40px;
-        right: -30px;
-        opacity: 0.15;
-        animation: gearSpin 12s linear infinite;
-    }
+        /* ── Center card ── */
+        .page-center {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
 
-    @keyframes gearSpin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
+        .error-card {
+            max-width: 580px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
 
-    .btn-premium-dark {
-        background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
-        color: white;
-        border: none;
-        padding: 1.25rem 3rem;
-        border-radius: 50px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 10px 30px rgba(30, 41, 59, 0.4);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-    .btn-premium-dark:hover {
-        transform: scale(1.05) translateY(-5px);
-        box-shadow: 0 20px 40px rgba(30, 41, 59, 0.6);
-        color: white;
-    }
+        /* ── Badge ── */
+        .error-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #5eead4;
+            margin-bottom: 2rem;
+        }
+        .error-badge .dot {
+            width: 7px; height: 7px;
+            background: #14b8a6;
+            border-radius: 50%;
+            animation: pulseDot 2s ease-in-out infinite;
+            box-shadow: 0 0 6px #14b8a6;
+        }
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50%       { transform: scale(1.5); opacity: 0.5; }
+        }
 
-    .abstract-shape {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        z-index: 1;
-        opacity: 0.2;
-    }
+        /* ── Gear icon ── */
+        .hero-icon {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            filter: drop-shadow(0 0 25px rgba(20,184,166,0.5));
+            animation: spinGear 8s linear infinite;
+        }
+        @keyframes spinGear {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
 
-    .shape-1 { width: 300px; height: 300px; background: #64748b; top: 10%; left: 10%; animation: move 20s infinite alternate; }
-    .shape-2 { width: 400px; height: 400px; background: #475569; bottom: 10%; right: 10%; animation: move 25s infinite alternate-reverse; }
+        /* ── Big number ── */
+        .error-number {
+            font-size: clamp(7rem, 22vw, 12rem);
+            font-weight: 900;
+            line-height: 0.85;
+            letter-spacing: -0.05em;
+            background: linear-gradient(135deg, #ffffff 0%, #99f6e4 40%, #14b8a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 60px rgba(20, 184, 166, 0.5));
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
 
-    @keyframes move {
-        from { transform: translate(0, 0); }
-        to { transform: translate(100px, 100px); }
-    }
-</style>
-{% endblock %}
+        /* ── Divider ── */
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #14b8a6, #64748b);
+            border-radius: 2px;
+            margin: 1.5rem auto;
+            animation: widthPulse 3s ease-in-out infinite;
+        }
+        @keyframes widthPulse {
+            0%, 100% { width: 60px; }
+            50%       { width: 100px; }
+        }
 
-{% block content %}
-<div class="error-wrapper">
-    <div class="abstract-shape shape-1"></div>
-    <div class="abstract-shape shape-2"></div>
+        .error-title {
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            font-weight: 800;
+            color: #f1f5f9;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
 
-    <div class="glass-error-card">
-        <div class="floating-gear">
-            <i class="bi bi-gear-wide-connected"></i>
-        </div>
-        
-        <div class="error-number">500</div>
-        <h1 class="display-5 fw-bold mb-3 text-dark">Техническая заминка</h1>
-        <p class="text-secondary lead mb-5 px-md-5">
-            Что-то пошло не так на нашем сервере. Не волнуйтесь, наши системы уже отправили сигнал инженерам.
-        </p>
-        
-        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-            <a href="{% url 'home' %}" class="btn-premium-dark">
-                <i class="bi bi-house-gear-fill"></i> На главную
-            </a>
-            <button onclick="location.reload()" class="btn btn-outline-secondary rounded-pill px-4" style="border-width: 2px; font-weight: 600;">
-                <i class="bi bi-arrow-clockwise"></i> Обновить
-            </button>
+        .error-desc {
+            font-size: 1rem;
+            color: #94a3b8;
+            line-height: 1.8;
+            max-width: 420px;
+            margin: 0 auto 1.5rem;
+        }
+
+        /* ── Status bar ── */
+        .status-bar {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin: 0 auto 2rem;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+        .status-row .label { flex: 1; text-align: left; }
+        .status-row .value {
+            font-weight: 600;
+            padding: 0.1rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+        }
+        .status-ok   { background: rgba(20,184,166,0.12); color: #5eead4; }
+        .status-fail { background: rgba(239,68,68,0.12);  color: #fca5a5; animation: blinkText 1.5s infinite; }
+        .status-warn { background: rgba(245,158,11,0.12); color: #fcd34d; }
+        @keyframes blinkText {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.4; }
+        }
+
+        /* ── Countdown ── */
+        .retry-hint {
+            font-size: 0.82rem;
+            color: #475569;
+            margin-bottom: 2rem;
+        }
+        #countdown { color: #14b8a6; font-weight: 700; }
+
+        /* ── Buttons ── */
+        .btn-group-error {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-teal-glow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.85rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 32px rgba(20,184,166,0.35);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-teal-glow:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 16px 48px rgba(20,184,166,0.55);
+            color: #fff;
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255,255,255,0.05);
+            color: #cbd5e1;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            padding: 0.85rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 600;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* ── Logo ── */
+        .logo-link {
+            position: fixed;
+            top: 1.5rem;
+            left: 2rem;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .logo-link:hover { opacity: 1; color: #fff; }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #0d9488, #1e293b);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Floating gears */
+        .deco-floats { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+        .deco-item {
+            position: absolute;
+            animation: floatGear linear infinite;
+            opacity: 0.1;
+        }
+        @keyframes floatGear {
+            from { transform: translateY(0) rotate(0deg); }
+            to   { transform: translateY(-100vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Floating gears -->
+    <div class="deco-floats" id="floats"></div>
+
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="logo-link">
+        <div class="logo-icon">✚</div>
+        МедЗапись
+    </a>
+
+    <!-- Main content -->
+    <div class="page-center">
+        <div class="error-card">
+
+            <div class="error-badge">
+                <span class="dot"></span>
+                Ошибка сервера
+            </div>
+
+            <span class="hero-icon">⚙️</span>
+
+            <div class="error-number">500</div>
+
+            <div class="divider"></div>
+
+            <h1 class="error-title">Технический сбой</h1>
+            <p class="error-desc">
+                Что-то пошло не так на нашем сервере. Наша команда уже работает над устранением проблемы.
+            </p>
+
+            <!-- Status dashboard -->
+            <div class="status-bar">
+                <div class="status-row">
+                    <span>🌐</span>
+                    <span class="label">Сеть</span>
+                    <span class="value status-ok">Работает</span>
+                </div>
+                <div class="status-row">
+                    <span>🗄️</span>
+                    <span class="label">Сервер приложений</span>
+                    <span class="value status-fail">Ошибка</span>
+                </div>
+                <div class="status-row">
+                    <span>💾</span>
+                    <span class="label">База данных</span>
+                    <span class="value status-ok">Работает</span>
+                </div>
+            </div>
+
+            <p class="retry-hint">Автообновление через <span id="countdown">30</span> сек</p>
+
+            <div class="btn-group-error">
+                <a href="{% url 'home' %}" class="btn-teal-glow">
+                    🏠 На главную
+                </a>
+                <button onclick="location.reload()" class="btn-ghost">
+                    🔄 Обновить
+                </button>
+            </div>
+
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <script>
+        // Floating gears
+        const floatContainer = document.getElementById('floats');
+        const gearIcons = ['⚙️', '🔧', '🛠️', '⚡'];
+        for (let i = 0; i < 14; i++) {
+            const el = document.createElement('div');
+            el.className = 'deco-item';
+            el.innerHTML = gearIcons[Math.floor(Math.random() * gearIcons.length)];
+            el.style.left  = Math.random() * 100 + 'vw';
+            el.style.top   = (70 + Math.random() * 30) + 'vh';
+            el.style.fontSize = (0.8 + Math.random() * 1.5) + 'rem';
+            el.style.animationDuration = (15 + Math.random() * 20) + 's';
+            el.style.animationDelay    = '-' + (Math.random() * 25) + 's';
+            floatContainer.appendChild(el);
+        }
+
+        // Countdown timer
+        let secs = 30;
+        const el = document.getElementById('countdown');
+        const timer = setInterval(() => {
+            secs--;
+            if (el) el.textContent = secs;
+            if (secs <= 0) {
+                clearInterval(timer);
+                location.reload();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

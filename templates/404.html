@@ -1,135 +1,393 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 — Страница не найдена | МедЗапись</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block title %}404 — Страница не найдена{% endblock %}
+        :root {
+            --blue:       #3b82f6;
+            --blue-dark:  #1d4ed8;
+            --blue-glow:  rgba(59, 130, 246, 0.35);
+            --purple:     #8b5cf6;
+            --bg:         #020617;
+            --font:       'Plus Jakarta Sans', -apple-system, sans-serif;
+        }
 
-{% block extra_css %}
-<style>
-    .error-wrapper {
-        min-height: 85vh;
-        background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 40%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        position: relative;
-    }
+        html, body {
+            height: 100%;
+            font-family: var(--font);
+            background: var(--bg);
+            color: #fff;
+            overflow: hidden;
+        }
 
-    .glass-error-card {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px) saturate(160%);
-        -webkit-backdrop-filter: blur(20px) saturate(160%);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 40px;
-        padding: 4rem 3rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-        max-width: 600px;
-        width: 90%;
-        text-align: center;
-        position: relative;
-        z-index: 10;
-        animation: cardFloat 6s ease-in-out infinite;
-    }
+        /* ── Animated background canvas ── */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
 
-    @keyframes cardFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-    }
+        /* ── Gradient orbs ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.25;
+            z-index: 1;
+            animation: drift linear infinite;
+        }
+        .orb-1 { width: 600px; height: 600px; background: radial-gradient(circle, #3b82f6, transparent); top: -200px; left: -100px; animation-duration: 30s; }
+        .orb-2 { width: 500px; height: 500px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: -150px; right: -100px; animation-duration: 25s; animation-direction: reverse; }
+        .orb-3 { width: 350px; height: 350px; background: radial-gradient(circle, #06b6d4, transparent); top: 40%; left: 50%; animation-duration: 20s; opacity: 0.12; }
 
-    .error-number {
-        font-size: 10rem;
-        font-weight: 900;
-        line-height: 0.8;
-        background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 2rem;
-        letter-spacing: -10px;
-        opacity: 0.9;
-        filter: drop-shadow(0 10px 20px rgba(37, 99, 235, 0.2));
-    }
+        @keyframes drift {
+            0%   { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(40px, -40px) scale(1.05); }
+            66%  { transform: translate(-30px, 30px) scale(0.97); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
 
-    .floating-hospital {
-        font-size: 6rem;
-        color: #2563eb;
-        position: absolute;
-        top: -40px;
-        right: -30px;
-        opacity: 0.15;
-        transform: rotate(15deg);
-        animation: hospitalFloat 8s ease-in-out infinite;
-    }
+        /* ── Grid overlay ── */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
 
-    @keyframes hospitalFloat {
-        0%, 100% { transform: rotate(15deg) translate(0, 0); }
-        50% { transform: rotate(5deg) translate(-20px, 20px); }
-    }
+        /* ── Center card ── */
+        .page-center {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
 
-    .btn-premium-glow {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-        color: white;
-        border: none;
-        padding: 1.25rem 3rem;
-        border-radius: 50px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
+        .error-card {
+            max-width: 560px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
 
-    .btn-premium-glow:hover {
-        transform: scale(1.05) translateY(-5px);
-        box-shadow: 0 20px 40px rgba(37, 99, 235, 0.6);
-        color: white;
-    }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-    .abstract-shape {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        z-index: 1;
-        opacity: 0.4;
-    }
+        /* ── Glowing badge ── */
+        .error-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #93c5fd;
+            margin-bottom: 2rem;
+            animation: badgePulse 3s ease-in-out infinite;
+        }
+        .error-badge .dot {
+            width: 7px; height: 7px;
+            background: #60a5fa;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px #60a5fa; }
+            50%       { opacity: 0.3; box-shadow: none; }
+        }
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2); }
+            50%       { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+        }
 
-    .shape-1 { width: 300px; height: 300px; background: #60a5fa; top: 10%; left: 10%; animation: move 20s infinite alternate; }
-    .shape-2 { width: 400px; height: 400px; background: #c084fc; bottom: 10%; right: 10%; animation: move 25s infinite alternate-reverse; }
+        /* ── Big number ── */
+        .error-number {
+            font-size: clamp(7rem, 22vw, 12rem);
+            font-weight: 900;
+            line-height: 0.85;
+            letter-spacing: -0.05em;
+            background: linear-gradient(135deg, #ffffff 0%, #93c5fd 40%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 60px rgba(59, 130, 246, 0.5));
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
 
-    @keyframes move {
-        from { transform: translate(0, 0); }
-        to { transform: translate(100px, 100px); }
-    }
-</style>
-{% endblock %}
+        /* Glitch effect on hover */
+        .error-number:hover {
+            animation: glitch 0.4s steps(2) infinite;
+        }
+        @keyframes glitch {
+            0%   { text-shadow: 2px 0 #3b82f6, -2px 0 #8b5cf6; }
+            25%  { text-shadow: -2px 0 #3b82f6, 2px 0 #8b5cf6; }
+            50%  { text-shadow: 2px 2px #3b82f6, -2px -2px #8b5cf6; }
+            75%  { text-shadow: -2px 2px #3b82f6, 2px -2px #8b5cf6; }
+            100% { text-shadow: none; }
+        }
 
-{% block content %}
-<div class="error-wrapper">
-    <div class="abstract-shape shape-1"></div>
-    <div class="abstract-shape shape-2"></div>
+        /* ── Divider line ── */
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+            margin: 1.5rem auto;
+            animation: widthPulse 3s ease-in-out infinite;
+        }
+        @keyframes widthPulse {
+            0%, 100% { width: 60px; }
+            50%       { width: 100px; }
+        }
 
-    <div class="glass-error-card">
-        <div class="floating-hospital">
-            <i class="bi bi-hospital"></i>
-        </div>
-        
-        <div class="error-number">404</div>
-        <h1 class="display-5 fw-bold mb-3 text-dark">Маршрут не найден</h1>
-        <p class="text-secondary lead mb-5 px-md-5">
-            Похоже, эта страница потерялась где-то в архивах нашей поликлиники. Не волнуйтесь, мы поможем вам вернуться.
-        </p>
-        
-        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-            <a href="{% url 'home' %}" class="btn-premium-glow">
-                <i class="bi bi-house-star-fill"></i> На главную
-            </a>
-            <button onclick="history.back()" class="btn btn-outline-primary rounded-pill px-4" style="border-width: 2px; font-weight: 600;">
-                <i class="bi bi-arrow-left"></i> Назад
-            </button>
+        .error-title {
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            font-weight: 800;
+            color: #f1f5f9;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .error-desc {
+            font-size: 1rem;
+            color: #94a3b8;
+            line-height: 1.8;
+            max-width: 420px;
+            margin: 0 auto 2.5rem;
+        }
+
+        /* ── Buttons ── */
+        .btn-group-error {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary-glow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.85rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(59,130,246,0.2);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary-glow::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .btn-primary-glow:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 16px 48px rgba(59, 130, 246, 0.6), 0 0 0 1px rgba(59,130,246,0.4);
+            color: #fff;
+        }
+        .btn-primary-glow:hover::before { opacity: 1; }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255,255,255,0.05);
+            color: #cbd5e1;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            padding: 0.85rem 2rem;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 600;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* ── Icon ── */
+        .hero-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-12px); }
+        }
+
+        /* ── Logo ── */
+        .logo-link {
+            position: fixed;
+            top: 1.5rem;
+            left: 2rem;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .logo-link:hover { opacity: 1; color: #fff; }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Particles */
+        .particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+        .particle {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: #3b82f6;
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleFade linear infinite;
+        }
+        @keyframes particleFade {
+            0%   { opacity: 0; transform: translateY(0) scale(0); }
+            20%  { opacity: 0.6; }
+            80%  { opacity: 0.2; }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+        }
+
+        /* SVG cross / plus signs decoration */
+        .deco-crosses {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .cross {
+            position: absolute;
+            color: rgba(59,130,246,0.12);
+            font-size: 1.2rem;
+            animation: crossDrift linear infinite;
+        }
+        @keyframes crossDrift {
+            from { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.3; }
+            to   { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Floating medical crosses -->
+    <div class="deco-crosses" id="crosses"></div>
+
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="logo-link">
+        <div class="logo-icon">✚</div>
+        МедЗапись
+    </a>
+
+    <!-- Main content -->
+    <div class="page-center">
+        <div class="error-card">
+
+            <div class="error-badge">
+                <span class="dot"></span>
+                Ошибка 404
+            </div>
+
+            <span class="hero-icon">🔭</span>
+
+            <div class="error-number">404</div>
+
+            <div class="divider"></div>
+
+            <h1 class="error-title">Страница не найдена</h1>
+            <p class="error-desc">
+                Похоже, эта страница потерялась где-то в архивах нашей поликлиники.
+                Возможно, ссылка устарела или была перемещена.
+            </p>
+
+            <div class="btn-group-error">
+                <a href="{% url 'home' %}" class="btn-primary-glow">
+                    🏠 На главную
+                </a>
+                <button onclick="history.back()" class="btn-ghost">
+                    ← Назад
+                </button>
+            </div>
+
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <script>
+        // Floating medical crosses
+        const crossContainer = document.getElementById('crosses');
+        for (let i = 0; i < 18; i++) {
+            const c = document.createElement('div');
+            c.className = 'cross';
+            c.innerHTML = '✚';
+            c.style.left  = Math.random() * 100 + 'vw';
+            c.style.top   = Math.random() * 100 + 'vh';
+            c.style.fontSize = (0.8 + Math.random() * 1.5) + 'rem';
+            c.style.animationDuration  = (10 + Math.random() * 20) + 's';
+            c.style.animationDelay     = '-' + (Math.random() * 20) + 's';
+            c.style.opacity = (0.05 + Math.random() * 0.15).toString();
+            crossContainer.appendChild(c);
+        }
+    </script>
+</body>
+</html>
