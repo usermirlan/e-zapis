@@ -1,0 +1,244 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Медицинские карты — Админ-панель{% endblock %}
+{% block page_title %}Электронные медицинские карты{% endblock %}
+{% block breadcrumb %}Главная / Мед. карты{% endblock %}
+
+{% block content %}
+<!-- Search & Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <form method="get" class="d-flex flex-wrap gap-2" style="flex:1; max-width:500px;">
+        <div class="search-wrapper" style="flex:1; min-width:240px;">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Поиск по диагнозу, пациенту, врачу..." class="search-input" style="width:100%;">
+        </div>
+        <button type="submit" class="btn-admin btn-admin-primary"><i class="bi bi-search"></i> Найти</button>
+        {% if search_query %}
+        <a href="{% url 'admin_medical_records' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Сбросить</a>
+        {% endif %}
+    </form>
+    <div style="font-size:0.875rem; color:var(--muted);">
+        Всего мед. карт: <strong>{{ total_count }}</strong>
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header">
+        <div class="panel-card-title"><i class="bi bi-journal-medical text-primary me-2"></i>История диагнозов и приёмов</div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Пациент</th>
+                    <th>Врач</th>
+                    <th>Услуга / Дата приёма</th>
+                    <th>Диагноз</th>
+                    <th>Рекомендации / Назначения</th>
+                    <th>Дата создания</th>
+                    <th class="text-end">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="user-avatar" style="width:34px; height:34px; font-size:0.85rem;">
+                                {{ r.appointment.patient.first_name|first|upper }}{{ r.appointment.patient.last_name|first|upper }}
+                            </div>
+                            <div>
+                                <a href="{% url 'admin_user_detail' r.appointment.patient.id %}" style="text-decoration:none; font-weight:600; font-size:0.875rem; color:var(--text);">
+                                    {{ r.appointment.patient.get_full_name }}
+                                </a>
+                                <div style="font-size:0.75rem; color:var(--muted);">{{ r.appointment.patient.phone|default:r.appointment.patient.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600; font-size:0.85rem;">{{ r.appointment.specialist.get_full_name }}</div>
+                        <div style="font-size:0.75rem; color:var(--accent);">{{ r.appointment.specialist.service.name }}</div>
+                    </td>
+                    <td>
+                        <div style="font-size:0.85rem; font-weight:600;">
+                            <i class="bi bi-calendar-check me-1 text-muted"></i>{{ r.appointment.time_slot.date|date:"d.m.Y" }} {{ r.appointment.time_slot.time|time:"H:i" }}
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--muted);">Очередь №{{ r.appointment.queue_number }}</div>
+                    </td>
+                    <td style="max-width:220px;">
+                        <div style="font-weight:600; font-size:0.85rem; color:#b91c1c; background:rgba(239,68,68,0.06); padding:0.3rem 0.5rem; border-radius:6px;">
+                            {{ r.diagnosis }}
+                        </div>
+                    </td>
+                    <td style="max-width:280px; font-size:0.825rem; color:var(--text);">
+                        {{ r.recommendations|linebreaksbr|truncatewords:15 }}
+                    </td>
+                    <td style="font-size:0.78rem; color:var(--muted);">
+                        {{ r.created_at|date:"d.m.Y H:i" }}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <button type="button" class="btn-admin btn-admin-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                                    onclick="showRecordModal(this)"
+                                    data-id="{{ r.id }}"
+                                    data-patient="{{ r.appointment.patient.get_full_name|escape }}"
+                                    data-phone="{{ r.appointment.patient.phone|default:'—'|escape }}"
+                                    data-email="{{ r.appointment.patient.email|escape }}"
+                                    data-doctor="{{ r.appointment.specialist.get_full_name|escape }}"
+                                    data-service="{{ r.appointment.specialist.service.name|escape }}"
+                                    data-cabinet="{{ r.appointment.specialist.cabinet|default:'—'|escape }}"
+                                    data-diagnosis="{{ r.diagnosis|escape }}"
+                                    data-recommendations="{{ r.recommendations|escape }}"
+                                    data-date="{{ r.appointment.time_slot.date|date:'d.m.Y' }} {{ r.appointment.time_slot.time|time:'H:i' }}"
+                                    data-created="{{ r.created_at|date:'d.m.Y H:i' }}"
+                                    title="Открыть полностью">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <a href="{% url 'admin_delete_medical_record' r.id %}" class="btn-admin btn-admin-outline-danger" 
+                               style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                               onclick="return confirm('Удалить эту медицинскую карту?')" title="Удалить">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4" style="color:var(--muted);">
+                        <i class="bi bi-file-earmark-medical" style="font-size:2rem; display:block; margin-bottom:0.5rem; opacity:0.5;"></i>
+                        Медицинские записи не найдены.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if records.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+        <span style="font-size:0.8rem; color:var(--muted);">
+            Страница {{ records.number }} из {{ records.paginator.num_pages }}
+        </span>
+        <div class="d-flex gap-1">
+            {% if records.has_previous %}
+            <a href="?page={{ records.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">&laquo; Назад</a>
+            {% endif %}
+            {% if records.has_next %}
+            <a href="?page={{ records.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">Вперёд &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Custom High-Reliability Modal Popup -->
+<div id="medModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(6px); z-index:999999; align-items:center; justify-content:center; padding:1.5rem;">
+    <div style="background:#ffffff; border-radius:16px; max-width:680px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 60px rgba(0,0,0,0.35); position:relative; animation:modalPop 0.25s ease-out;">
+        
+        <!-- Header -->
+        <div style="padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; border-radius:16px 16px 0 0;">
+            <h5 id="mTitle" style="font-size:1.1rem; font-weight:700; color:#0f172a; margin:0; display:flex; align-items:center; gap:0.5rem;">
+                <i class="bi bi-journal-medical text-primary"></i> Медицинская карта
+            </h5>
+            <button type="button" onclick="closeRecordModal()" style="background:transparent; border:none; font-size:1.4rem; color:#64748b; cursor:pointer; line-height:1; padding:0.25rem 0.5rem; border-radius:6px;">
+                &times;
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:1.5rem;">
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div style="background:#f1f5f9; padding:1rem; border-radius:10px;">
+                        <div style="font-size:0.75rem; color:#64748b; margin-bottom:2px;"><i class="bi bi-person me-1"></i>Пациент</div>
+                        <div id="mPatient" style="font-weight:700; font-size:1rem; color:#0f172a;"></div>
+                        <div id="mPhone" style="font-size:0.8rem; color:#475569; margin-top:3px;"></div>
+                        <div id="mEmail" style="font-size:0.78rem; color:#64748b;"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="background:#f1f5f9; padding:1rem; border-radius:10px;">
+                        <div style="font-size:0.75rem; color:#64748b; margin-bottom:2px;"><i class="bi bi-person-badge me-1"></i>Лечащий врач</div>
+                        <div id="mDoctor" style="font-weight:700; font-size:1rem; color:#0f172a;"></div>
+                        <div id="mService" style="font-size:0.8rem; color:#2563eb; font-weight:600; margin-top:3px;"></div>
+                        <div id="mCabinet" style="font-size:0.78rem; color:#64748b;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.25rem;">
+                <label style="font-weight:700; color:#dc2626; font-size:0.875rem; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+                    <i class="bi bi-heart-pulse-fill"></i> Диагноз врача:
+                </label>
+                <div id="mDiagnosis" style="background:rgba(239,68,68,0.06); border-left:4px solid #ef4444; padding:0.875rem 1rem; border-radius:8px; font-weight:600; color:#0f172a; line-height:1.5;"></div>
+            </div>
+
+            <div style="margin-bottom:1.5rem;">
+                <label style="font-weight:700; color:#2563eb; font-size:0.875rem; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+                    <i class="bi bi-prescription2"></i> Рекомендации, лечение и назначения:
+                </label>
+                <div id="mRecommendations" style="background:rgba(59,130,246,0.06); border-left:4px solid #3b82f6; padding:0.875rem 1rem; border-radius:8px; color:#1e293b; line-height:1.6; white-space:pre-wrap;"></div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:0.75rem; border-top:1px solid #e2e8f0; font-size:0.78rem; color:#64748b;">
+                <div id="mDate"></div>
+                <div id="mCreated"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:1rem 1.5rem; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; border-radius:0 0 16px 16px;">
+            <button type="button" onclick="closeRecordModal()" class="btn-admin btn-admin-primary" style="padding:0.5rem 1.25rem;">
+                <i class="bi bi-check2"></i> Закрыть
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+</style>
+
+<script>
+function showRecordModal(btn) {
+    document.getElementById('mTitle').innerHTML = '<i class="bi bi-journal-medical text-primary"></i> Медицинская карта #' + btn.getAttribute('data-id');
+    document.getElementById('mPatient').textContent = btn.getAttribute('data-patient');
+    document.getElementById('mPhone').textContent = 'Тел: ' + btn.getAttribute('data-phone');
+    document.getElementById('mEmail').textContent = btn.getAttribute('data-email');
+    
+    document.getElementById('mDoctor').textContent = btn.getAttribute('data-doctor');
+    document.getElementById('mService').textContent = btn.getAttribute('data-service');
+    document.getElementById('mCabinet').textContent = 'Кабинет: ' + btn.getAttribute('data-cabinet');
+    
+    document.getElementById('mDiagnosis').textContent = btn.getAttribute('data-diagnosis');
+    document.getElementById('mRecommendations').textContent = btn.getAttribute('data-recommendations');
+    
+    document.getElementById('mDate').innerHTML = '<i class="bi bi-calendar-event me-1"></i>Дата приёма: <strong>' + btn.getAttribute('data-date') + '</strong>';
+    document.getElementById('mCreated').innerHTML = '<i class="bi bi-clock me-1"></i>Оформлено: ' + btn.getAttribute('data-created');
+    
+    const backdrop = document.getElementById('medModalBackdrop');
+    backdrop.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeRecordModal() {
+    const backdrop = document.getElementById('medModalBackdrop');
+    backdrop.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+document.getElementById('medModalBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeRecordModal();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeRecordModal();
+    }
+});
+</script>
+{% endblock %}

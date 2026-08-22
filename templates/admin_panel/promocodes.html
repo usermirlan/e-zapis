@@ -1,0 +1,167 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Промокоды — Админ-панель{% endblock %}
+{% block page_title %}Управление промокодами{% endblock %}
+{% block breadcrumb %}Главная / Промокоды{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div style="font-size:0.875rem; color:var(--muted);">
+        Всего промокодов: <strong>{{ promocodes|length }}</strong>
+    </div>
+    <button type="button" class="btn-admin btn-admin-primary" onclick="openAddPromoModal()">
+        <i class="bi bi-plus-lg"></i> Создать промокод
+    </button>
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header">
+        <div class="panel-card-title"><i class="bi bi-ticket-perforated text-primary me-2"></i>Список активных и архивных промокодов</div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Код</th>
+                    <th>Скидка</th>
+                    <th>Описание</th>
+                    <th>Период действия</th>
+                    <th>Использования</th>
+                    <th>Статус</th>
+                    <th class="text-end">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in promocodes %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="font-family:monospace; font-weight:800; font-size:0.95rem; background:#f1f5f9; padding:0.25rem 0.6rem; border-radius:6px; letter-spacing:1px; color:#1e40af; border:1px dashed #93c5fd;">
+                                {{ p.code }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if p.discount_percent %}
+                        <span class="badge bg-success" style="font-size:0.85rem;">-{{ p.discount_percent }}%</span>
+                        {% endif %}
+                        {% if p.discount_amount %}
+                        <span class="badge bg-primary" style="font-size:0.85rem;">-{{ p.discount_amount }} сом</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.85rem; color:var(--muted); max-width:250px;">
+                        {{ p.description|default:"—" }}
+                    </td>
+                    <td style="font-size:0.825rem;">
+                        <div>С: {{ p.valid_from|date:"d.m.Y" }}</div>
+                        <div>До: <strong>{{ p.valid_until|date:"d.m.Y" }}</strong></div>
+                    </td>
+                    <td>
+                        <div style="font-weight:700; font-size:0.875rem;">
+                            {{ p.used_count }} <span style="color:var(--muted); font-weight:400;">/ {{ p.max_uses }}</span>
+                        </div>
+                        <div class="progress mt-1" style="height:4px; max-width:100px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {% widthratio p.used_count p.max_uses 100 %}%;"></div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if p.is_valid %}
+                        <span class="badge-status badge-completed"><i class="bi bi-check-circle me-1"></i>Действует</span>
+                        {% else %}
+                        <span class="badge-status badge-cancelled"><i class="bi bi-x-circle me-1"></i>Неактивен</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'admin_toggle_promocode' p.id %}" class="btn-admin btn-admin-outline" 
+                               style="padding:0.25rem 0.5rem; font-size:0.75rem;"
+                               title="{% if p.is_active %}Деактивировать{% else %}Активировать{% endif %}">
+                                <i class="bi {% if p.is_active %}bi-toggle-on text-success{% else %}bi-toggle-off text-muted{% endif %}" style="font-size:1.1rem;"></i>
+                            </a>
+                            <a href="{% url 'admin_delete_promocode' p.id %}" class="btn-admin btn-admin-outline-danger" 
+                               style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                               onclick="return confirm('Удалить промокод {{ p.code }}?')" title="Удалить">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4" style="color:var(--muted);">
+                        <i class="bi bi-ticket-detailed" style="font-size:2rem; display:block; margin-bottom:0.5rem; opacity:0.5;"></i>
+                        Промокодов пока нет. Нажмите «Создать промокод», чтобы добавить первый.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Custom Modal: Add Promo -->
+<div id="addPromoModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(6px); z-index:999999; align-items:center; justify-content:center; padding:1.5rem;">
+    <div style="background:#ffffff; border-radius:16px; max-width:500px; width:100%; box-shadow:0 25px 60px rgba(0,0,0,0.35); position:relative; overflow:hidden;">
+        <form method="post" action="{% url 'admin_add_promocode' %}">
+            {% csrf_token %}
+            <div style="padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#f8fafc;">
+                <h5 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin:0; display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-ticket-perforated text-primary"></i> Новый промокод
+                </h5>
+                <button type="button" onclick="closeAddPromoModal()" style="background:transparent; border:none; font-size:1.4rem; color:#64748b; cursor:pointer; line-height:1;">&times;</button>
+            </div>
+            <div style="padding:1.5rem;">
+                <div class="mb-3">
+                    <label class="form-label">Код промокода <span class="text-danger">*</span></label>
+                    <input type="text" name="code" class="form-control" placeholder="Например: VIP2026, SUMMER15" style="text-transform:uppercase; font-weight:700;" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Описание / Акция</label>
+                    <input type="text" name="description" class="form-control" placeholder="Скидка для новых пациентов">
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Скидка в %</label>
+                        <input type="number" name="discount_percent" class="form-control" placeholder="15" min="0" max="100" value="10">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Или сумма (сом)</label>
+                        <input type="number" name="discount_amount" class="form-control" placeholder="0" min="0" value="0">
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Действует с</label>
+                        <input type="date" name="valid_from" class="form-control" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Действует до <span class="text-danger">*</span></label>
+                        <input type="date" name="valid_until" class="form-control" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Максимум использований</label>
+                    <input type="number" name="max_uses" class="form-control" value="100" min="1">
+                </div>
+            </div>
+            <div style="padding:1rem 1.5rem; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:0.5rem;">
+                <button type="button" class="btn-admin btn-admin-outline" onclick="closeAddPromoModal()">Отмена</button>
+                <button type="submit" class="btn-admin btn-admin-primary">Сохранить промокод</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddPromoModal() {
+        document.getElementById('addPromoModalBackdrop').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeAddPromoModal() {
+        document.getElementById('addPromoModalBackdrop').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    document.getElementById('addPromoModalBackdrop').addEventListener('click', function(e) {
+        if (e.target === this) closeAddPromoModal();
+    });
+</script>
+{% endblock %}

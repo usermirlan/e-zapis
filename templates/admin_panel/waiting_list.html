@@ -1,0 +1,126 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Лист ожидания — Админ-панель{% endblock %}
+{% block page_title %}Лист ожидания (Кезек күтүү){% endblock %}
+{% block breadcrumb %}Главная / Лист ожидания{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <form method="get" class="d-flex flex-wrap gap-2 align-items-center" style="flex:1;">
+        <select name="specialist" class="form-select" style="min-width:200px; max-width:260px;">
+            <option value="">Все врачи</option>
+            {% for sp in specialists %}
+            <option value="{{ sp.id }}" {% if selected_specialist == sp.id|stringformat:"i" %}selected{% endif %}>
+                {{ sp.get_full_name }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="status" class="form-select" style="max-width:180px;">
+            <option value="">Все статусы</option>
+            <option value="waiting" {% if selected_status == 'waiting' %}selected{% endif %}>В ожидании</option>
+            <option value="notified" {% if selected_status == 'notified' %}selected{% endif %}>Оповещены</option>
+            <option value="booked" {% if selected_status == 'booked' %}selected{% endif %}>Записаны</option>
+            <option value="expired" {% if selected_status == 'expired' %}selected{% endif %}>Истёк</option>
+        </select>
+
+        <button type="submit" class="btn-admin btn-admin-primary"><i class="bi bi-funnel"></i> Фильтр</button>
+        {% if selected_specialist or selected_status %}
+        <a href="{% url 'admin_waiting_list' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Сбросить</a>
+        {% endif %}
+    </form>
+
+    <div style="font-size:0.875rem; color:var(--muted);">
+        Ожидают очереди: <strong class="text-primary fs-6">{{ total_waiting }}</strong> пациентов
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header">
+        <div class="panel-card-title"><i class="bi bi-hourglass-split text-primary me-2"></i>Пациенты, ожидающие освобождения слотов</div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Пациент</th>
+                    <th>Желаемый врач</th>
+                    <th>Желаемая дата</th>
+                    <th>Статус ожидания</th>
+                    <th>Примечание</th>
+                    <th>Дата заявки</th>
+                    <th class="text-end">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for w in waiting_list %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="user-avatar" style="width:34px; height:34px; font-size:0.85rem;">
+                                {{ w.patient.first_name|first|upper }}{{ w.patient.last_name|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:0.875rem;">{{ w.patient.get_full_name }}</div>
+                                <div style="font-size:0.75rem; color:var(--muted);">{{ w.patient.phone|default:w.patient.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600; font-size:0.85rem;">{{ w.specialist.get_full_name }}</div>
+                        <div style="font-size:0.75rem; color:var(--accent);">{{ w.specialist.service.name }}</div>
+                    </td>
+                    <td style="font-weight:700; font-size:0.875rem;">
+                        <i class="bi bi-calendar-event me-1 text-muted"></i>{{ w.preferred_date|date:"d.m.Y" }}
+                    </td>
+                    <td>
+                        {% if w.status == 'waiting' %}
+                        <span class="badge-status badge-pending"><i class="bi bi-hourglass me-1"></i>Күтүүдө</span>
+                        {% elif w.status == 'notified' %}
+                        <span class="badge-status badge-confirmed"><i class="bi bi-bell-fill me-1"></i>Оповещён</span>
+                        {% elif w.status == 'booked' %}
+                        <span class="badge-status badge-completed"><i class="bi bi-check-all me-1"></i>Записан</span>
+                        {% else %}
+                        <span class="badge-status badge-cancelled">Истёк</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.825rem; color:var(--muted); max-width:200px;">
+                        {{ w.notes|default:"—" }}
+                    </td>
+                    <td style="font-size:0.78rem; color:var(--muted);">
+                        {{ w.created_at|date:"d.m.Y H:i" }}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            {% if w.patient.phone %}
+                            <a href="https://wa.me/{{ w.patient.phone|cut:'+' }}?text=Саламатсызбы,%20{{ w.patient.first_name }}!%20Сиз%20күткөн%20врач%20{{ w.specialist.last_name }}га%20бош%20орун%20пайда%20болду." target="_blank"
+                               class="btn-admin" style="background:#25d366; color:white; padding:0.25rem 0.5rem; font-size:0.75rem;" title="Написать в WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            {% endif %}
+
+                            <a href="{% url 'admin_update_waiting_status' w.id %}?status=booked" class="btn-admin btn-admin-outline-success" 
+                               style="padding:0.25rem 0.5rem; font-size:0.75rem;" title="Отметить как Записан">
+                                <i class="bi bi-check-lg"></i>
+                            </a>
+
+                            <a href="{% url 'admin_delete_waiting' w.id %}" class="btn-admin btn-admin-outline-danger" 
+                               style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                               onclick="return confirm('Удалить из листа ожидания?')" title="Удалить">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4" style="color:var(--muted);">
+                        <i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:0.5rem; opacity:0.5;"></i>
+                        В листе ожидания никого нет.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -78,6 +78,7 @@ urlpatterns = [
     path('dashboard/appointments/', views.admin_appointments_view, name='admin_appointments'),
     path('dashboard/appointments/<int:appointment_id>/delete/', views.admin_delete_appointment_view, name='admin_delete_appointment'),
     path('dashboard/specialists/', views.admin_specialists_view, name='admin_specialists'),
+    path('dashboard/specialists/add/', views.staff_add_doctor_view, name='admin_add_specialist'),
     path('dashboard/specialists/<int:specialist_id>/absence/', views.admin_specialist_absence_view, name='admin_specialist_absence'),
     path('dashboard/absences/<int:absence_id>/delete/', views.admin_delete_absence_view, name='admin_delete_absence'),
     path('dashboard/specialists/<int:specialist_id>/edit/', views.admin_edit_specialist_view, name='admin_edit_specialist'),
@@ -89,18 +90,61 @@ urlpatterns = [
     path('dashboard/services/<int:service_id>/delete/', views.admin_delete_service_view, name='admin_delete_service'),
     path('dashboard/services/<int:service_id>/toggle/', views.admin_toggle_service_view, name='admin_toggle_service'),
     path('dashboard/users/', views.admin_users_view, name='admin_users'),
+    path('dashboard/users/add/', views.admin_add_user_view, name='admin_add_user'),
+    path('dashboard/users/<int:user_id>/role/', views.admin_toggle_user_role_view, name='admin_toggle_user_role'),
     path('dashboard/users/<int:user_id>/toggle/', views.admin_toggle_user_view, name='admin_toggle_user'),
     path('dashboard/users/<int:user_id>/delete/', views.admin_delete_user_view, name='admin_delete_user'),
     path('dashboard/users/<int:user_id>/password/', views.admin_user_change_password_view, name='admin_user_change_password'),
+    path('dashboard/users/<int:user_id>/detail/', views.admin_user_detail_view, name='admin_user_detail'),
     path('dashboard/reviews/', views.admin_reviews_view, name='admin_reviews'),
     path('dashboard/reviews/<int:review_id>/delete/', views.admin_delete_review_view, name='admin_delete_review'),
 
-    # ─── New Feature Extensions ─────────────────────────────────────────────────
+    # ─── Слоты, Мед. карты, Уведомления ─────────────────────────────────────────
+    path('dashboard/slots/', views.admin_slots_view, name='admin_slots'),
+    path('dashboard/slots/add/', views.admin_add_slot_view, name='admin_add_slot'),
+    path('dashboard/slots/bulk/', views.admin_bulk_slots_view, name='admin_bulk_slots'),
+    path('dashboard/slots/<int:slot_id>/toggle/', views.admin_toggle_slot_view, name='admin_toggle_slot'),
+    path('dashboard/slots/<int:slot_id>/delete/', views.admin_delete_slot_view, name='admin_delete_slot'),
+    
+    path('dashboard/medical-records/', views.admin_medical_records_view, name='admin_medical_records'),
+    path('dashboard/medical-records/<int:record_id>/delete/', views.admin_delete_medical_record_view, name='admin_delete_medical_record'),
+    
+    path('dashboard/notifications/', views.admin_notifications_view, name='admin_notifications'),
+    path('dashboard/notifications/<int:notif_id>/delete/', views.admin_delete_notification_view, name='admin_delete_notification'),
+    path('dashboard/notifications/read-all/', views.admin_mark_all_notifications_read_view, name='admin_mark_all_notifications_read'),
+
+    # ─── Инструменты и Экспорт ──────────────────────────────────────────────────
     path('dashboard/settings/', views.admin_settings_view, name='admin_settings'),
     path('dashboard/generate-slots/', views.admin_generate_slots_view, name='admin_generate_slots'),
     path('dashboard/appointments/export/', views.admin_export_appointments_csv, name='admin_export_appointments_csv'),
     path('dashboard/users/export/', views.admin_export_users_csv, name='admin_export_users_csv'),
     path('dashboard/calendar/', views.admin_calendar_view, name='admin_calendar'),
-    path('dashboard/users/<int:user_id>/detail/', views.admin_user_detail_view, name='admin_user_detail'),
     path('dashboard/api/global-search/', views.admin_global_search_api, name='admin_global_search_api'),
+
+    # ─── Промокоддор, Кезек күтүү, Кара тизме, Аудит, WhatsApp ──────────────────
+    path('dashboard/promocodes/', views.admin_promocodes_view, name='admin_promocodes'),
+    path('dashboard/promocodes/add/', views.admin_add_promocode_view, name='admin_add_promocode'),
+    path('dashboard/promocodes/<int:promo_id>/toggle/', views.admin_toggle_promocode_view, name='admin_toggle_promocode'),
+    path('dashboard/promocodes/<int:promo_id>/delete/', views.admin_delete_promocode_view, name='admin_delete_promocode'),
+
+    path('dashboard/waiting-list/', views.admin_waiting_list_view, name='admin_waiting_list'),
+    path('dashboard/waiting-list/<int:waiting_id>/status/', views.admin_update_waiting_status_view, name='admin_update_waiting_status'),
+    path('dashboard/waiting-list/<int:waiting_id>/delete/', views.admin_delete_waiting_view, name='admin_delete_waiting'),
+
+    path('dashboard/blacklist/', views.admin_blacklist_view, name='admin_blacklist'),
+    path('dashboard/blacklist/add/', views.admin_add_penalty_view, name='admin_add_penalty'),
+    path('dashboard/blacklist/<int:penalty_id>/toggle/', views.admin_toggle_block_patient_view, name='admin_toggle_block_patient'),
+    path('dashboard/blacklist/<int:penalty_id>/reset/', views.admin_reset_missed_count_view, name='admin_reset_missed_count'),
+
+    path('dashboard/audit-logs/', views.admin_audit_logs_view, name='admin_audit_logs'),
+
+    path('dashboard/whatsapp-templates/', views.admin_whatsapp_templates_view, name='admin_whatsapp_templates'),
+    path('dashboard/whatsapp-templates/add/', views.admin_add_whatsapp_template_view, name='admin_add_whatsapp_template'),
+    path('dashboard/whatsapp-templates/<int:template_id>/toggle/', views.admin_toggle_whatsapp_template_view, name='admin_toggle_whatsapp_template'),
+    path('dashboard/whatsapp-templates/<int:template_id>/delete/', views.admin_delete_whatsapp_template_view, name='admin_delete_whatsapp_template'),
+
+    # ─── Медициналык файлдар жана анализдер ─────────────────────────────────────
+    path('dashboard/attachments/', views.admin_medical_attachments_view, name='admin_medical_attachments'),
+    path('dashboard/attachments/upload/', views.admin_upload_attachment_view, name='admin_upload_attachment'),
+    path('dashboard/attachments/<int:attachment_id>/delete/', views.admin_delete_attachment_view, name='admin_delete_attachment'),
 ]

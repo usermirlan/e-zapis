@@ -1,0 +1,99 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Журнал действий (Audit Log) — Админ-панель{% endblock %}
+{% block page_title %}Журнал безопасности и действий (Audit Log){% endblock %}
+{% block breadcrumb %}Главная / Аудит{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <form method="get" class="d-flex flex-wrap gap-2" style="flex:1; max-width:480px;">
+        <div class="search-wrapper" style="flex:1;">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Поиск по действию, админу, деталям..." class="search-input" style="width:100%;">
+        </div>
+        <button type="submit" class="btn-admin btn-admin-primary"><i class="bi bi-search"></i> Найти</button>
+        {% if search_query %}
+        <a href="{% url 'admin_audit_logs' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Сбросить</a>
+        {% endif %}
+    </form>
+    <div style="font-size:0.875rem; color:var(--muted);">
+        Всего записей в журнале: <strong>{{ total_logs }}</strong>
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header">
+        <div class="panel-card-title"><i class="bi bi-shield-shaded text-primary me-2"></i>История системных действий и изменений</div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Время</th>
+                    <th>Инициатор (Админ/Врач)</th>
+                    <th>Действие</th>
+                    <th>Детали события</th>
+                    <th>IP-адрес</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in logs %}
+                <tr>
+                    <td style="font-size:0.8rem; font-weight:600; color:var(--text); white-space:nowrap;">
+                        <i class="bi bi-clock-history me-1 text-muted"></i>{{ l.created_at|date:"d.m.Y H:i:s" }}
+                    </td>
+                    <td>
+                        {% if l.user %}
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="user-avatar" style="width:30px; height:30px; font-size:0.75rem;">
+                                {{ l.user.first_name|first|upper }}{{ l.user.last_name|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:0.85rem;">{{ l.user.get_full_name }}</div>
+                                <div style="font-size:0.72rem; color:var(--muted);">@{{ l.user.username }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span class="badge bg-secondary">Система</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-dark" style="font-family:monospace; font-size:0.8rem; letter-spacing:0.5px;">
+                            {{ l.action }}
+                        </span>
+                    </td>
+                    <td style="font-size:0.825rem; color:#334155; max-width:350px;">
+                        {{ l.details }}
+                    </td>
+                    <td style="font-size:0.78rem; font-family:monospace; color:var(--muted);">
+                        {{ l.ip_address|default:"127.0.0.1" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4" style="color:var(--muted);">
+                        <i class="bi bi-journal-text" style="font-size:2rem; display:block; margin-bottom:0.5rem; opacity:0.5;"></i>
+                        Журнал аудита пока пуст.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if logs.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+        <span style="font-size:0.8rem; color:var(--muted);">
+            Страница {{ logs.number }} из {{ logs.paginator.num_pages }}
+        </span>
+        <div class="d-flex gap-1">
+            {% if logs.has_previous %}
+            <a href="?page={{ logs.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">&laquo; Назад</a>
+            {% endif %}
+            {% if logs.has_next %}
+            <a href="?page={{ logs.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">Вперёд &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

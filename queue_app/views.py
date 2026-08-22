@@ -16,9 +16,14 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 
-from .models import Service, Specialist, TimeSlot, Appointment, Review, Notification, SpecialistAbsence, FavoriteSpecialist, ClinicSetting
+from .models import (
+    Service, Specialist, TimeSlot, Appointment, Review, Notification,
+    SpecialistAbsence, FavoriteSpecialist, ClinicSetting, MedicalRecord,
+    PromoCode, WaitingList, PatientPenalty, AuditLog, MedicalAttachment, WhatsAppTemplate
+)
 from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm, ManualSlotForm
-from accounts.forms import DoctorRegisterForm
+from accounts.forms import DoctorRegisterForm, RegisterForm
+from accounts.models import CustomUser
 
 # ─── Вспомогательная функция ──────────────────────────────────────────────────
 
@@ -1839,4 +1844,657 @@ def admin_global_search_api(request):
     ]
 
     return JsonResponse({'patients': patients, 'appointments': appointments, 'specialists': specialists})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: СЛОТТОРДУ БАШКАРУУ (TIME SLOTS MANAGEMENT)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_slots_view(request):
+    """Просмотр, фильтрация и управление всеми временными слотами."""
+    specialist_id = request.GET.get('specialist')
+    date_filter = request.GET.get('date')
+    status_filter = request.GET.get('status')
+    
+    slots_qs = TimeSlot.objects.select_related('specialist', 'specialist__service', 'appointment', 'appointment__patient').all()
+    
+    if specialist_id:
+        slots_qs = slots_qs.filter(specialist_id=specialist_id)
+    if date_filter:
+        slots_qs = slots_qs.filter(date=date_filter)
+    if status_filter == 'available':
+        slots_qs = slots_qs.filter(is_available=True)
+    elif status_filter == 'booked':
+        slots_qs = slots_qs.filter(is_available=False)
+        
+    slots_qs = slots_qs.order_by('-date', 'time')
+    
+    total_slots = TimeSlot.objects.count()
+    available_slots = TimeSlot.objects.filter(is_available=True).count()
+    booked_slots = total_slots - available_slots
+    
+    specialists = Specialist.objects.filter(is_active=True).order_by('last_name')
+    
+    paginator = Paginator(slots_qs, 30)
+    page_number = request.GET.get('page')
+    slots = paginator.get_page(page_number)
+    
+    context = {
+        'slots': slots,
+        'specialists': specialists,
+        'selected_specialist': specialist_id,
+        'selected_date': date_filter,
+        'selected_status': status_filter,
+        'total_slots': total_slots,
+        'available_slots': available_slots,
+        'booked_slots': booked_slots,
+    }
+    return render(request, 'admin_panel/slots.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_add_slot_view(request):
+    """Ручное добавление слота админом."""
+    if request.method == 'POST':
+        specialist_id = request.POST.get('specialist')
+        date_val = request.POST.get('date')
+        time_val = request.POST.get('time')
+        
+        if not specialist_id or not date_val or not time_val:
+            messages.error(request, 'Пожалуйста, заполните все обязательные поля.')
+            return redirect('admin_slots')
+            
+        specialist = get_object_or_404(Specialist, id=specialist_id)
+        
+        if TimeSlot.objects.filter(specialist=specialist, date=date_val, time=time_val).exists():
+            messages.warning(request, f'Слот на {date_val} {time_val} для врача {specialist.get_full_name()} уже существует!')
+        else:
+            TimeSlot.objects.create(
+                specialist=specialist,
+                date=date_val,
+                time=time_val,
+                is_available=True
+            )
+            messages.success(request, f'Слот на {date_val} {time_val} для врача {specialist.get_full_name()} успешно добавлен!')
+            
+    return redirect('admin_slots')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_toggle_slot_view(request, slot_id):
+    """Переключение доступности слота."""
+    slot = get_object_or_404(TimeSlot, id=slot_id)
+    slot.is_available = not slot.is_available
+    slot.save()
+    status_text = 'доступен для записи' if slot.is_available else 'заблокирован'
+    messages.success(request, f'Слот {slot.date} {slot.time} теперь {status_text}.')
+    return redirect(request.META.get('HTTP_REFERER', 'admin_slots'))
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_delete_slot_view(request, slot_id):
+    """Удаление слота."""
+    slot = get_object_or_404(TimeSlot, id=slot_id)
+    if hasattr(slot, 'appointment') and slot.appointment:
+        messages.error(request, 'Нельзя удалить слот, к которому привязана существующая запись! Сначала отмените запись.')
+    else:
+        slot.delete()
+        messages.success(request, f'Слот {slot.date} {slot.time} удалён.')
+    return redirect(request.META.get('HTTP_REFERER', 'admin_slots'))
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+@require_POST
+def admin_bulk_slots_view(request):
+    """Массовые действия со слотами (удаление, смена статуса)."""
+    action = request.POST.get('action')
+    slot_ids = request.POST.getlist('selected_slots')
+    
+    if not slot_ids:
+        messages.warning(request, 'Вы не выбрали ни одного слота.')
+        return redirect('admin_slots')
+        
+    slots_qs = TimeSlot.objects.filter(id__in=slot_ids)
+    count = slots_qs.count()
+    
+    if action == 'delete':
+        deleted_count = 0
+        for s in slots_qs:
+            if not hasattr(s, 'appointment') or not s.appointment:
+                s.delete()
+                deleted_count += 1
+        messages.success(request, f'Удалено {deleted_count} из {count} выбранных слотов (слоты с записями пропущены).')
+    elif action == 'make_available':
+        slots_qs.update(is_available=True)
+        messages.success(request, f'{count} слотов теперь доступны для записи.')
+    elif action == 'make_unavailable':
+        slots_qs.update(is_available=False)
+        messages.success(request, f'{count} слотов заблокированы.')
+        
+    return redirect('admin_slots')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: МЕДИЦИНАЛЫК КАРТАЛАР ЖАНА ДИАГНОЗДОР (MEDICAL RECORDS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_medical_records_view(request):
+    """Просмотр и поиск всех медицинских записей и диагнозов."""
+    q = request.GET.get('q', '').strip()
+    records_qs = MedicalRecord.objects.select_related(
+        'appointment', 'appointment__patient', 'appointment__specialist', 'appointment__time_slot', 'appointment__service'
+    ).all()
+    
+    if q:
+        records_qs = records_qs.filter(
+            Q(diagnosis__icontains=q) |
+            Q(recommendations__icontains=q) |
+            Q(appointment__patient__first_name__icontains=q) |
+            Q(appointment__patient__last_name__icontains=q) |
+            Q(appointment__patient__phone__icontains=q) |
+            Q(appointment__specialist__last_name__icontains=q)
+        )
+        
+    paginator = Paginator(records_qs, 20)
+    page_number = request.GET.get('page')
+    records = paginator.get_page(page_number)
+    
+    return render(request, 'admin_panel/medical_records.html', {
+        'records': records,
+        'search_query': q,
+        'total_count': MedicalRecord.objects.count()
+    })
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_delete_medical_record_view(request, record_id):
+    """Удаление медицинской записи."""
+    record = get_object_or_404(MedicalRecord, id=record_id)
+    record.delete()
+    messages.success(request, 'Медицинская запись удалена.')
+    return redirect('admin_medical_records')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: УВЕДОМЛЕНИЯ (NOTIFICATIONS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_notifications_view(request):
+    """Просмотр всех уведомлений системы."""
+    notifs_qs = Notification.objects.select_related('user', 'appointment').order_by('-created_at')
+    
+    type_filter = request.GET.get('type')
+    if type_filter:
+        notifs_qs = notifs_qs.filter(notification_type=type_filter)
+        
+    paginator = Paginator(notifs_qs, 25)
+    page_number = request.GET.get('page')
+    notifications = paginator.get_page(page_number)
+    
+    total_count = Notification.objects.count()
+    unread_count = Notification.objects.filter(is_read=False).count()
+    
+    return render(request, 'admin_panel/notifications.html', {
+        'notifications': notifications,
+        'total_count': total_count,
+        'unread_count': unread_count,
+        'type_filter': type_filter
+    })
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_delete_notification_view(request, notif_id):
+    """Удаление уведомления."""
+    notif = get_object_or_404(Notification, id=notif_id)
+    notif.delete()
+    messages.success(request, 'Уведомление удалено.')
+    return redirect('admin_notifications')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_mark_all_notifications_read_view(request):
+    """Отметить все уведомления как прочитанные."""
+    Notification.objects.filter(is_read=False).update(is_read=True)
+    messages.success(request, 'Все уведомления отмечены как прочитанные.')
+    return redirect('admin_notifications')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: КОЛДОНУУЧУЛАРДЫ БАШКАРУУ (USER MANAGEMENT & ROLES)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_add_user_view(request):
+    """Создание нового пользователя с выбором роли (Пациент, Врач, Админ)."""
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        date_of_birth = request.POST.get('date_of_birth') or None
+        password = request.POST.get('password', '').strip()
+        role = request.POST.get('role', 'patient')
+        
+        if not username or not email or not password:
+            messages.error(request, 'Логин, Email и Пароль обязательны для заполнения.')
+            return render(request, 'admin_panel/user_add.html', {'data': request.POST})
+            
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, f'Пользователь с логином «{username}» уже существует.')
+            return render(request, 'admin_panel/user_add.html', {'data': request.POST})
+            
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, f'Пользователь с email «{email}» уже существует.')
+            return render(request, 'admin_panel/user_add.html', {'data': request.POST})
+            
+        user = CustomUser.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            date_of_birth=date_of_birth
+        )
+        
+        if role == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+        elif role == 'staff':
+            user.is_staff = True
+        elif role == 'doctor':
+            user.is_doctor = True
+            
+        user.save()
+        messages.success(request, f'Пользователь {user.get_full_name() or user.username} успешно создан!')
+        return redirect('admin_users')
+        
+    return render(request, 'admin_panel/user_add.html')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_toggle_user_role_view(request, user_id):
+    """Быстрая смена роли пользователя (Врач, Администратор)."""
+    user = get_object_or_404(CustomUser, id=user_id)
+    role_type = request.GET.get('role')
+    
+    if role_type == 'doctor':
+        user.is_doctor = not user.is_doctor
+        user.save()
+        status = 'врачом' if user.is_doctor else 'пациентом'
+        messages.success(request, f'Пользователь {user.get_full_name()} теперь назначен {status}.')
+    elif role_type == 'staff':
+        if user == request.user:
+            messages.error(request, 'Вы не можете снять права администратора с себя.')
+        else:
+            user.is_staff = not user.is_staff
+            user.save()
+            status = 'администратором' if user.is_staff else 'обычным пользователем'
+            messages.success(request, f'Статус администратора для {user.get_full_name()} изменён ({status}).')
+            
+    return redirect(request.META.get('HTTP_REFERER', 'admin_users'))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: ПРОМОКОДДОР ЖАНА АРЗАНДАТУУЛАР (PROMO CODES)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_promocodes_view(request):
+    """Просмотр и создание промокодов."""
+    promos = PromoCode.objects.all().order_by('-created_at')
+    return render(request, 'admin_panel/promocodes.html', {'promocodes': promos})
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_add_promocode_view(request):
+    """Создание нового промокода."""
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip().upper()
+        description = request.POST.get('description', '').strip()
+        discount_percent = int(request.POST.get('discount_percent') or 0)
+        discount_amount = int(request.POST.get('discount_amount') or 0)
+        valid_from = request.POST.get('valid_from') or timezone.now().date()
+        valid_until = request.POST.get('valid_until')
+        max_uses = int(request.POST.get('max_uses') or 100)
+        
+        if not code or not valid_until:
+            messages.error(request, 'Код промокода и срок действия обязательны.')
+            return redirect('admin_promocodes')
+            
+        if PromoCode.objects.filter(code=code).exists():
+            messages.error(request, f'Промокод «{code}» уже существует!')
+            return redirect('admin_promocodes')
+            
+        PromoCode.objects.create(
+            code=code,
+            description=description,
+            discount_percent=discount_percent,
+            discount_amount=discount_amount,
+            valid_from=valid_from,
+            valid_until=valid_until,
+            max_uses=max_uses,
+            is_active=True
+        )
+        messages.success(request, f'Промокод «{code}» успешно создан!')
+        
+    return redirect('admin_promocodes')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_toggle_promocode_view(request, promo_id):
+    """Включение/выключение промокода."""
+    promo = get_object_or_404(PromoCode, id=promo_id)
+    promo.is_active = not promo.is_active
+    promo.save()
+    status = 'активен' if promo.is_active else 'деактивирован'
+    messages.success(request, f'Промокод {promo.code} теперь {status}.')
+    return redirect('admin_promocodes')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_delete_promocode_view(request, promo_id):
+    """Удаление промокода."""
+    promo = get_object_or_404(PromoCode, id=promo_id)
+    promo.delete()
+    messages.success(request, f'Промокод {promo.code} удалён.')
+    return redirect('admin_promocodes')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: КЕЗЕК КҮТҮҮ БАРАГЫ (WAITING LIST)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_waiting_list_view(request):
+    """Просмотр листа ожидания пациентов."""
+    status_filter = request.GET.get('status')
+    specialist_id = request.GET.get('specialist')
+    
+    waiting_qs = WaitingList.objects.select_related('patient', 'specialist', 'specialist__service').all()
+    
+    if status_filter:
+        waiting_qs = waiting_qs.filter(status=status_filter)
+    if specialist_id:
+        waiting_qs = waiting_qs.filter(specialist_id=specialist_id)
+        
+    specialists = Specialist.objects.filter(is_active=True).order_by('last_name')
+    
+    return render(request, 'admin_panel/waiting_list.html', {
+        'waiting_list': waiting_qs,
+        'specialists': specialists,
+        'selected_status': status_filter,
+        'selected_specialist': specialist_id,
+        'total_waiting': WaitingList.objects.filter(status='waiting').count()
+    })
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_update_waiting_status_view(request, waiting_id):
+    """Смена статуса в листе ожидания."""
+    item = get_object_or_404(WaitingList, id=waiting_id)
+    new_status = request.POST.get('status') or request.GET.get('status')
+    if new_status in ['waiting', 'notified', 'booked', 'expired']:
+        item.status = new_status
+        item.save()
+        messages.success(request, f'Статус для {item.patient.get_full_name()} обновлён.')
+    return redirect('admin_waiting_list')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_delete_waiting_view(request, waiting_id):
+    """Удаление из листа ожидания."""
+    item = get_object_or_404(WaitingList, id=waiting_id)
+    item.delete()
+    messages.success(request, 'Запись удалена из листа ожидания.')
+    return redirect('admin_waiting_list')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: КАРА ТИЗМЕ ЖАНА NO-SHOW (BLACKLIST / PENALTIES)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_blacklist_view(request):
+    """Список нарушителей и заблокированных пациентов."""
+    penalties = PatientPenalty.objects.select_related('patient').all().order_by('-is_blocked', '-missed_count')
+    all_users = CustomUser.objects.filter(is_staff=False, is_superuser=False).order_by('first_name')
+    return render(request, 'admin_panel/blacklist.html', {
+        'penalties': penalties,
+        'users': all_users,
+        'blocked_count': PatientPenalty.objects.filter(is_blocked=True).count()
+    })
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_toggle_block_patient_view(request, penalty_id):
+    """Блокировка / разблокировка пациента."""
+    penalty = get_object_or_404(PatientPenalty, id=penalty_id)
+    penalty.is_blocked = not penalty.is_blocked
+    penalty.save()
+    status = 'заблокирован и добавлен в чёрный список' if penalty.is_blocked else 'разблокирован'
+    messages.success(request, f'Пациент {penalty.patient.get_full_name()} теперь {status}.')
+    return redirect('admin_blacklist')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_reset_missed_count_view(request, penalty_id):
+    """Сброс счётчика неявок пациента."""
+    penalty = get_object_or_404(PatientPenalty, id=penalty_id)
+    penalty.missed_count = 0
+    penalty.is_blocked = False
+    penalty.save()
+    messages.success(request, f'Счётчик нарушений для {penalty.patient.get_full_name()} сброшен.')
+    return redirect('admin_blacklist')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_add_penalty_view(request):
+    """Ручное добавление пациента в список нарушителей."""
+    if request.method == 'POST':
+        patient_id = request.POST.get('patient')
+        reason = request.POST.get('reason', '').strip() or 'Нарушение правил клиники / неявка'
+        is_blocked = request.POST.get('is_blocked') == 'on'
+        
+        patient = get_object_or_404(CustomUser, id=patient_id)
+        penalty, created = PatientPenalty.objects.get_or_create(patient=patient)
+        penalty.reason = reason
+        penalty.is_blocked = is_blocked
+        if not created:
+            penalty.missed_count += 1
+        penalty.save()
+        messages.success(request, f'Пациент {patient.get_full_name()} добавлен в список контроля.')
+    return redirect('admin_blacklist')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: ЖУРНАЛ ДЕЙСТВИЙ (AUDIT LOGS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_audit_logs_view(request):
+    """Журнал безопасности и действий администраторов."""
+    logs_qs = AuditLog.objects.select_related('user').all().order_by('-created_at')
+    
+    q = request.GET.get('q')
+    if q:
+        logs_qs = logs_qs.filter(
+            Q(action__icontains=q) |
+            Q(details__icontains=q) |
+            Q(user__username__icontains=q) |
+            Q(user__first_name__icontains=q) |
+            Q(user__last_name__icontains=q)
+        )
+        
+    paginator = Paginator(logs_qs, 30)
+    page_number = request.GET.get('page')
+    logs = paginator.get_page(page_number)
+    
+    return render(request, 'admin_panel/audit_logs.html', {
+        'logs': logs,
+        'search_query': q,
+        'total_logs': AuditLog.objects.count()
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: WHATSAPP ШАБЛОНДОР (WHATSAPP TEMPLATES)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_whatsapp_templates_view(request):
+    """Управление шаблонами WhatsApp сообщений."""
+    templates = WhatsAppTemplate.objects.all().order_by('-is_active', 'title')
+    return render(request, 'admin_panel/whatsapp_templates.html', {'templates': templates})
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_add_whatsapp_template_view(request):
+    """Создание нового шаблона WhatsApp."""
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        template_type = request.POST.get('template_type', 'reminder_1d')
+        message = request.POST.get('message', '').strip()
+        
+        if not title or not message:
+            messages.error(request, 'Название и текст сообщения обязательны.')
+            return redirect('admin_whatsapp_templates')
+            
+        WhatsAppTemplate.objects.create(
+            title=title,
+            template_type=template_type,
+            message=message,
+            is_active=True
+        )
+        messages.success(request, f'Шаблон «{title}» успешно сохранён!')
+        
+    return redirect('admin_whatsapp_templates')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_toggle_whatsapp_template_view(request, template_id):
+    """Включение/выключение шаблона."""
+    tpl = get_object_or_404(WhatsAppTemplate, id=template_id)
+    tpl.is_active = not tpl.is_active
+    tpl.save()
+    status = 'активен' if tpl.is_active else 'выключен'
+    messages.success(request, f'Шаблон {tpl.title} теперь {status}.')
+    return redirect('admin_whatsapp_templates')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_delete_whatsapp_template_view(request, template_id):
+    """Удаление шаблона."""
+    tpl = get_object_or_404(WhatsAppTemplate, id=template_id)
+    tpl.delete()
+    messages.success(request, f'Шаблон {tpl.title} удалён.')
+    return redirect('admin_whatsapp_templates')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ADMIN PANEL: МЕДИЦИНАЛЫК ФАЙЛДАР ЖАНА АНАЛИЗДЕР (MEDICAL ATTACHMENTS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_medical_attachments_view(request):
+    """Список всех загруженных медицинских анализов и файлов."""
+    type_filter = request.GET.get('type')
+    q = request.GET.get('q')
+    
+    attachments_qs = MedicalAttachment.objects.select_related('patient', 'appointment').all().order_by('-created_at')
+    
+    if type_filter:
+        attachments_qs = attachments_qs.filter(file_type=type_filter)
+    if q:
+        attachments_qs = attachments_qs.filter(
+            Q(title__icontains=q) |
+            Q(comment__icontains=q) |
+            Q(patient__first_name__icontains=q) |
+            Q(patient__last_name__icontains=q)
+        )
+        
+    paginator = Paginator(attachments_qs, 25)
+    page_number = request.GET.get('page')
+    attachments = paginator.get_page(page_number)
+    
+    patients = CustomUser.objects.filter(is_staff=False, is_superuser=False).order_by('first_name')
+    
+    return render(request, 'admin_panel/medical_attachments.html', {
+        'attachments': attachments,
+        'patients': patients,
+        'selected_type': type_filter,
+        'search_query': q,
+        'total_count': MedicalAttachment.objects.count()
+    })
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_upload_attachment_view(request):
+    """Загрузка нового анализа / файла администратором или врачом."""
+    if request.method == 'POST':
+        patient_id = request.POST.get('patient')
+        title = request.POST.get('title', '').strip()
+        file_type = request.POST.get('file_type', 'analysis')
+        comment = request.POST.get('comment', '').strip()
+        file = request.FILES.get('file')
+        
+        if not patient_id or not title or not file:
+            messages.error(request, 'Пациент, название и файл обязательны для заполнения.')
+            return redirect('admin_medical_attachments')
+            
+        patient = get_object_or_404(CustomUser, id=patient_id)
+        MedicalAttachment.objects.create(
+            patient=patient,
+            title=title,
+            file_type=file_type,
+            file=file,
+            comment=comment
+        )
+        messages.success(request, f'Файл «{title}» для пациента {patient.get_full_name()} успешно загружен!')
+        
+    return redirect('admin_medical_attachments')
+
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_delete_attachment_view(request, attachment_id):
+    """Удаление файла анализа."""
+    attachment = get_object_or_404(MedicalAttachment, id=attachment_id)
+    attachment.delete()
+    messages.success(request, 'Медицинский файл удалён.')
+    return redirect('admin_medical_attachments')
 

@@ -1,0 +1,72 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Добавить пользователя — Админ-панель{% endblock %}
+{% block page_title %}Новый пользователь{% endblock %}
+{% block breadcrumb %}Главная / Пользователи / Добавить{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="panel-card mb-4">
+                <div class="panel-card-header">
+                    <div class="panel-card-title"><i class="bi bi-person-plus text-primary me-2"></i>Данные пользователя</div>
+                </div>
+                <div class="p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Имя пользователя (Логин) <span class="text-danger">*</span></label>
+                            <input type="text" name="username" class="form-control" placeholder="Например: aibek_88" value="{{ data.username }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" placeholder="user@example.com" value="{{ data.email }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Имя</label>
+                            <input type="text" name="first_name" class="form-control" placeholder="Иван" value="{{ data.first_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" name="last_name" class="form-control" placeholder="Иванов" value="{{ data.last_name }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Номер телефона</label>
+                            <input type="text" name="phone" class="form-control" placeholder="+996 555 123456" value="{{ data.phone }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Дата рождения</label>
+                            <input type="date" name="date_of_birth" class="form-control" value="{{ data.date_of_birth }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Пароль <span class="text-danger">*</span></label>
+                            <input type="password" name="password" class="form-control" placeholder="Минимум 8 символов" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Роль в системе <span class="text-danger">*</span></label>
+                            <select name="role" class="form-select" required>
+                                <option value="patient" {% if data.role == 'patient' or not data.role %}selected{% endif %}>Пациент (Обычный пользователь)</option>
+                                <option value="doctor" {% if data.role == 'doctor' %}selected{% endif %}>Врач (Доктор)</option>
+                                <option value="staff" {% if data.role == 'staff' %}selected{% endif %}>Сотрудник (Staff)</option>
+                                <option value="admin" {% if data.role == 'admin' %}selected{% endif %}>Главный Администратор (Superuser)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                        <a href="{% url 'admin_users' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Отмена</a>
+                        <button type="submit" class="btn-admin btn-admin-primary">
+                            <i class="bi bi-check2-circle"></i> Создать пользователя
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

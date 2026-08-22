@@ -1,0 +1,257 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Временные слоты — Админ-панель{% endblock %}
+{% block page_title %}Временные слоты{% endblock %}
+{% block breadcrumb %}Главная / Слоты{% endblock %}
+
+{% block content %}
+<!-- Top Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="stat-card" style="margin-bottom:0;">
+            <div class="stat-icon blue"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-value">{{ total_slots }}</div>
+            <div class="stat-label">Всего слотов в базе</div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="stat-card" style="margin-bottom:0;">
+            <div class="stat-icon green"><i class="bi bi-check2-circle"></i></div>
+            <div class="stat-value">{{ available_slots }}</div>
+            <div class="stat-label">Свободные слоты</div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="stat-card" style="margin-bottom:0;">
+            <div class="stat-icon orange"><i class="bi bi-person-check"></i></div>
+            <div class="stat-value">{{ booked_slots }}</div>
+            <div class="stat-label">Занятые / Закрытые</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters & Actions -->
+<div class="panel-card mb-4">
+    <div class="p-3 d-flex flex-wrap gap-3 align-items-center justify-content-between">
+        <form method="get" class="d-flex flex-wrap gap-2 align-items-center" style="flex:1;">
+            <!-- Specialist Select -->
+            <select name="specialist" class="form-select" style="min-width:200px; max-width:260px;">
+                <option value="">Все врачи</option>
+                {% for sp in specialists %}
+                <option value="{{ sp.id }}" {% if selected_specialist == sp.id|stringformat:"i" %}selected{% endif %}>
+                    {{ sp.get_full_name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <!-- Date picker -->
+            <input type="date" name="date" value="{{ selected_date }}" class="form-control" style="max-width:180px;">
+
+            <!-- Status -->
+            <select name="status" class="form-select" style="max-width:170px;">
+                <option value="">Все статусы</option>
+                <option value="available" {% if selected_status == 'available' %}selected{% endif %}>Только свободные</option>
+                <option value="booked" {% if selected_status == 'booked' %}selected{% endif %}>Только занятые</option>
+            </select>
+
+            <button type="submit" class="btn-admin btn-admin-primary"><i class="bi bi-funnel"></i> Фильтр</button>
+            {% if selected_specialist or selected_date or selected_status %}
+            <a href="{% url 'admin_slots' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">Сбросить</a>
+            {% endif %}
+        </form>
+
+        <div class="d-flex gap-2">
+            <button type="button" class="btn-admin btn-admin-primary" onclick="openAddSlotModal()">
+                <i class="bi bi-plus-lg"></i> Добавить слот
+            </button>
+            <a href="{% url 'admin_generate_slots' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">
+                <i class="bi bi-magic"></i> Авто-генератор
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Slots Table with Bulk Actions -->
+<form method="post" action="{% url 'admin_bulk_slots' %}" id="bulkForm">
+    {% csrf_token %}
+    <div class="panel-card">
+        <div class="panel-card-header d-flex align-items-center justify-content-between">
+            <div class="panel-card-title"><i class="bi bi-calendar-range text-primary me-2"></i>Список временных слотов</div>
+            <div class="d-flex align-items-center gap-2">
+                <select name="action" class="form-select form-select-sm" style="width:auto;" required>
+                    <option value="">Действие для выбранных...</option>
+                    <option value="make_available">Сделать доступными</option>
+                    <option value="make_unavailable">Заблокировать</option>
+                    <option value="delete">Удалить слоты</option>
+                </select>
+                <button type="submit" class="btn-admin btn-admin-outline" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="return confirm('Применить действие к выбранным слотам?')">
+                    Применить
+                </button>
+            </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;"><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                        <th>Врач / Специализация</th>
+                        <th>Дата</th>
+                        <th>Время</th>
+                        <th>Статус слота</th>
+                        <th>Привязанная запись</th>
+                        <th class="text-end">Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for slot in slots %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="selected_slots" value="{{ slot.id }}" class="form-check-input slot-checkbox">
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar" style="width:32px; height:32px; font-size:0.85rem;">
+                                    {{ slot.specialist.last_name|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight:600; font-size:0.875rem;">{{ slot.specialist.get_full_name }}</div>
+                                    <div style="font-size:0.75rem; color:var(--muted);">{{ slot.specialist.service.name }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-weight:600; font-size:0.85rem;">
+                            <i class="bi bi-calendar-event me-1 text-muted"></i>{{ slot.date|date:"d.m.Y" }}
+                        </td>
+                        <td style="font-weight:700; font-size:0.9rem; color:var(--accent);">
+                            <i class="bi bi-clock me-1"></i>{{ slot.time|time:"H:i" }}
+                        </td>
+                        <td>
+                            {% if slot.is_available %}
+                            <span class="badge-status badge-completed"><i class="bi bi-check-circle me-1"></i>Свободен</span>
+                            {% else %}
+                            <span class="badge-status badge-cancelled"><i class="bi bi-lock-fill me-1"></i>Занят / Закрыт</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:0.825rem;">
+                            {% if slot.appointment %}
+                            <a href="{% url 'admin_appointments' %}?q={{ slot.appointment.queue_number }}" style="text-decoration:none; font-weight:600; color:var(--accent);">
+                                <i class="bi bi-person me-1"></i>{{ slot.appointment.patient.get_full_name }} (#{{ slot.appointment.queue_number }})
+                            </a>
+                            {% else %}
+                            <span style="color:var(--muted);">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{% url 'admin_toggle_slot' slot.id %}" class="btn-admin btn-admin-outline" 
+                                   style="padding:0.25rem 0.5rem; font-size:0.75rem;"
+                                   title="{% if slot.is_available %}Заблокировать{% else %}Разблокировать{% endif %}">
+                                    <i class="bi {% if slot.is_available %}bi-toggle-on text-success{% else %}bi-toggle-off text-muted{% endif %}" style="font-size:1.1rem;"></i>
+                                </a>
+                                {% if not slot.appointment %}
+                                <a href="{% url 'admin_delete_slot' slot.id %}" class="btn-admin btn-admin-outline-danger" 
+                                   style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                                   onclick="return confirm('Удалить этот слот?')"
+                                   title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4" style="color:var(--muted);">
+                            <i class="bi bi-calendar-x" style="font-size:2rem; display:block; margin-bottom:0.5rem; opacity:0.5;"></i>
+                            Слоты не найдены. Создайте слоты вручную или воспользуйтесь генератором.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if slots.has_other_pages %}
+        <div class="p-3 border-top d-flex justify-content-between align-items-center">
+            <span style="font-size:0.8rem; color:var(--muted);">
+                Страница {{ slots.number }} из {{ slots.paginator.num_pages }}
+            </span>
+            <div class="d-flex gap-1">
+                {% if slots.has_previous %}
+                <a href="?page={{ slots.previous_page_number }}{% if selected_specialist %}&specialist={{ selected_specialist }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">&laquo; Назад</a>
+                {% endif %}
+                {% if slots.has_next %}
+                <a href="?page={{ slots.next_page_number }}{% if selected_specialist %}&specialist={{ selected_specialist }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">Вперёд &raquo;</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Custom Modal: Add Slot -->
+<div id="addSlotModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(6px); z-index:999999; align-items:center; justify-content:center; padding:1.5rem;">
+    <div style="background:#ffffff; border-radius:16px; max-width:480px; width:100%; box-shadow:0 25px 60px rgba(0,0,0,0.35); position:relative; overflow:hidden;">
+        <form method="post" action="{% url 'admin_add_slot' %}">
+            {% csrf_token %}
+            <div style="padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#f8fafc;">
+                <h5 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin:0; display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-plus-circle text-primary"></i> Добавить временной слот
+                </h5>
+                <button type="button" onclick="closeAddSlotModal()" style="background:transparent; border:none; font-size:1.4rem; color:#64748b; cursor:pointer; line-height:1;">
+                    &times;
+                </button>
+            </div>
+            <div style="padding:1.5rem;">
+                <div class="mb-3">
+                    <label class="form-label">Врач</label>
+                    <select name="specialist" class="form-select" required>
+                        <option value="">Выберите врача</option>
+                        {% for sp in specialists %}
+                        <option value="{{ sp.id }}">{{ sp.get_full_name }} ({{ sp.service.name }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Дата</label>
+                    <input type="date" name="date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Время</label>
+                    <input type="time" name="time" class="form-control" required>
+                </div>
+            </div>
+            <div style="padding:1rem 1.5rem; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:0.5rem;">
+                <button type="button" class="btn-admin btn-admin-outline" onclick="closeAddSlotModal()">Отмена</button>
+                <button type="submit" class="btn-admin btn-admin-primary">Сохранить слот</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('selectAll').addEventListener('change', function() {
+        var checkboxes = document.querySelectorAll('.slot-checkbox');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = this.checked;
+        }
+    });
+
+    function openAddSlotModal() {
+        document.getElementById('addSlotModalBackdrop').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddSlotModal() {
+        document.getElementById('addSlotModalBackdrop').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    document.getElementById('addSlotModalBackdrop').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddSlotModal();
+        }
+    });
+</script>
+{% endblock %}

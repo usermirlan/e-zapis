@@ -1,0 +1,151 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Чёрный список и No-Show — Админ-панель{% endblock %}
+{% block page_title %}Контроль неявок и Чёрный список{% endblock %}
+{% block breadcrumb %}Главная / Чёрный список{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div style="font-size:0.875rem; color:var(--muted);">
+        В чёрном списке: <strong class="text-danger fs-6">{{ blocked_count }}</strong> пациентов
+    </div>
+    <button type="button" class="btn-admin btn-admin-danger" onclick="openAddPenaltyModal()">
+        <i class="bi bi-shield-slash"></i> Добавить в список контроля
+    </button>
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header">
+        <div class="panel-card-title"><i class="bi bi-person-x text-danger me-2"></i>Пациенты с нарушениями и пропусками приёмов (No-Show)</div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Пациент</th>
+                    <th>Телефон / Email</th>
+                    <th>Кол-во неявок (No-Show)</th>
+                    <th>Причина / Основание</th>
+                    <th>Статус доступа</th>
+                    <th>Последнее обновление</th>
+                    <th class="text-end">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in penalties %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="user-avatar" style="width:34px; height:34px; font-size:0.85rem; background:{% if p.is_blocked %}linear-gradient(135deg,#ef4444,#b91c1c){% else %}linear-gradient(135deg,#f59e0b,#d97706){% endif %};">
+                                {{ p.patient.first_name|first|upper }}{{ p.patient.last_name|first|upper }}
+                            </div>
+                            <div>
+                                <a href="{% url 'admin_user_detail' p.patient.id %}" style="text-decoration:none; font-weight:700; font-size:0.875rem; color:var(--text);">
+                                    {{ p.patient.get_full_name }}
+                                </a>
+                                <div style="font-size:0.72rem; color:var(--muted);">@{{ p.patient.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-size:0.825rem;">
+                        <div>{{ p.patient.phone|default:"—" }}</div>
+                        <div style="color:var(--muted); font-size:0.75rem;">{{ p.patient.email }}</div>
+                    </td>
+                    <td>
+                        <span class="badge {% if p.missed_count >= 3 %}bg-danger{% elif p.missed_count >= 1 %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size:0.85rem;">
+                            {{ p.missed_count }} пропусков
+                        </span>
+                    </td>
+                    <td style="font-size:0.825rem; max-width:250px; color:#475569;">
+                        {{ p.reason }}
+                    </td>
+                    <td>
+                        {% if p.is_blocked %}
+                        <span class="badge-status badge-cancelled" style="font-weight:700;"><i class="bi bi-lock-fill me-1"></i>Заблокирован</span>
+                        {% else %}
+                        <span class="badge-status badge-pending"><i class="bi bi-exclamation-triangle me-1"></i>На контроле</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.78rem; color:var(--muted);">
+                        {{ p.updated_at|date:"d.m.Y H:i" }}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'admin_toggle_block_patient' p.id %}" class="btn-admin {% if p.is_blocked %}btn-admin-outline-success{% else %}btn-admin-outline-danger{% endif %}" 
+                               style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                               title="{% if p.is_blocked %}Разблокировать{% else %}Заблокировать онлайн-запись{% endif %}">
+                                <i class="bi {% if p.is_blocked %}bi-unlock-fill{% else %}bi-lock-fill{% endif %}"></i>
+                            </a>
+
+                            <a href="{% url 'admin_reset_missed_count' p.id %}" class="btn-admin btn-admin-outline" 
+                               style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                               onclick="return confirm('Сбросить счётчик нарушений для этого пациента?')" title="Сбросить нарушения">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4" style="color:var(--muted);">
+                        <i class="bi bi-shield-check text-success" style="font-size:2rem; display:block; margin-bottom:0.5rem;"></i>
+                        В чёрном списке никого нет. Все пациенты дисциплинированны!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Add Penalty -->
+<div id="addPenaltyModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(6px); z-index:999999; align-items:center; justify-content:center; padding:1.5rem;">
+    <div style="background:#ffffff; border-radius:16px; max-width:480px; width:100%; box-shadow:0 25px 60px rgba(0,0,0,0.35); position:relative; overflow:hidden;">
+        <form method="post" action="{% url 'admin_add_penalty' %}">
+            {% csrf_token %}
+            <div style="padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#f8fafc;">
+                <h5 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin:0; display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-shield-slash text-danger"></i> Добавить пациента в список
+                </h5>
+                <button type="button" onclick="closeAddPenaltyModal()" style="background:transparent; border:none; font-size:1.4rem; color:#64748b; cursor:pointer; line-height:1;">&times;</button>
+            </div>
+            <div style="padding:1.5rem;">
+                <div class="mb-3">
+                    <label class="form-label">Пациент</label>
+                    <select name="patient" class="form-select" required>
+                        <option value="">Выберите пациента</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}">{{ u.get_full_name }} ({{ u.phone|default:u.email }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Причина / Нарушение</label>
+                    <input type="text" name="reason" class="form-control" placeholder="Не пришёл на приём без предупреждения" required>
+                </div>
+                <div class="form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" name="is_blocked" id="isBlockedCheck">
+                    <label class="form-check-label fw-bold text-danger" for="isBlockedCheck">Сразу заблокировать онлайн-запись</label>
+                </div>
+            </div>
+            <div style="padding:1rem 1.5rem; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:0.5rem;">
+                <button type="button" class="btn-admin btn-admin-outline" onclick="closeAddPenaltyModal()">Отмена</button>
+                <button type="submit" class="btn-admin btn-admin-danger">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddPenaltyModal() {
+        document.getElementById('addPenaltyModalBackdrop').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function closeAddPenaltyModal() {
+        document.getElementById('addPenaltyModalBackdrop').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    document.getElementById('addPenaltyModalBackdrop').addEventListener('click', function(e) {
+        if (e.target === this) closeAddPenaltyModal();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block title %}Уведомления — Админ-панель{% endblock %}
+{% block page_title %}Системные уведомления{% endblock %}
+{% block breadcrumb %}Главная / Уведомления{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_notifications' %}" class="btn-admin {% if not type_filter %}btn-admin-primary{% else %}btn-admin-outline{% endif %}" style="text-decoration:none;">
+            Все ({{ total_count }})
+        </a>
+        <a href="{% url 'admin_notifications' %}?type=new_appointment" class="btn-admin {% if type_filter == 'new_appointment' %}btn-admin-primary{% else %}btn-admin-outline{% endif %}" style="text-decoration:none;">
+            Новые записи
+        </a>
+        <a href="{% url 'admin_notifications' %}?type=cancelled" class="btn-admin {% if type_filter == 'cancelled' %}btn-admin-primary{% else %}btn-admin-outline{% endif %}" style="text-decoration:none;">
+            Отмены
+        </a>
+    </div>
+
+    {% if unread_count > 0 %}
+    <a href="{% url 'admin_mark_all_notifications_read' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">
+        <i class="bi bi-check2-all"></i> Прочитать все ({{ unread_count }})
+    </a>
+    {% endif %}
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header">
+        <div class="panel-card-title"><i class="bi bi-bell text-primary me-2"></i>Журнал уведомлений</div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Тип</th>
+                    <th>Получатель</th>
+                    <th>Сообщение</th>
+                    <th>Запись</th>
+                    <th>Статус</th>
+                    <th>Дата и время</th>
+                    <th class="text-end">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in notifications %}
+                <tr style="{% if not n.is_read %}background:rgba(59,130,246,0.03);{% endif %}">
+                    <td>
+                        {% if n.notification_type == 'new_appointment' %}
+                        <span class="badge-status badge-confirmed"><i class="bi bi-calendar-plus me-1"></i>Новая запись</span>
+                        {% elif n.notification_type == 'cancelled' %}
+                        <span class="badge-status badge-cancelled"><i class="bi bi-calendar-x me-1"></i>Отмена</span>
+                        {% elif n.notification_type == 'reminder' %}
+                        <span class="badge-status badge-pending"><i class="bi bi-alarm me-1"></i>Напоминание</span>
+                        {% else %}
+                        <span class="badge-status badge-completed">{{ n.get_notification_type_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-weight:600; font-size:0.875rem;">{{ n.user.get_full_name }}</div>
+                        <div style="font-size:0.75rem; color:var(--muted);">{{ n.user.email }}</div>
+                    </td>
+                    <td style="max-width:350px; font-size:0.85rem;">
+                        {{ n.message }}
+                    </td>
+                    <td>
+                        {% if n.appointment %}
+                        <a href="{% url 'admin_appointments' %}?q={{ n.appointment.queue_number }}" style="text-decoration:none; font-weight:600; font-size:0.825rem; color:var(--accent);">
+                            Очередь #{{ n.appointment.queue_number }}
+                        </a>
+                        {% else %}
+                        <span style="color:var(--muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if n.is_read %}
+                        <span class="badge bg-light text-muted" style="font-weight:500;">Прочитано</span>
+                        {% else %}
+                        <span class="badge bg-primary">Новое</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.78rem; color:var(--muted);">
+                        {{ n.created_at|date:"d.m.Y H:i" }}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'admin_delete_notification' n.id %}" class="btn-admin btn-admin-outline-danger" 
+                           style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
+                           onclick="return confirm('Удалить это уведомление?')" title="Удалить">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4" style="color:var(--muted);">
+                        <i class="bi bi-bell-slash" style="font-size:2rem; display:block; margin-bottom:0.5rem; opacity:0.5;"></i>
+                        Уведомлений нет.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if notifications.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+        <span style="font-size:0.8rem; color:var(--muted);">
+            Страница {{ notifications.number }} из {{ notifications.paginator.num_pages }}
+        </span>
+        <div class="d-flex gap-1">
+            {% if notifications.has_previous %}
+            <a href="?page={{ notifications.previous_page_number }}{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">&laquo; Назад</a>
+            {% endif %}
+            {% if notifications.has_next %}
+            <a href="?page={{ notifications.next_page_number }}{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn-admin btn-admin-outline" style="padding:0.3rem 0.7rem;">Вперёд &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
