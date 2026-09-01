@@ -1,514 +1,649 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Кабинет врача — МедЗапись{% endblock %}</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" as="style">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" media="print" onload="this.media='all'">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" as="style">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" media="print" onload="this.media='all'">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --sidebar-width: 280px;
-            --primary-color: #2563EB;
-            /* Blue 600 */
-            --primary-hover: #1D4ED8;
-            /* Blue 700 */
-            --accent-color: #3B82F6;
-            /* Blue 500 */
-            --secondary-color: #64748B;
-            --bg-body: #F8FAFC;
-            --sidebar-bg: #0F172A;
-            /* Dark slate */
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --glass-border: rgba(226, 232, 240, 0.8);
+            --sidebar-w: 260px;
+            --sidebar-bg: #0d1117;
+            --sidebar-border: rgba(255,255,255,0.06);
+            --accent: #10b981;
+            --accent-glow: rgba(16,185,129,0.25);
+            --accent-hover: #059669;
+            --accent-secondary: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --blue: #3b82f6;
+            --body-bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 14px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.06);
+            --shadow-md: 0 8px 32px rgba(16,185,129,0.12);
+            --font: 'Inter', -apple-system, sans-serif;
+            --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
         }
-
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            color: #1E293B;
-            overflow-x: hidden;
+            font-family: var(--font);
+            background: var(--body-bg);
+            color: var(--text);
             min-height: 100vh;
+            display: flex;
         }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-        /* Sidebar Style */
-        .doctor-sidebar {
-            width: var(--sidebar-width);
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
             height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
             background: var(--sidebar-bg);
-            color: #F8FAFC;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: fixed;
+            top: 0; left: 0;
+            display: flex;
+            flex-direction: column;
             z-index: 1000;
-            padding: 2rem 0;
-            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            border-right: 1px solid var(--sidebar-border);
+            overflow: hidden;
         }
-
-        .doctor-sidebar .nav-link {
-            color: #94A3B8;
-            padding: 0.9rem 1.75rem;
-            margin: 0.2rem 1rem;
+        .sidebar-nav-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.12) transparent;
+        }
+        .sidebar-nav-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+        .sidebar-logo {
+            padding: 1.25rem 1.25rem;
+            border-bottom: 1px solid var(--sidebar-border);
             display: flex;
             align-items: center;
-            gap: 14px;
-            transition: all 0.3s ease;
-            border-radius: 12px;
+            gap: 0.75rem;
+        }
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+        .logo-text { font-size: 1rem; font-weight: 700; color: white; line-height: 1.2; }
+        .logo-sub { font-size: 0.68rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; }
+
+        .btn-sidebar-close {
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: rgba(255,255,255,0.7);
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            margin-left: auto;
+        }
+        .btn-sidebar-close:hover { background: rgba(255,255,255,0.15); color: white; }
+
+        .sidebar-section { padding: 1.25rem 0.75rem 0.5rem; }
+        .sidebar-section-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(255,255,255,0.3);
+            padding: 0 0.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .nav-link-doctor {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 0.875rem;
             font-weight: 500;
-        }
-
-        .doctor-sidebar .nav-link:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(4px);
-        }
-
-        .doctor-sidebar .nav-link.active {
-            color: white;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+            transition: var(--transition);
             position: relative;
+            margin-bottom: 2px;
+        }
+        .nav-link-doctor i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .nav-link-doctor:hover {
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.9);
+        }
+        .nav-link-doctor.active {
+            background: linear-gradient(90deg, rgba(16,185,129,0.2), rgba(16,185,129,0.08));
+            color: #34d399;
+            border-left: 3px solid var(--accent);
+        }
+        .nav-link-doctor .badge-count {
+            margin-left: auto;
+            background: rgba(239,68,68,0.2);
+            color: #f87171;
+            font-size: 0.65rem;
+            padding: 0.15em 0.5em;
+            border-radius: 20px;
+            font-weight: 700;
         }
 
-        .doctor-sidebar .nav-link.active::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 15%;
-            height: 70%;
-            width: 4px;
-            background: white;
-            border-radius: 4px 0 0 4px;
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem 0.75rem;
+            border-top: 1px solid var(--sidebar-border);
         }
-
-        .doctor-sidebar .nav-link i {
-            font-size: 1.25rem;
-        }
-
-        /* Content Area */
-        .doctor-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            padding: 2rem;
-            transition: margin-left 0.4s ease;
-        }
-
-        .doctor-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--sidebar-bg) 100%);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 1.25rem 2.5rem;
-            margin-left: var(--sidebar-width);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
+        .sidebar-user {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 0.65rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            min-width: 0;
+        }
+        .sidebar-avatar {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .sidebar-avatar img {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .sidebar-user-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-user-role { font-size: 0.68rem; color: rgba(255,255,255,0.4); }
+        .sidebar-logout-btn {
+            color: rgba(255,255,255,0.4);
+            font-size: 1.1rem;
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            transition: var(--transition);
+            text-decoration: none;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .sidebar-logout-btn:hover { background: rgba(239,68,68,0.2); color: #f87171; }
+
+        /* ── Main Content ── */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - var(--sidebar-w));
+        }
+
+        /* ── Topbar ── */
+        .topbar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.875rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
             position: sticky;
             top: 0;
-            z-index: 99;
-            transition: margin-left 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
         }
-
-        .header-hidden {
-            transform: translateY(-100%);
-            box-shadow: none !important;
-        }
-
-        .doctor-header.scrolled {
-            background: rgba(15, 23, 42, 0.95);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            padding: 0.9rem 2.5rem; /* Slightly more compact */
-        }
-
-        .brand-name {
-            font-weight: 800;
-            font-size: 1.5rem;
-            padding: 0 1.75rem 2.5rem;
-            color: white;
-            display: block;
+        .page-title-bar { flex: 1; min-width: 0; }
+        .page-title-bar h1 { font-size: 1.3rem; font-weight: 700; color: var(--text); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .page-title-bar .breadcrumb { font-size: 0.8rem; color: var(--muted); margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .topbar-actions { display: flex; align-items: center; gap: 0.75rem; }
+        .topbar-btn {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--muted);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
             text-decoration: none;
-            letter-spacing: -0.025em;
+            position: relative;
+            flex-shrink: 0;
         }
-
-        .brand-name i {
-            background: linear-gradient(135deg, #818CF8, #C084FC);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .topbar-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .topbar-btn .notif-dot {
+            position: absolute;
+            top: 5px; right: 5px;
+            width: 8px; height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
         }
-
-        .badge-notif {
-            font-size: 0.65rem;
-            padding: 4px 7px;
-            filter: drop-shadow(0 4px 6px rgba(239, 68, 68, 0.3));
-        }
-
-        /* Glass Cards */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-        }
-
-        /* Stat Icon */
-        .stat-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
+        .topbar-user-info {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+            gap: 0.75rem;
+        }
+        .topbar-user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border);
+        }
+        .topbar-user-avatar-placeholder {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .topbar-user-name { font-size: 0.825rem; font-weight: 600; color: var(--text); }
+        .topbar-user-role { font-size: 0.7rem; color: var(--muted); }
+
+        /* ── Mobile Overlay ── */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
         }
 
-        /* Bottom Navigation for Mobile */
+        /* ── Page Body ── */
+        .page-body { padding: 1.75rem 2rem; flex: 1; width: 100%; }
+
+        /* ── Stats Cards ── */
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 80px; height: 80px;
+            border-radius: 0 var(--radius) 0 80px;
+            opacity: 0.08;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .stat-card.green::before { background: var(--accent); }
+        .stat-card.blue::before { background: var(--blue); }
+        .stat-card.orange::before { background: var(--warning); }
+        .stat-card.purple::before { background: var(--purple); }
+
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+        .stat-icon.green { background: rgba(16,185,129,0.1); color: var(--accent); }
+        .stat-icon.blue { background: rgba(59,130,246,0.1); color: var(--blue); }
+        .stat-icon.orange { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .stat-icon.purple { background: rgba(139,92,246,0.1); color: var(--purple); }
+
+        .stat-value { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+        .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; font-weight: 500; }
+        .stat-trend {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2em 0.6em;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.75rem;
+        }
+        .stat-trend.up { background: rgba(16,185,129,0.1); color: var(--accent); }
+        .stat-trend.neutral { background: rgba(100,116,139,0.1); color: var(--muted); }
+
+        /* ── Cards ── */
+        .panel-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .panel-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .panel-card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .panel-card-body { padding: 1.5rem; }
+
+        /* Glass cards (backward compat for child templates) */
+        .glass-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ── Table ── */
+        .admin-table, .doctor-table { width: 100%; border-collapse: collapse; }
+        .admin-table th, .doctor-table th {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+        .admin-table td, .doctor-table td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            vertical-align: middle;
+        }
+        .admin-table tr:last-child td, .doctor-table tr:last-child td { border-bottom: none; }
+        .admin-table tbody tr, .doctor-table tbody tr { transition: background 0.15s; }
+        .admin-table tbody tr:hover, .doctor-table tbody tr:hover { background: #f8fafc; }
+
+        /* ── Badges ── */
+        .badge-status {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.3em 0.75em;
+            border-radius: 20px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-pending { background: rgba(245,158,11,0.12); color: #d97706; }
+        .badge-confirmed { background: rgba(59,130,246,0.12); color: #2563eb; }
+        .badge-completed { background: rgba(16,185,129,0.12); color: #059669; }
+        .badge-cancelled { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+        /* ── Buttons ── */
+        .btn-admin, .btn-doctor {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.825rem;
+            font-weight: 600;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-admin-primary, .btn-doctor-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-admin-primary:hover, .btn-doctor-primary:hover { background: var(--accent-hover); transform: translateY(-1px); color: white; }
+        .btn-admin-outline, .btn-doctor-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .btn-admin-outline:hover, .btn-doctor-outline:hover { background: var(--accent); color: white; }
+        .btn-admin-danger, .btn-doctor-danger {
+            background: rgba(239,68,68,0.1);
+            color: #dc2626;
+        }
+        .btn-admin-danger:hover, .btn-doctor-danger:hover { background: #ef4444; color: white; }
+        .btn-admin-success, .btn-doctor-success {
+            background: rgba(16,185,129,0.1);
+            color: #059669;
+        }
+        .btn-admin-success:hover, .btn-doctor-success:hover { background: var(--success); color: white; }
+
+        .btn-admin-outline-danger, .btn-doctor-outline-danger {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .btn-admin-outline-danger:hover, .btn-doctor-outline-danger:hover {
+            background: rgba(239, 68, 68, 0.05);
+            border-color: #ef4444;
+        }
+
+        .btn-admin-outline-success, .btn-doctor-outline-success {
+            background: transparent;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+        .btn-admin-outline-success:hover, .btn-doctor-outline-success:hover {
+            background: rgba(16, 185, 129, 0.05);
+            border-color: #10b981;
+        }
+
+        /* ── Avatar ── */
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* ── Toasts / Alerts ── */
+        .alert-admin, .alert-doctor {
+            padding: 0.875rem 1.25rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .alert-success { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+        .alert-danger  { background: rgba(239,68,68,0.1);  color: #dc2626; border: 1px solid rgba(239,68,68,0.2); }
+        .alert-warning { background: rgba(245,158,11,0.1); color: #d97706; border: 1px solid rgba(245,158,11,0.2); }
+        .alert-info    { background: rgba(59,130,246,0.1); color: #2563eb; border: 1px solid rgba(59,130,246,0.2); }
+
+        /* ── Search ── */
+        .search-input {
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: #f8fafc;
+            color: var(--text);
+            outline: none;
+            transition: var(--transition);
+        }
+        .search-input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px var(--accent-glow); }
+        .search-wrapper { position: relative; }
+        .search-wrapper i { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.9rem; }
+
+        /* ── Empty state ── */
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+        .empty-state i { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem; }
+
+        /* ── Forms ── */
+        .form-control, .form-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            color: var(--text);
+            background: #f8fafc;
+            outline: none;
+            transition: var(--transition);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #ffffff;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        .form-label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #475569;
+            margin-bottom: 0.4rem;
+        }
+        .form-check-input {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 1px solid var(--border);
+        }
+        .form-check-input:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* ── Mini Progress Bars ── */
+        .mini-bar { height: 6px; border-radius: 10px; background: #e2e8f0; overflow: hidden; }
+        .mini-bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
+
+        /* ── Responsive Adaptation ── */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1050;
+                box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .topbar { padding: 0.75rem 1.25rem; }
+            .alerts-wrapper { padding: 0 1.25rem !important; }
+            .page-body { padding: 1.25rem 1.25rem; }
+            .bottom-nav { display: flex !important; }
+        }
+
+        @media (min-width: 993px) {
+            .bottom-nav { display: none !important; }
+        }
+
+        @media (max-width: 576px) {
+            .topbar { padding: 0.65rem 0.875rem; }
+            .alerts-wrapper { padding: 0 0.875rem !important; }
+            .page-body { padding: 1rem 0.75rem; }
+            .page-title-bar h1 { font-size: 1.1rem; }
+            .page-title-bar .breadcrumb { font-size: 0.72rem; }
+            .stat-card { padding: 1rem 1.15rem; }
+            .stat-value { font-size: 1.6rem; }
+            .stat-icon { width: 42px; height: 42px; font-size: 1.2rem; margin-bottom: 0.75rem; }
+            .panel-card-header { padding: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+            .panel-card-body { padding: 1rem; }
+        }
+
+        /* ── Animations ── */
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Legacy compatibility aliases */
+        .fade-in-up { animation: fadeIn 0.4s ease forwards; }
+        .bg-primary-soft { background: rgba(16,185,129,0.05); }
+
+        /* ── Bottom Navigation (Mobile) ── */
         .bottom-nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(15, 23, 42, 0.95);
+            bottom: 0; left: 0; right: 0;
+            background: rgba(13, 17, 23, 0.97);
             backdrop-filter: blur(12px);
-            display: flex;
+            display: none;
             justify-content: space-around;
-            padding: 0.75rem 0;
+            padding: 0.65rem 0;
             z-index: 1050;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.25);
         }
-
         .bottom-nav-link {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255,255,255,0.45);
             display: flex;
             flex-direction: column;
             align-items: center;
             text-decoration: none;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
+            font-weight: 500;
             gap: 2px;
-            transition: color 0.3s;
+            transition: var(--transition);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
         }
-
-        .bottom-nav-link i {
-            font-size: 1.25rem;
-        }
-
+        .bottom-nav-link i { font-size: 1.2rem; }
         .bottom-nav-link.active {
-            color: var(--primary-color);
+            color: var(--accent);
+        }
+        .bottom-nav-link:hover {
+            color: rgba(255,255,255,0.8);
         }
 
-        @media (max-width: 991.98px) {
-            .doctor-sidebar {
-                transform: translateX(-100%);
-            }
-
-            .doctor-content {
-                padding-bottom: 80px; /* Space for bottom nav */
-            }
-
-            .doctor-content,
-            .doctor-header {
-                margin-left: 0;
-            }
-
-            .doctor-sidebar.active {
-                transform: translateX(0);
-            }
-        }
-
-        @media (min-width: 992px) {
-            .bottom-nav {
-                display: none;
-            }
-        }
-    </style>
-    {% block extra_css %}{% endblock %}
-</head>
-
-<body>
-
-    <!-- Sidebar -->
-    <aside class="doctor-sidebar" id="sidebar">
-        <a href="{% url 'doctor_dashboard' %}" class="brand-name">
-            <i class="bi bi-heart-pulse-fill text-primary me-2"></i>МедЗапись <br>
-            <small class="text-white-50 fw-normal" style="font-size: 0.7rem;">ПОРТАЛ ВРАЧА</small>
-        </a>
-
-        <nav class="nav flex-column mt-4">
-            <a href="{% url 'doctor_dashboard' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
-                <i class="bi bi-grid-1x2"></i> Главная
-            </a>
-            <a href="{% url 'doctor_appointments' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
-                <i class="bi bi-calendar-event"></i> Записи
-            </a>
-            <a href="{% url 'doctor_manage_slots' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'doctor_manage_slots' %}active{% endif %}">
-                <i class="bi bi-clock-history"></i> Управление временем
-            </a>
-            <a href="{% url 'doctor_patients' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'doctor_patients' %}active{% endif %}">
-                <i class="bi bi-people"></i> Пациенты
-            </a>
-            <a href="{% url 'doctor_notifications' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'doctor_notifications' %}active{% endif %}">
-                <i class="bi bi-bell"></i> Уведомления
-                {% if unread_notifications_count %}
-                <span class="badge bg-danger rounded-pill badge-notif ms-auto">{{ unread_notifications_count }}</span>
-                {% endif %}
-            </a>
-            <a href="{% url 'doctor_profile' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'doctor_profile' %}active{% endif %}">
-                <i class="bi bi-person-circle"></i> Профиль
-            </a>
-        </nav>
-
-        <div class="mt-auto p-3 pt-5 border-top border-secondary">
-            <a href="{% url 'logout' %}" class="nav-link text-danger">
-                <i class="bi bi-box-arrow-left"></i> Выйти
-            </a>
-        </div>
-    </aside>
-
-    <!-- Header -->
-    <header class="doctor-header shadow-sm">
-        <div class="d-flex align-items-center">
-            <button class="btn btn-link link-light d-lg-none" id="sidebarToggle" aria-label="Открыть боковое меню">
-                <i class="bi bi-list fs-4"></i>
-            </button>
-            <span class="fw-semibold d-none d-md-inline">{% block header_title %}Панель управления{% endblock %}</span>
-        </div>
- 
-        <div class="d-flex align-items-center gap-3">
-            <div class="text-end d-none d-sm-block">
-                <div class="fw-bold small text-white">{{ user.get_full_name }}</div>
-                <div class="text-white-50" style="font-size: 0.75rem;">{{ user.specialist_profile.service.name }}</div>
-            </div>
-            {% if user.specialist_profile.photo %}
-            <img src="{{ user.specialist_profile.photo.url }}" class="rounded-circle border border-light" width="40" height="40"
-                style="object-fit: cover;">
-            {% else %}
-            <div class="rounded-circle bg-white-10 d-flex align-items-center justify-content-center border border-light" width="40"
-                height="40" style="width:40px;height:40px; background: rgba(255,255,255,0.1);">
-                <i class="bi bi-person text-white"></i>
-            </div>
-            {% endif %}
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="doctor-content">
-        {% if messages %}
-        <div class="container-fluid px-0 mb-4">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0 fade-in-up"
-                style="border-left: 4px solid var(--primary-color) !important;"
-                role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="fade-in-up">
-            {% block doctor_content %}{% endblock %}
-        </div>
-    </main>
-
-    <!-- Bottom Navigation (Mobile Only) -->
-    <nav class="bottom-nav">
-        <a href="{% url 'doctor_dashboard' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
-            <i class="bi bi-grid-1x2"></i>
-            <span>Главная</span>
-        </a>
-        <a href="{% url 'doctor_appointments' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
-            <i class="bi bi-calendar-event"></i>
-            <span>Записи</span>
-        </a>
-        <a href="{% url 'doctor_manage_slots' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_manage_slots' %}active{% endif %}">
-            <i class="bi bi-clock-history"></i>
-            <span>Время</span>
-        </a>
-        <a href="{% url 'doctor_notifications' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_notifications' %}active{% endif %}">
-            <i class="bi bi-bell"></i>
-            <span>Уведомления</span>
-        </a>
-        <a href="{% url 'doctor_profile' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_profile' %}active{% endif %}">
-            <i class="bi bi-person-circle"></i>
-            <span>Профиль</span>
-        </a>
-    </nav>
-
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
-
-    <script>
-        // Sidebar Toggle for Mobile
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.getElementById('sidebar');
-
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-            });
-        }
-
-        // Hide Header on Scroll
-        (function() {
-            let lastScroll = window.scrollY;
-            const header = document.querySelector('.doctor-header');
-            const threshold = 5; // Более чувствительный порог
-            const scrolledThreshold = 20;
-
-            let ticking = false;
-
-            window.addEventListener('scroll', () => {
-                if (!ticking) {
-                    window.requestAnimationFrame(() => {
-                        const currentScroll = window.scrollY;
-                        
-                        // Toggle scrolled class
-                        if (currentScroll > scrolledThreshold) {
-                            if (!header.classList.contains('scrolled')) {
-                                header.classList.add('scrolled');
-                            }
-                        } else {
-                            if (header.classList.contains('scrolled')) {
-                                header.classList.remove('scrolled');
-                            }
-                        }
-
-                        if (Math.abs(currentScroll - lastScroll) >= threshold) {
-                            if (currentScroll <= 0) {
-                                header.classList.remove('header-hidden');
-                            } else if (currentScroll > lastScroll && currentScroll > 150) {
-                                // Scroll Down
-                                if (!header.classList.contains('header-hidden')) {
-                                    header.classList.add('header-hidden');
-                                }
-                            } else if (currentScroll < lastScroll) {
-                                // Scroll Up
-                                if (header.classList.contains('header-hidden')) {
-                                    header.classList.remove('header-hidden');
-                                }
-                            }
-                            lastScroll = currentScroll;
-                        }
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            });
-        })();
-
-        // Real-time Notifications Setup
-        (function() {
-            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            const wsUrl = protocol + window.location.host + '/ws/notifications/';
-            const notificationSocket = new WebSocket(wsUrl);
-            
-            const notificationBadge = document.getElementById('notification-count');
-            const toastContainer = document.getElementById('toast-container');
-
-            notificationSocket.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                if (data.type === 'notification') {
-                    // 1. Update Badge
-                    if (notificationBadge) {
-                        let currentCount = parseInt(notificationBadge.textContent) || 0;
-                        notificationBadge.textContent = currentCount + 1;
-                        notificationBadge.classList.remove('d-none');
-                        
-                        // Animation effect
-                        notificationBadge.classList.add('pulse-animation');
-                        setTimeout(() => notificationBadge.classList.remove('pulse-animation'), 2000);
-                    }
-
-                    // 2. Show Toast
-                    showRealTimeToast(data);
-                    
-                    // 3. Play Sound (Optional, but makes it "feel" real-time)
-                    try {
-                        const audio = new Audio('/static/sounds/notification.mp3');
-                        audio.play();
-                    } catch (err) {
-                        console.log('Audio playback failed');
-                    }
-                }
-            };
-
-            notificationSocket.onclose = function(e) {
-                console.error('Notification socket closed unexpectedly. Reconnecting in 5s...');
-                setTimeout(() => window.location.reload(), 5000);
-            };
-
-            function showRealTimeToast(data) {
-                const toastId = 'toast-' + Date.now();
-                const toastHtml = `
-                    <div id="${toastId}" class="toast show glass-card border-0 shadow-lg mb-3" role="alert" aria-live="assertive" aria-atomic="true" style="min-width: 300px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);">
-                        <div class="toast-header bg-transparent border-0 pt-3 px-3 pb-0">
-                            <i class="bi bi-bell-fill text-primary me-2"></i>
-                            <strong class="me-auto text-primary">Новое уведомление</strong>
-                            <small class="text-muted">${data.created_at}</small>
-                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body p-3 fw-medium">
-                            ${data.message}
-                        </div>
-                        <div class="px-3 pb-3">
-                            <a href="/doctor/notifications/" class="btn btn-primary-soft btn-sm w-100 rounded-pill">Посмотреть</a>
-                        </div>
-                    </div>
-                `;
-                
-                if (toastContainer) {
-                    toastContainer.insertAdjacentHTML('afterbegin', toastHtml);
-                    
-                    // Auto-remove after 8 seconds
-                    setTimeout(() => {
-                        const toastElement = document.getElementById(toastId);
-                        if (toastElement) {
-                            toastElement.classList.remove('show');
-                            setTimeout(() => toastElement.remove(), 500);
-                        }
-                    }, 8000);
-                }
-            }
-        })();
-    </script>
-
-    <!-- Toast Container for Real-time alerts -->
-    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;"></div>
-
-    <style>
+        /* ── Real-time notification pulse ── */
         .pulse-animation {
             animation: pulse-red 2s infinite;
         }
@@ -517,18 +652,292 @@
             70% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
-        .btn-primary-soft {
-            background-color: rgba(37, 99, 235, 0.1);
-            color: #2563eb;
-            border: none;
-            transition: all 0.2s;
-        }
-        .btn-primary-soft:hover {
-            background-color: #2563eb;
-            color: white;
-        }
     </style>
-    {% block extra_js %}{% endblock %}
-</body>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
 
+<!-- ══ MOBILE OVERLAY ═══════════════════════════════════════════════════════ -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════════════════════ -->
+<aside class="sidebar" id="doctorSidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+        <div class="logo-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+        <div>
+            <div class="logo-text">МедЗапись</div>
+            <div class="logo-sub">Портал врача</div>
+        </div>
+        <button type="button" class="btn-sidebar-close d-lg-none" id="sidebarClose" aria-label="Закрыть">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <!-- Main nav (scrollable) -->
+    <div class="sidebar-nav-scroll">
+
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Главное</div>
+        <a href="{% url 'doctor_dashboard' %}" class="nav-link-doctor {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> Дашборд
+        </a>
+        <a href="{% url 'doctor_appointments' %}" class="nav-link-doctor {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
+            <i class="bi bi-calendar-check"></i> Записи пациентов
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Управление</div>
+        <a href="{% url 'doctor_manage_slots' %}" class="nav-link-doctor {% if request.resolver_match.url_name in 'doctor_manage_slots,doctor_edit_slot,doctor_add_manual_slot,doctor_generate_slots' %}active{% endif %}">
+            <i class="bi bi-clock"></i> Управление временем
+        </a>
+        <a href="{% url 'doctor_patients' %}" class="nav-link-doctor {% if request.resolver_match.url_name == 'doctor_patients' %}active{% endif %}">
+            <i class="bi bi-people"></i> Мои пациенты
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Коммуникации</div>
+        <a href="{% url 'doctor_notifications' %}" class="nav-link-doctor {% if request.resolver_match.url_name == 'doctor_notifications' %}active{% endif %}">
+            <i class="bi bi-bell"></i> Уведомления
+            {% if unread_notifications_count %}
+            <span class="badge-count">{{ unread_notifications_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Аккаунт</div>
+        <a href="{% url 'doctor_profile' %}" class="nav-link-doctor {% if request.resolver_match.url_name == 'doctor_profile' %}active{% endif %}">
+            <i class="bi bi-person-circle"></i> Мой профиль
+        </a>
+        <a href="{% url 'home' %}" class="nav-link-doctor" target="_blank">
+            <i class="bi bi-globe"></i> Открыть сайт
+        </a>
+    </div>
+
+    </div><!-- end sidebar-nav-scroll -->
+
+    <!-- Footer user -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            {% if user.specialist_profile.photo %}
+            <div class="sidebar-avatar">
+                <img src="{{ user.specialist_profile.photo.url }}" alt="Фото">
+            </div>
+            {% else %}
+            <div class="sidebar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            {% endif %}
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name" title="{{ user.get_full_name }}">{{ user.get_full_name }}</div>
+                <div class="sidebar-user-role">{{ user.specialist_profile.service.name|default:"Врач" }}</div>
+            </div>
+            <a href="{% url 'logout' %}" class="sidebar-logout-btn" title="Выйти">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- ══ MAIN CONTENT ═════════════════════════════════════════════════════════ -->
+<div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <button class="topbar-btn d-lg-none" id="sidebarToggle" aria-label="Меню">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="page-title-bar">
+            <h1>{% block page_title %}{% block header_title %}Панель управления{% endblock %}{% endblock %}</h1>
+            <div class="breadcrumb">{% block breadcrumb %}Портал врача{% endblock %}</div>
+        </div>
+        <div class="topbar-actions">
+            <a href="{% url 'doctor_notifications' %}" class="topbar-btn" title="Уведомления">
+                <i class="bi bi-bell"></i>
+                {% if unread_notifications_count %}
+                <span class="notif-dot"></span>
+                {% endif %}
+            </a>
+            <div class="topbar-user-info d-none d-md-flex">
+                <div class="text-end">
+                    <div class="topbar-user-name">{{ user.get_full_name }}</div>
+                    <div class="topbar-user-role">{{ user.specialist_profile.service.name|default:"Врач" }}</div>
+                </div>
+                {% if user.specialist_profile.photo %}
+                <img src="{{ user.specialist_profile.photo.url }}" class="topbar-user-avatar" alt="Фото">
+                {% else %}
+                <div class="topbar-user-avatar-placeholder">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Alerts -->
+    <div class="alerts-wrapper" style="padding: 0 2rem;">
+        {% for message in messages %}
+        <div class="alert-doctor alert-{{ message.tags }} mt-3">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Page body -->
+    <div class="page-body fade-in">
+        {% block content %}
+        {% block doctor_content %}{% endblock %}
+        {% endblock %}
+    </div>
+
+</div>
+
+<!-- ══ BOTTOM NAVIGATION (MOBILE) ══════════════════════════════════════════ -->
+<nav class="bottom-nav">
+    <a href="{% url 'doctor_dashboard' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i>
+        <span>Главная</span>
+    </a>
+    <a href="{% url 'doctor_appointments' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_appointments' %}active{% endif %}">
+        <i class="bi bi-calendar-check"></i>
+        <span>Записи</span>
+    </a>
+    <a href="{% url 'doctor_manage_slots' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_manage_slots' %}active{% endif %}">
+        <i class="bi bi-clock"></i>
+        <span>Время</span>
+    </a>
+    <a href="{% url 'doctor_notifications' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_notifications' %}active{% endif %}">
+        <i class="bi bi-bell"></i>
+        <span>Уведомления</span>
+    </a>
+    <a href="{% url 'doctor_profile' %}" class="bottom-nav-link {% if request.resolver_match.url_name == 'doctor_profile' %}active{% endif %}">
+        <i class="bi bi-person-circle"></i>
+        <span>Профиль</span>
+    </a>
+</nav>
+
+<!-- Toast Container for Real-time alerts -->
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function() {
+        const sidebar = document.getElementById('doctorSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const closeBtn = document.getElementById('sidebarClose');
+
+        function openSidebar() {
+            sidebar?.classList.add('show');
+            overlay?.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar?.classList.remove('show');
+            overlay?.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        toggleBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        overlay?.addEventListener('click', closeSidebar);
+
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar?.classList.contains('show')) {
+                closeSidebar();
+            }
+        });
+
+        // Close sidebar on navigation link click on mobile
+        sidebar?.querySelectorAll('.nav-link-doctor').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        // Auto close overlay if resized to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 992 && sidebar?.classList.contains('show')) {
+                closeSidebar();
+            }
+        });
+    })();
+
+    /* ── Real-time Notifications ── */
+    (function() {
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsUrl = protocol + window.location.host + '/ws/notifications/';
+        let notificationSocket;
+
+        try {
+            notificationSocket = new WebSocket(wsUrl);
+        } catch (err) {
+            console.log('WebSocket connection failed:', err);
+            return;
+        }
+
+        const toastContainer = document.getElementById('toast-container');
+
+        notificationSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'notification') {
+                // Update notification dots
+                document.querySelectorAll('.notif-dot').forEach(dot => dot.style.display = 'block');
+
+                // Show Toast
+                showRealTimeToast(data);
+
+                // Play Sound
+                try {
+                    const audio = new Audio('/static/sounds/notification.mp3');
+                    audio.play();
+                } catch (err) {
+                    console.log('Audio playback failed');
+                }
+            }
+        };
+
+        notificationSocket.onclose = function(e) {
+            console.log('Notification socket closed. Reconnecting in 5s...');
+            setTimeout(() => {
+                try { new WebSocket(wsUrl); } catch(e) {}
+            }, 5000);
+        };
+
+        function showRealTimeToast(data) {
+            const toastId = 'toast-' + Date.now();
+            const toastHtml = `
+                <div id="${toastId}" class="toast show panel-card border-0 shadow-lg mb-3" role="alert" style="min-width: 300px;">
+                    <div class="toast-header bg-transparent border-0 pt-3 px-3 pb-0">
+                        <i class="bi bi-bell-fill" style="color: var(--accent);" class="me-2"></i>
+                        <strong class="me-auto" style="color: var(--accent);">Новое уведомление</strong>
+                        <small class="text-muted">${data.created_at || 'Сейчас'}</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body p-3 fw-medium">${data.message}</div>
+                    <div class="px-3 pb-3">
+                        <a href="/doctor/notifications/" class="btn btn-sm btn-doctor-primary w-100 rounded-pill">Посмотреть</a>
+                    </div>
+                </div>
+            `;
+
+            if (toastContainer) {
+                toastContainer.insertAdjacentHTML('afterbegin', toastHtml);
+                setTimeout(() => {
+                    const toastElement = document.getElementById(toastId);
+                    if (toastElement) {
+                        toastElement.classList.remove('show');
+                        setTimeout(() => toastElement.remove(), 500);
+                    }
+                }, 8000);
+            }
+        }
+    })();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
 </html>

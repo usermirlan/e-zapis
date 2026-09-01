@@ -1,122 +1,176 @@
-{% extends 'base.html' %}
+{% extends 'base_premium.html' %}
+{% load i18n %}
+{% load static %}
 
 {% block title %}Завершение регистрации — МедЗапись{% endblock %}
 
 {% block extra_css %}
 <style>
-    .glass-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    }
-    .auth-icon-wrap {
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(59,130,246,0.1) 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    /* Стилизация django-форм */
-    .signup-form input,
-    .signup-form select,
-    .signup-form textarea {
-        display: block;
-        width: 100%;
-        padding: 0.8rem 1.2rem;
-        font-size: 1rem;
-        font-weight: 400;
-        line-height: 1.5;
-        color: #212529;
-        background-color: #f8fafc;
-        background-clip: padding-box;
-        border: 1px solid #e2e8f0;
-        appearance: none;
-        border-radius: 12px;
-        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-        margin-bottom: 1rem;
-    }
-    .signup-form input:focus {
-        color: #212529;
-        background-color: #fff;
-        border-color: #86b7fe;
-        outline: 0;
-        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
-    }
-    .signup-form label {
-        display: inline-block;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #6c757d;
-        margin-bottom: 0.5rem;
-    }
-    .signup-form ul.errorlist {
-        color: #dc3545;
-        font-size: 0.875rem;
-        padding-left: 0;
-        list-style: none;
-        margin-top: -0.5rem;
-        margin-bottom: 1rem;
-    }
-    .signup-form .helptext {
-        font-size: 0.8rem;
-        color: #6c757d;
-        display: block;
-        margin-top: -0.8rem;
-        margin-bottom: 1rem;
-    }
+  .main-content {
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .auth-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5.5rem 1rem 3rem;
+    min-height: calc(100vh - 80px);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-glass-card {
+    position: relative;
+    z-index: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 28px;
+    padding: 2.5rem 2.25rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 25px 70px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  body:not(.dark-theme) .auth-glass-card {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(14,165,233,0.15);
+    box-shadow:
+      0 0 0 1px rgba(14,165,233,0.08),
+      0 25px 70px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.95);
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .auth-icon-circle {
+    width: 68px; height: 68px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(99,102,241,0.2));
+    border: 1px solid rgba(14,165,233,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    color: var(--gold, #0ea5e9);
+    margin: 0 auto 1.2rem;
+    box-shadow: 0 0 25px rgba(14,165,233,0.25);
+  }
+
+  .auth-title {
+    font-family: var(--f2, 'Space Grotesk', sans-serif);
+    font-size: 1.45rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text-main, #0f172a);
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+
+  .signup-form p {
+    margin-bottom: 1rem;
+  }
+
+  .signup-form input {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.925rem;
+    color: var(--text-main, #0f172a);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    outline: none;
+    transition: all 0.25s ease;
+  }
+
+  body:not(.dark-theme) .signup-form input {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+  }
+
+  .signup-form input:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.2);
+    background: transparent;
+  }
+
+  body:not(.dark-theme) .signup-form input:focus {
+    background: #ffffff;
+  }
+
+  .signup-form label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 0.35rem;
+  }
+
+  .btn-submit-premium {
+    width: 100%;
+    padding: 0.85rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.925rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(14,165,233,0.35);
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+  }
+
+  .btn-submit-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(14,165,233,0.5);
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-vh-100 d-flex align-items-center auth-page pb-5" style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%); margin-top: -80px; padding-top: 120px;">
-    <div class="container pb-5">
-        <div class="row justify-content-center">
-            <div class="col-md-7 col-lg-5">
-                
-                <div class="glass-card shadow-lg border-0 overflow-hidden">
-                    <div class="card-body p-4 p-md-5">
-
-                        <!-- Заголовок -->
-                        <div class="text-center mb-4">
-                            <div class="auth-icon-wrap mx-auto mb-3 shadow-sm">
-                                <i class="bi bi-google fs-1 text-primary"></i>
-                            </div>
-                            <h1 class="h3 fw-bold text-dark">Завершение регистрации</h1>
-                            <p class="text-muted small">Вы авторизуетесь через Google. Чтобы завершить создание аккаунта, проверьте ваши данные.</p>
-                        </div>
-
-                        <!-- Форма Allauth -->
-                        <form class="signup signup-form" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
-                            {% csrf_token %}
-                            
-                            {{ form.as_p }}
-
-                            {% if redirect_field_value %}
-                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-                            {% endif %}
-                            
-                            <div class="d-grid mt-4 pt-2">
-                                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-3">
-                                    <i class="bi bi-person-check-fill me-2"></i> Зарегистрироваться
-                                </button>
-                            </div>
-                        </form>
-
-                    </div>
-                    
-                    <div class="card-footer bg-light bg-opacity-75 border-top-0 text-center py-3">
-                        <a href="{% url 'login' %}" class="text-decoration-none text-muted small fw-medium">
-                            <i class="bi bi-arrow-left me-1"></i> На главную
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+<div class="auth-wrap">
+  <div class="auth-glass-card">
+    <div class="auth-icon-circle">
+      <i class="bi bi-person-check-fill"></i>
     </div>
+
+    <h1 class="auth-title">Завершение регистрации</h1>
+    <p class="auth-sub">
+      Вы входите через аккаунт <strong>{{ account.get_provider.name }}</strong>. Пожалуйста, подтвердите данные для создания профиля.
+    </p>
+
+    <form class="signup-form" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+      {% endif %}
+
+      <button class="btn-submit-premium" type="submit">
+        <i class="bi bi-check2-circle me-1"></i> Подтвердить и войти
+      </button>
+    </form>
+  </div>
 </div>
 {% endblock %}
