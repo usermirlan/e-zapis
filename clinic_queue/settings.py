@@ -38,6 +38,11 @@ SECRET_KEY = _cfg(
 
 DEBUG = _cfg('DEBUG', default=True, cast=bool)
 
+# В продакшене (DEBUG=False) запуск с дефолтным ключом недопустим: им подписываются сессии и токены
+if not DEBUG and SECRET_KEY.startswith('django-insecure'):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured('Задайте SECRET_KEY в .env для DEBUG=False')
+
 _allowed = _cfg('ALLOWED_HOSTS', default='localhost,127.0.0.1')
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -82,6 +87,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Автовход ?login_as=<username> только для снятия скриншотов локально, никогда в продакшене
+if DEBUG and os.environ.get('ENABLE_SCREENSHOT_AUTOLOGIN') == '1':
+    MIDDLEWARE.append('clinic_queue.middleware.ScreenshotAutoLoginMiddleware')
 
 STATICFILES_STORAGE = (
     'whitenoise.storage.CompressedStaticFilesStorage'
@@ -318,4 +327,4 @@ LOGGING = {
             'propagate': False,
         },
     },
-}
+}

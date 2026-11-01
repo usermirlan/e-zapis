@@ -96,7 +96,7 @@
                         <i class="bi bi-calendar-x text-danger"></i>
                     </a>
 
-                    <a href="{% url 'admin_toggle_specialist' s.pk %}" class="btn-admin {% if s.is_active %}btn-admin-danger{% else %}btn-admin-success{% endif %}" style="padding:0.4rem 0.6rem; justify-content:center; text-decoration:none; font-size:0.75rem;" title="{% if s.is_active %}Деактивировать{% else %}Активировать{% endif %}">
+                    <a data-method="post" href="{% url 'admin_toggle_specialist' s.pk %}" class="btn-admin {% if s.is_active %}btn-admin-danger{% else %}btn-admin-success{% endif %}" style="padding:0.4rem 0.6rem; justify-content:center; text-decoration:none; font-size:0.75rem;" title="{% if s.is_active %}Деактивировать{% else %}Активировать{% endif %}">
                         {% if s.is_active %}<i class="bi bi-pause-circle"></i>{% else %}<i class="bi bi-play-circle"></i>{% endif %}
                     </a>
                     

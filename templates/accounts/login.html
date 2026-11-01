@@ -270,6 +270,9 @@
         {% endif %}
       </div>
 
+      {% if rate_limit_error %}
+        <div class="auth-error" style="margin-bottom:.5rem;">{{ rate_limit_error }}</div>
+      {% endif %}
       {% if form.non_field_errors %}
         <div class="auth-error" style="margin-bottom:.5rem;">{{ form.non_field_errors.0 }}</div>
       {% endif %}

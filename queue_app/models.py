@@ -86,10 +86,12 @@ class Specialist(models.Model):
     @property
     def average_rating(self):
         """Средний рейтинг специалиста."""
-        reviews = self.reviews.all()
-        if not reviews.exists():
+        # list() использует данные prefetch_related('reviews'), если они загружены,
+        # и выполняет не более одного SQL-запроса вместо трёх (exists + count + выборка)
+        reviews = list(self.reviews.all())
+        if not reviews:
             return 0
-        return round(sum(r.rating for r in reviews) / reviews.count(), 1)
+        return round(sum(r.rating for r in reviews) / len(reviews), 1)
 
 
 class TimeSlot(models.Model):
@@ -119,8 +121,11 @@ class Appointment(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Ожидает'),
         ('confirmed', 'Подтверждена'),
+        ('arrived', 'Пациент прибыл'),
+        ('in_progress', 'На приёме'),
         ('completed', 'Завершена'),
         ('cancelled', 'Отменена'),
+        ('no_show', 'Неявка'),
     ]
 
     # Пациент (пользователь системы)
@@ -171,13 +176,16 @@ class Appointment(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
+        # Суточный номер очереди: порядковый номер записи к данному врачу на данную дату.
+        # Вызывается внутри транзакции services.book_slot() при заблокированной строке врача,
+        # поэтому два параллельных запроса не получат одинаковый номер.
         if not self.pk:  # Только при создании новой записи
-            today = self.time_slot.date
-            existing_count = Appointment.objects.filter(
+            day = self.time_slot.date
+            last = Appointment.objects.filter(
                 specialist=self.specialist,
-                time_slot__date=today
-            ).count()
-            self.queue_number = existing_count + 1
+                time_slot__date=day
+            ).aggregate(m=models.Max('queue_number'))['m']
+            self.queue_number = (last or 0) + 1
 
             self.time_slot.is_available = False
             self.time_slot.save()
@@ -192,8 +200,11 @@ class Appointment(models.Model):
         badge_map = {
             'pending': 'warning',
             'confirmed': 'primary',
+            'arrived': 'info',
+            'in_progress': 'info',
             'completed': 'success',
             'cancelled': 'danger',
+            'no_show': 'dark',
         }
         return badge_map.get(self.status, 'secondary')
 

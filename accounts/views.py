@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from .forms import RegisterForm, LoginForm, ProfileEditForm
 from .models import CustomUser, EmailVerificationCode
 import logging
@@ -14,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 # Rate limiting (django-ratelimit) — graceful fallback
 try:
-    from ratelimit.decorators import ratelimit
+    # django-ratelimit >= 4.0 устанавливается как пакет django_ratelimit
+    from django_ratelimit.decorators import ratelimit
     _RATELIMIT_AVAILABLE = True
 except ImportError:
     _RATELIMIT_AVAILABLE = False
@@ -31,6 +33,11 @@ def register_view(request):
         if request.user.is_superuser or request.user.is_staff:
             return redirect('admin_dashboard')
         return redirect('home')
+
+    # Не более 3 регистраций в минуту с одного IP (django-ratelimit)
+    if getattr(request, 'limited', False):
+        messages.error(request, 'Слишком много попыток регистрации. Повторите через 1 минуту.')
+        return render(request, 'accounts/register.html', {'form': RegisterForm()}, status=429)
 
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -140,8 +147,10 @@ def login_view(request):
     # Rate limit exceeded?  
     was_limited = getattr(request, 'limited', False)
     if was_limited:
-        messages.error(request, 'Өтүнмө: Өтө көп аракет. 1 мүнөттөн кийин кайра аракет кылыңыз.')
-        return render(request, 'accounts/login.html', {'form': LoginForm()})
+        return render(request, 'accounts/login.html', {
+            'form': LoginForm(),
+            'rate_limit_error': 'Слишком много попыток входа. Повторите через 1 минуту.',
+        }, status=429)
 
     if request.user.is_authenticated:
         if request.user.is_superuser or request.user.is_staff:
@@ -163,8 +172,11 @@ def login_view(request):
             if user.is_doctor:
                 return redirect('doctor_dashboard')
             next_url = request.GET.get('next', 'home')
-            if next_url == 'home' and (user.is_superuser or user.is_staff):
-                return redirect('admin_dashboard')
+            # Защита от открытого перенаправления (open redirect) на чужой сайт
+            if next_url != 'home' and not url_has_allowed_host_and_scheme(
+                    next_url, allowed_hosts={request.get_host()},
+                    require_https=request.is_secure()):
+                next_url = 'home'
             return redirect(next_url)
         else:
             messages.error(request, 'Неверный логин или пароль.')

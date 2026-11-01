@@ -70,13 +70,13 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
-                            <a href="{% url 'admin_toggle_block_patient' p.id %}" class="btn-admin {% if p.is_blocked %}btn-admin-outline-success{% else %}btn-admin-outline-danger{% endif %}" 
+                            <a data-method="post" href="{% url 'admin_toggle_block_patient' p.id %}" class="btn-admin {% if p.is_blocked %}btn-admin-outline-success{% else %}btn-admin-outline-danger{% endif %}" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                                title="{% if p.is_blocked %}Разблокировать{% else %}Заблокировать онлайн-запись{% endif %}">
                                 <i class="bi {% if p.is_blocked %}bi-unlock-fill{% else %}bi-lock-fill{% endif %}"></i>
                             </a>
 
-                            <a href="{% url 'admin_reset_missed_count' p.id %}" class="btn-admin btn-admin-outline" 
+                            <a data-method="post" href="{% url 'admin_reset_missed_count' p.id %}" class="btn-admin btn-admin-outline" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                                onclick="return confirm('Сбросить счётчик нарушений для этого пациента?')" title="Сбросить нарушения">
                                 <i class="bi bi-arrow-counterclockwise"></i>

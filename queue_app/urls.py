@@ -147,4 +147,5 @@ urlpatterns = [
     path('dashboard/attachments/', views.admin_medical_attachments_view, name='admin_medical_attachments'),
     path('dashboard/attachments/upload/', views.admin_upload_attachment_view, name='admin_upload_attachment'),
     path('dashboard/attachments/<int:attachment_id>/delete/', views.admin_delete_attachment_view, name='admin_delete_attachment'),
+    path('dashboard/attachments/<int:attachment_id>/file/', views.admin_attachment_file_view, name='admin_attachment_file'),
 ]

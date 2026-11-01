@@ -520,8 +520,8 @@
         }
 
         /* ── Animations ── */
-        .fade-in { animation: fadeIn 0.4s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
         /* progress mini bars */
         .mini-bar { height: 6px; border-radius: 10px; background: #e2e8f0; overflow: hidden; }
@@ -944,39 +944,57 @@
             } catch { results.innerHTML = '<div class="gsearch-empty"><i class="bi bi-wifi-off"></i>Ошибка соединения</div>'; }
         }
 
+        // Экранирование: имена/телефоны вводят пользователи, нельзя вставлять их в HTML как есть
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
         function renderResults(data, q) {
             let html = '';
             if (data.patients?.length) {
                 html += '<div class="gsearch-section-label">Пациенты</div>';
                 data.patients.forEach(p => {
-                    html += `<a href="${p.url}" class="gsearch-result-item">
+                    html += `<a href="${esc(p.url)}" class="gsearch-result-item">
                         <div class="gsearch-result-icon purple"><i class="bi bi-person"></i></div>
-                        <div class="gsearch-result-text">${p.name} <small>${p.phone || '—'}</small></div>
+                        <div class="gsearch-result-text">${esc(p.name)} <small>${esc(p.phone || '—')}</small></div>
                     </a>`;
                 });
             }
             if (data.appointments?.length) {
                 html += '<div class="gsearch-section-label">Записи</div>';
                 data.appointments.forEach(a => {
-                    html += `<a href="${a.url}" class="gsearch-result-item">
+                    html += `<a href="${esc(a.url)}" class="gsearch-result-item">
                         <div class="gsearch-result-icon green"><i class="bi bi-calendar-check"></i></div>
-                        <div class="gsearch-result-text">${a.patient} <small>${a.date} — ${a.specialist}</small></div>
+                        <div class="gsearch-result-text">${esc(a.patient)} <small>${esc(a.date)} — ${esc(a.specialist)}</small></div>
                     </a>`;
                 });
             }
             if (data.specialists?.length) {
                 html += '<div class="gsearch-section-label">Врачи</div>';
                 data.specialists.forEach(s => {
-                    html += `<a href="${s.url}" class="gsearch-result-item">
+                    html += `<a href="${esc(s.url)}" class="gsearch-result-item">
                         <div class="gsearch-result-icon orange"><i class="bi bi-person-badge"></i></div>
-                        <div class="gsearch-result-text">${s.name} <small>${s.specialty}</small></div>
+                        <div class="gsearch-result-text">${esc(s.name)} <small>${esc(s.specialty)}</small></div>
                     </a>`;
                 });
             }
-            if (!html) html = '<div class="gsearch-empty"><i class="bi bi-search"></i>Ничего не найдено по «' + q + '»</div>';
+            if (!html) html = '<div class="gsearch-empty"><i class="bi bi-search"></i>Ничего не найдено по «' + esc(q) + '»</div>';
             results.innerHTML = html;
         }
     })();
+</script>
+<script>
+    // Ссылки с data-method="post" (удаление, блокировка, смена ролей) отправляются POST-формой
+    // с CSRF-токеном: такие действия нельзя выполнять обычным GET-переходом.
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[data-method="post"]');
+        if (!link || e.defaultPrevented) return;  // defaultPrevented — пользователь отменил confirm()
+        e.preventDefault();
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = link.href;
+        form.innerHTML = '<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">';
+        document.body.appendChild(form);
+        form.submit();
+    });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 {% block extra_js %}{% endblock %}

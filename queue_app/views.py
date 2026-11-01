@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, FileResponse, Http404
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.core.paginator import Paginator
@@ -15,6 +15,7 @@ from django.views.generic import TemplateView, View, CreateView, UpdateView
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import (
     Service, Specialist, TimeSlot, Appointment, Review, Notification,
@@ -24,11 +25,23 @@ from .models import (
 from .forms import BookingForm, ServiceForm, SpecialistForm, ReviewForm, MedicalRecordForm, SlotGenerationForm, ManualSlotForm
 from accounts.forms import DoctorRegisterForm, RegisterForm
 from accounts.models import CustomUser
+from .services import (
+    book_slot, cancel_appointment, register_no_show, get_active_block, log_action,
+    BookingError, ACTIVE_STATUSES,
+)
 
 # ─── Вспомогательная функция ──────────────────────────────────────────────────
 
 def is_staff_user(user):
     return user.is_authenticated and user.is_active and (user.is_staff or user.is_superuser)
+
+
+def _safe_redirect(request, url, default):
+    """Редирект на url (из next / Referer), только если он ведёт на наш сайт — защита от open redirect."""
+    if url and url_has_allowed_host_and_scheme(url, allowed_hosts={request.get_host()},
+                                               require_https=request.is_secure()):
+        return redirect(url)
+    return redirect(default)
 
 
 # ─── Главная ──────────────────────────────────────────────────────────────────
@@ -203,12 +216,20 @@ def booking_view(request, slot_id):
         messages.error(request, 'Этот слот уже недоступен.')
         return redirect('specialist_detail', specialist_id=specialist.pk)
 
-    # ── Защита от двойной записи ──
+    if get_active_block(request.user):
+        messages.error(
+            request,
+            'Онлайн-запись для вашей учётной записи временно заблокирована из-за неявок. '
+            'Обратитесь в регистратуру.'
+        )
+        return redirect('specialist_detail', specialist_id=specialist.pk)
+
+    # ── Защита от двойной записи к одному врачу в один день ──
     already_booked = Appointment.objects.filter(
         patient=request.user,
         specialist=specialist,
         time_slot__date=slot.date,
-        status__in=('pending', 'confirmed')
+        status__in=ACTIVE_STATUSES,
     ).exists()
 
     if already_booked:
@@ -222,18 +243,12 @@ def booking_view(request, slot_id):
     if request.method == 'POST':
         form = BookingForm(request.POST)
         if form.is_valid():
-            slot.refresh_from_db()
-            if not slot.is_available:
-                messages.error(request, 'К сожалению, этот слот уже занят. Выберите другое время.')
+            # Атомарное бронирование (transaction.atomic + select_for_update)
+            try:
+                appointment = book_slot(request.user, slot.pk, form.cleaned_data['complaint'])
+            except BookingError as exc:
+                messages.error(request, exc.message)
                 return redirect('specialist_detail', specialist_id=specialist.pk)
-
-            appointment = Appointment.objects.create(
-                patient=request.user,
-                service=specialist.service,
-                specialist=specialist,
-                time_slot=slot,
-                complaint=form.cleaned_data['complaint'],
-            )
 
             # ── Уведомление врачу ──
             if specialist.user:
@@ -317,12 +332,8 @@ def cancel_appointment_view(request, appointment_id):
     appointment = get_object_or_404(Appointment, pk=appointment_id, patient=request.user)
 
     if appointment.status in ('pending', 'confirmed'):
-        appointment.status = 'cancelled'
-        appointment.save()
-
-        # Освобождаем временной слот
-        appointment.time_slot.is_available = True
-        appointment.time_slot.save()
+        # Отмена и освобождение слота в одной транзакции
+        cancel_appointment(appointment, by_user=request.user)
 
         # ── Email-уведомление об отмене ──
         _send_appointment_email(appointment, action='cancelled')
@@ -427,26 +438,23 @@ def update_appointment_status_view(request, appointment_id):
 
 
     old_status = appointment.status
-    appointment.status = new_status
-    appointment.save()
+    if new_status == 'cancelled':
+        if cancel_appointment(appointment, by_user=request.user):
+            _send_appointment_email(appointment, action='cancelled')
+    elif new_status == 'no_show':
+        register_no_show(appointment, by_user=request.user, ip=request.META.get('REMOTE_ADDR'))
+    else:
+        appointment.status = new_status
+        appointment.save()
 
-    # Если завершена или отменена — освобождаем слот при отмене
-    if new_status == 'cancelled' and old_status != 'cancelled':
-        appointment.time_slot.is_available = True
-        appointment.time_slot.save()
-        _send_appointment_email(appointment, action='cancelled')
-
-    status_labels = {
-        'pending': 'Ожидает',
-        'confirmed': 'Подтверждена',
-        'completed': 'Завершена',
-        'cancelled': 'Отменена',
-    }
+    log_action(request, 'CHANGE_STATUS',
+               f'Запись №{appointment.queue_number}: {old_status} → {new_status}')
+    status_labels = dict(Appointment.STATUS_CHOICES)
     messages.success(
         request,
         f'Статус записи #{appointment.queue_number} изменён на «{status_labels.get(new_status, new_status)}».'
     )
-    return redirect(request.POST.get('next', 'admin_dashboard'))
+    return _safe_redirect(request, request.POST.get('next'), 'admin_dashboard')
 
 
 
@@ -702,13 +710,24 @@ def doctor_update_status_view(request, appointment_id):
 
     if new_status in dict(Appointment.STATUS_CHOICES):
         old_status = appointment.get_status_display()
-        appointment.status = new_status
-        appointment.save()
-
-        # Если отменена — вернуть слот
         if new_status == 'cancelled':
-            appointment.time_slot.is_available = True
-            appointment.time_slot.save()
+            # Отмена + освобождение слота атомарно
+            cancel_appointment(appointment, by_user=request.user)
+        elif new_status == 'no_show':
+            # Неявка: счётчик в чёрном списке, автоблокировка после 3 неявок
+            penalty = register_no_show(appointment, by_user=request.user,
+                                       ip=request.META.get('REMOTE_ADDR'))
+            if penalty and penalty.is_blocked:
+                messages.warning(
+                    request,
+                    f'Пациент {appointment.patient.get_full_name()} автоматически '
+                    f'заблокирован ({penalty.missed_count} неявки).'
+                )
+        else:
+            appointment.status = new_status
+            appointment.save()
+        log_action(request, 'CHANGE_STATUS',
+                   f'Запись №{appointment.queue_number}: {old_status} → {appointment.get_status_display()}')
 
         messages.success(
             request,
@@ -976,6 +995,7 @@ def doctor_manage_slots_view(request):
     })
 
 @doctor_required
+@require_POST
 def doctor_delete_slot_view(request, slot_id):
     """Удаление конкретного свободного слота врачом."""
     specialist = request.user.specialist_profile
@@ -1282,10 +1302,13 @@ def admin_delete_appointment_view(request, appointment_id):
         appointment.time_slot.save()
         
     num = appointment.queue_number
+    log_action(request, 'DELETE_APPOINTMENT',
+               f'Удалена запись №{num}: {appointment.patient.get_full_name()} → '
+               f'{appointment.specialist.get_full_name()}, {appointment.time_slot.date}')
     appointment.delete()
     
     messages.success(request, f'Запись #{num} была полностью удалена из базы.')
-    return redirect(request.POST.get('next', 'admin_appointments'))
+    return _safe_redirect(request, request.POST.get('next'), 'admin_appointments')
 
 
 @admin_required
@@ -1296,6 +1319,7 @@ def admin_specialists_view(request):
 
 
 @admin_required
+@require_POST
 def admin_toggle_specialist_view(request, specialist_id):
     """Активировать / деактивировать врача."""
     specialist = get_object_or_404(Specialist, pk=specialist_id)
@@ -1332,6 +1356,7 @@ def admin_delete_specialist_view(request, specialist_id):
     specialist = get_object_or_404(Specialist, pk=specialist_id)
     name = specialist.get_full_name()
     user = specialist.user
+    log_action(request, 'DELETE_SPECIALIST', f'Удалён врач {name}')
     specialist.delete()
     if user:
         user.delete()
@@ -1386,6 +1411,7 @@ def admin_delete_service_view(request, service_id):
 
 
 @admin_required
+@require_POST
 def admin_toggle_service_view(request, service_id):
     """Показать / скрыть услугу."""
     service = get_object_or_404(Service, pk=service_id)
@@ -1424,6 +1450,7 @@ def admin_users_view(request):
 
 
 @admin_required
+@require_POST
 def admin_toggle_user_view(request, user_id):
     """Блокировка / разблокировка пользователя."""
     from accounts.models import CustomUser
@@ -1436,6 +1463,7 @@ def admin_toggle_user_view(request, user_id):
         
     user.is_active = not user.is_active
     user.save()
+    log_action(request, 'TOGGLE_USER', f'{user.get_full_name()}: is_active={user.is_active}')
     
     status = 'разблокирован' if user.is_active else 'заблокирован'
     messages.success(request, f'Пользователь {user.get_full_name()} успешно {status}.')
@@ -1454,6 +1482,7 @@ def admin_delete_user_view(request, user_id):
         return redirect('admin_users')
         
     name = user.get_full_name()
+    log_action(request, 'DELETE_USER', f'Удалён пользователь {name} ({user.email})')
     user.delete()
     
     messages.success(request, f'Пользователь {name} удален из системы.')
@@ -1925,6 +1954,7 @@ def admin_add_slot_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_toggle_slot_view(request, slot_id):
     """Переключение доступности слота."""
     slot = get_object_or_404(TimeSlot, id=slot_id)
@@ -1932,11 +1962,12 @@ def admin_toggle_slot_view(request, slot_id):
     slot.save()
     status_text = 'доступен для записи' if slot.is_available else 'заблокирован'
     messages.success(request, f'Слот {slot.date} {slot.time} теперь {status_text}.')
-    return redirect(request.META.get('HTTP_REFERER', 'admin_slots'))
+    return _safe_redirect(request, request.META.get('HTTP_REFERER'), 'admin_slots')
 
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_delete_slot_view(request, slot_id):
     """Удаление слота."""
     slot = get_object_or_404(TimeSlot, id=slot_id)
@@ -1945,7 +1976,7 @@ def admin_delete_slot_view(request, slot_id):
     else:
         slot.delete()
         messages.success(request, f'Слот {slot.date} {slot.time} удалён.')
-    return redirect(request.META.get('HTTP_REFERER', 'admin_slots'))
+    return _safe_redirect(request, request.META.get('HTTP_REFERER'), 'admin_slots')
 
 
 @login_required
@@ -2016,9 +2047,11 @@ def admin_medical_records_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_delete_medical_record_view(request, record_id):
     """Удаление медицинской записи."""
     record = get_object_or_404(MedicalRecord, id=record_id)
+    log_action(request, 'DELETE_MEDICAL_RECORD', f'Удалена медкарта приёма #{record.appointment_id}')
     record.delete()
     messages.success(request, 'Медицинская запись удалена.')
     return redirect('admin_medical_records')
@@ -2055,6 +2088,7 @@ def admin_notifications_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_delete_notification_view(request, notif_id):
     """Удаление уведомления."""
     notif = get_object_or_404(Notification, id=notif_id)
@@ -2065,6 +2099,7 @@ def admin_delete_notification_view(request, notif_id):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_mark_all_notifications_read_view(request):
     """Отметить все уведомления как прочитанные."""
     Notification.objects.filter(is_read=False).update(is_read=True)
@@ -2129,6 +2164,7 @@ def admin_add_user_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_toggle_user_role_view(request, user_id):
     """Быстрая смена роли пользователя (Врач, Администратор)."""
     user = get_object_or_404(CustomUser, id=user_id)
@@ -2148,7 +2184,7 @@ def admin_toggle_user_role_view(request, user_id):
             status = 'администратором' if user.is_staff else 'обычным пользователем'
             messages.success(request, f'Статус администратора для {user.get_full_name()} изменён ({status}).')
             
-    return redirect(request.META.get('HTTP_REFERER', 'admin_users'))
+    return _safe_redirect(request, request.META.get('HTTP_REFERER'), 'admin_users')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2201,6 +2237,7 @@ def admin_add_promocode_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_toggle_promocode_view(request, promo_id):
     """Включение/выключение промокода."""
     promo = get_object_or_404(PromoCode, id=promo_id)
@@ -2213,6 +2250,7 @@ def admin_toggle_promocode_view(request, promo_id):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_delete_promocode_view(request, promo_id):
     """Удаление промокода."""
     promo = get_object_or_404(PromoCode, id=promo_id)
@@ -2252,6 +2290,7 @@ def admin_waiting_list_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_update_waiting_status_view(request, waiting_id):
     """Смена статуса в листе ожидания."""
     item = get_object_or_404(WaitingList, id=waiting_id)
@@ -2265,6 +2304,7 @@ def admin_update_waiting_status_view(request, waiting_id):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_delete_waiting_view(request, waiting_id):
     """Удаление из листа ожидания."""
     item = get_object_or_404(WaitingList, id=waiting_id)
@@ -2292,11 +2332,16 @@ def admin_blacklist_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_toggle_block_patient_view(request, penalty_id):
     """Блокировка / разблокировка пациента."""
     penalty = get_object_or_404(PatientPenalty, id=penalty_id)
     penalty.is_blocked = not penalty.is_blocked
+    if not penalty.is_blocked:
+        penalty.blocked_until = None
     penalty.save()
+    log_action(request, 'TOGGLE_BLOCK',
+               f'{penalty.patient.get_full_name()}: is_blocked={penalty.is_blocked}')
     status = 'заблокирован и добавлен в чёрный список' if penalty.is_blocked else 'разблокирован'
     messages.success(request, f'Пациент {penalty.patient.get_full_name()} теперь {status}.')
     return redirect('admin_blacklist')
@@ -2304,11 +2349,13 @@ def admin_toggle_block_patient_view(request, penalty_id):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_reset_missed_count_view(request, penalty_id):
     """Сброс счётчика неявок пациента."""
     penalty = get_object_or_404(PatientPenalty, id=penalty_id)
     penalty.missed_count = 0
     penalty.is_blocked = False
+    penalty.blocked_until = None
     penalty.save()
     messages.success(request, f'Счётчик нарушений для {penalty.patient.get_full_name()} сброшен.')
     return redirect('admin_blacklist')
@@ -2403,6 +2450,7 @@ def admin_add_whatsapp_template_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_toggle_whatsapp_template_view(request, template_id):
     """Включение/выключение шаблона."""
     tpl = get_object_or_404(WhatsAppTemplate, id=template_id)
@@ -2415,6 +2463,7 @@ def admin_toggle_whatsapp_template_view(request, template_id):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_delete_whatsapp_template_view(request, template_id):
     """Удаление шаблона."""
     tpl = get_object_or_404(WhatsAppTemplate, id=template_id)
@@ -2491,6 +2540,7 @@ def admin_upload_attachment_view(request):
 
 @login_required
 @user_passes_test(is_staff_user, login_url='home')
+@require_POST
 def admin_delete_attachment_view(request, attachment_id):
     """Удаление файла анализа."""
     attachment = get_object_or_404(MedicalAttachment, id=attachment_id)
@@ -2498,3 +2548,13 @@ def admin_delete_attachment_view(request, attachment_id):
     messages.success(request, 'Медицинский файл удалён.')
     return redirect('admin_medical_attachments')
 
+
+@login_required
+@user_passes_test(is_staff_user, login_url='home')
+def admin_attachment_file_view(request, attachment_id):
+    """Выдача медицинского файла только сотрудникам (вместо прямой публичной ссылки /media/)."""
+    attachment = get_object_or_404(MedicalAttachment, id=attachment_id)
+    try:
+        return FileResponse(attachment.file.open('rb'), filename=attachment.file.name.rsplit('/', 1)[-1])
+    except FileNotFoundError:
+        raise Http404('Файл не найден')

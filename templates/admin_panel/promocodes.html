@@ -72,12 +72,12 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
-                            <a href="{% url 'admin_toggle_promocode' p.id %}" class="btn-admin btn-admin-outline" 
+                            <a data-method="post" href="{% url 'admin_toggle_promocode' p.id %}" class="btn-admin btn-admin-outline" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;"
                                title="{% if p.is_active %}Деактивировать{% else %}Активировать{% endif %}">
                                 <i class="bi {% if p.is_active %}bi-toggle-on text-success{% else %}bi-toggle-off text-muted{% endif %}" style="font-size:1.1rem;"></i>
                             </a>
-                            <a href="{% url 'admin_delete_promocode' p.id %}" class="btn-admin btn-admin-outline-danger" 
+                            <a data-method="post" href="{% url 'admin_delete_promocode' p.id %}" class="btn-admin btn-admin-outline-danger" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                                onclick="return confirm('Удалить промокод {{ p.code }}?')" title="Удалить">
                                 <i class="bi bi-trash"></i>

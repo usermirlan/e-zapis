@@ -27,4 +27,4 @@ psycopg2-binary
 dj-database-url
 
 # Security
-django-ratelimit
+django-ratelimit>=4.0,<5

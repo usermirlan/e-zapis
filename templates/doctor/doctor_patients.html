@@ -1,4 +1,5 @@
 {% extends 'doctor/base_doctor.html' %}
+{% load ru_plural %}
 
 {% block title %}Мои пациенты — Кабинет врача{% endblock %}
 {% block header_title %}Список пациентов{% endblock %}
@@ -39,7 +40,7 @@
                     <div>
                         <span
                             class="badge rounded-pill bg-primary-soft text-primary border border-primary-subtle px-3 py-2">
-                            <i class="bi bi-calendar-check me-1"></i>{{ item.visit_count }} визит{{ item.visit_count|pluralize:"ов,а,ов" }}
+                            <i class="bi bi-calendar-check me-1"></i>{{ item.visit_count }} {{ item.visit_count|ru_plural:"визит,визита,визитов" }}
                         </span>
                     </div>
                     {% if item.last_visit %}

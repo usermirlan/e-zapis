@@ -10,7 +10,7 @@
   
   @media (max-width: 992px) {
     .hero-sec { padding: 6rem 1.5rem 3rem; align-items: flex-start; min-height: auto; }
-    .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
     .h-visual { height: 400px !important; margin-top: 3rem; transform: scale(0.9); }
     .h-title { font-size: clamp(2rem, 8vw, 3rem) !important; }
     .h-stats { justify-content: space-between; gap: 1rem !important; }
@@ -50,7 +50,7 @@
 
       <h1 class="h-title" style="font-family: var(--f2); font-size: clamp(2.4rem,4.5vw,3.8rem); font-weight: 900; line-height: 1.1; letter-spacing: -1.5px; color: var(--text-main); margin-bottom: 1.4rem; animation: fadeLeft .8s ease .1s forwards; opacity: 0;">
         Ваше здоровье —<br>
-        наш <span class="grad-txt" id="typed-text" style="background: linear-gradient(135deg, var(--gold), var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shineText 4s linear infinite;">Приоритет</span>
+        <span class="grad-txt" style="background: linear-gradient(135deg, var(--gold-d), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">наша забота</span>
       </h1>
 
       <p class="h-sub" style="font-size: 1.08rem; color: var(--text-muted); line-height: 1.78; max-width: 470px; margin-bottom: 2.2rem; animation: fadeLeft .8s ease .2s forwards; opacity: 0;">
@@ -348,6 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const input = document.getElementById('hSearchInput');
   const results = document.getElementById('hSearchResults');
   let timeout = null;
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
   if (input && results) {
     input.addEventListener('input', function() {
@@ -363,18 +364,18 @@ document.addEventListener('DOMContentLoaded', function() {
           .then(data => {
             if (data.specialists && data.specialists.length > 0) {
               results.innerHTML = data.specialists.map(s => `
-                <a href="/specialists/${s.id}/" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; text-decoration: none; border-bottom: 1px solid var(--border); transition: background .2s;" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='transparent'">
+                <a href="/specialists/${Number(s.id)}/" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; text-decoration: none; border-bottom: 1px solid var(--border); transition: background .2s;" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='transparent'">
                   <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--dark3); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border);">
-                    ${s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;">` : `<span style="color: var(--text-muted); font-weight: bold; font-size: 0.8rem;">${s.full_name.charAt(0)}</span>`}
+                    ${s.photo_url ? `<img src="${esc(s.photo_url)}" style="width: 100%; height: 100%; object-fit: cover;">` : `<span style="color: var(--text-muted); font-weight: bold; font-size: 0.8rem;">${esc(s.full_name.charAt(0))}</span>`}
                   </div>
                   <div>
-                    <div style="color: var(--text-main); font-weight: 700; font-size: 0.95rem;">${s.full_name}</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem;">${s.service} • Кабинет ${s.cabinet || 'уточняйте'}</div>
+                    <div style="color: var(--text-main); font-weight: 700; font-size: 0.95rem;">${esc(s.full_name)}</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">${esc(s.service)} • Кабинет ${esc(s.cabinet || 'уточняйте')}</div>
                   </div>
                 </a>
               `).join('');
             } else {
-              results.innerHTML = `<div style="padding: 1rem; color: var(--text-muted); text-align: center; font-size: 0.9rem;">Ничего не найдено по запросу "${q}"</div>`;
+              results.innerHTML = `<div style="padding: 1rem; color: var(--text-muted); text-align: center; font-size: 0.9rem;">Ничего не найдено по запросу "${esc(q)}"</div>`;
             }
             results.style.display = 'block';
           })
@@ -390,17 +391,5 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Typed.js Animation for Hero Title
-if (document.getElementById('typed-text')) {
-  new Typed('#typed-text', {
-    strings: ['Приоритет', 'Забота', 'Будущее', 'Уверенность'],
-    typeSpeed: 60,
-    backSpeed: 40,
-    loop: true,
-    backDelay: 2500,
-    showCursor: true,
-    cursorChar: '|'
-  });
-}
 </script>
 {% endblock %}

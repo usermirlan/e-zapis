@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
-import random
+import secrets
 
 
 class CustomUser(AbstractUser):
@@ -63,4 +63,5 @@ class EmailVerificationCode(models.Model):
 
     @staticmethod
     def generate_code():
-        return str(random.randint(100000, 999999))
+        # secrets — криптографически стойкий генератор (в отличие от random)
+        return f'{secrets.randbelow(900000) + 100000}'

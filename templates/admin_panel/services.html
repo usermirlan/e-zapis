@@ -48,7 +48,7 @@
                     <a href="{% url 'admin_edit_service' service.pk %}" class="btn-admin btn-admin-outline flex-fill" style="padding:0.4rem; justify-content:center; text-decoration:none; font-size:0.75rem;">
                         <i class="bi bi-pencil"></i> Изменить
                     </a>
-                    <a href="{% url 'admin_toggle_service' service.pk %}" class="btn-admin {% if service.is_active %}btn-admin-danger{% else %}btn-admin-success{% endif %} flex-fill" style="padding:0.4rem; justify-content:center; text-decoration:none; font-size:0.75rem;" title="{% if service.is_active %}Скрыть{% else %}Показать{% endif %}">
+                    <a data-method="post" href="{% url 'admin_toggle_service' service.pk %}" class="btn-admin {% if service.is_active %}btn-admin-danger{% else %}btn-admin-success{% endif %} flex-fill" style="padding:0.4rem; justify-content:center; text-decoration:none; font-size:0.75rem;" title="{% if service.is_active %}Скрыть{% else %}Показать{% endif %}">
                         {% if service.is_active %}<i class="bi bi-eye-slash"></i>{% else %}<i class="bi bi-eye"></i>{% endif %}
                     </a>
                     <form method="post" action="{% url 'admin_delete_service' service.pk %}" class="flex-fill d-flex">

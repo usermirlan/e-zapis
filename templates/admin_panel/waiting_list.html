@@ -98,12 +98,12 @@
                             </a>
                             {% endif %}
 
-                            <a href="{% url 'admin_update_waiting_status' w.id %}?status=booked" class="btn-admin btn-admin-outline-success" 
+                            <a data-method="post" href="{% url 'admin_update_waiting_status' w.id %}?status=booked" class="btn-admin btn-admin-outline-success" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;" title="Отметить как Записан">
                                 <i class="bi bi-check-lg"></i>
                             </a>
 
-                            <a href="{% url 'admin_delete_waiting' w.id %}" class="btn-admin btn-admin-outline-danger" 
+                            <a data-method="post" href="{% url 'admin_delete_waiting' w.id %}" class="btn-admin btn-admin-outline-danger" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                                onclick="return confirm('Удалить из листа ожидания?')" title="Удалить">
                                 <i class="bi bi-trash"></i>

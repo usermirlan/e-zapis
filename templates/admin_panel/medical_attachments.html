@@ -76,7 +76,7 @@
                         </span>
                     </td>
                     <td>
-                        <a href="{{ a.file.url }}" target="_blank" class="btn-admin btn-admin-outline" style="padding:0.25rem 0.6rem; font-size:0.8rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <a href="{% url 'admin_attachment_file' a.id %}" target="_blank" class="btn-admin btn-admin-outline" style="padding:0.25rem 0.6rem; font-size:0.8rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">
                             <i class="bi bi-file-earmark-arrow-down text-primary"></i> Открыть / Скачать
                         </a>
                     </td>
@@ -88,10 +88,10 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
-                            <a href="{{ a.file.url }}" target="_blank" class="btn-admin btn-admin-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem;" title="Просмотр">
+                            <a href="{% url 'admin_attachment_file' a.id %}" target="_blank" class="btn-admin btn-admin-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem;" title="Просмотр">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{% url 'admin_delete_attachment' a.id %}" class="btn-admin btn-admin-outline-danger" 
+                            <a data-method="post" href="{% url 'admin_delete_attachment' a.id %}" class="btn-admin btn-admin-outline-danger" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                                onclick="return confirm('Удалить этот медицинский документ?')" title="Удалить">
                                 <i class="bi bi-trash"></i>

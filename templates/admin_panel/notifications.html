@@ -18,7 +18,7 @@
     </div>
 
     {% if unread_count > 0 %}
-    <a href="{% url 'admin_mark_all_notifications_read' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">
+    <a data-method="post" href="{% url 'admin_mark_all_notifications_read' %}" class="btn-admin btn-admin-outline" style="text-decoration:none;">
         <i class="bi bi-check2-all"></i> Прочитать все ({{ unread_count }})
     </a>
     {% endif %}
@@ -82,7 +82,7 @@
                         {{ n.created_at|date:"d.m.Y H:i" }}
                     </td>
                     <td class="text-end">
-                        <a href="{% url 'admin_delete_notification' n.id %}" class="btn-admin btn-admin-outline-danger" 
+                        <a data-method="post" href="{% url 'admin_delete_notification' n.id %}" class="btn-admin btn-admin-outline-danger" 
                            style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                            onclick="return confirm('Удалить это уведомление?')" title="Удалить">
                             <i class="bi bi-trash"></i>

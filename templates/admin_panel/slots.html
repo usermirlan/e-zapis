@@ -143,13 +143,13 @@
                         </td>
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-1">
-                                <a href="{% url 'admin_toggle_slot' slot.id %}" class="btn-admin btn-admin-outline" 
+                                <a data-method="post" href="{% url 'admin_toggle_slot' slot.id %}" class="btn-admin btn-admin-outline" 
                                    style="padding:0.25rem 0.5rem; font-size:0.75rem;"
                                    title="{% if slot.is_available %}Заблокировать{% else %}Разблокировать{% endif %}">
                                     <i class="bi {% if slot.is_available %}bi-toggle-on text-success{% else %}bi-toggle-off text-muted{% endif %}" style="font-size:1.1rem;"></i>
                                 </a>
                                 {% if not slot.appointment %}
-                                <a href="{% url 'admin_delete_slot' slot.id %}" class="btn-admin btn-admin-outline-danger" 
+                                <a data-method="post" href="{% url 'admin_delete_slot' slot.id %}" class="btn-admin btn-admin-outline-danger" 
                                    style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                                    onclick="return confirm('Удалить этот слот?')"
                                    title="Удалить">
@@ -191,13 +191,13 @@
 </form>
 
 <!-- Custom Modal: Add Slot -->
-<div id="addSlotModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(6px); z-index:999999; align-items:center; justify-content:center; padding:1.5rem;">
+<div id="addSlotModalBackdrop" style="display:none; position:fixed; inset:0; width:100vw; height:100vh; background:rgba(15,23,42,0.65); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:999999; align-items:center; justify-content:center; padding:1.5rem; box-sizing:border-box;">
     <div style="background:#ffffff; border-radius:16px; max-width:480px; width:100%; box-shadow:0 25px 60px rgba(0,0,0,0.35); position:relative; overflow:hidden;">
         <form method="post" action="{% url 'admin_add_slot' %}">
             {% csrf_token %}
             <div style="padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#f8fafc;">
                 <h5 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin:0; display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-plus-circle text-primary"></i> Добавить временной слот
+                    <i class="bi bi-plus-circle text-primary"></i> Добавить единичный слот
                 </h5>
                 <button type="button" onclick="closeAddSlotModal()" style="background:transparent; border:none; font-size:1.4rem; color:#64748b; cursor:pointer; line-height:1;">
                     &times;
@@ -205,7 +205,7 @@
             </div>
             <div style="padding:1.5rem;">
                 <div class="mb-3">
-                    <label class="form-label">Врач</label>
+                    <label class="form-label" style="font-weight:600; color:#334155;">Врач</label>
                     <select name="specialist" class="form-select" required>
                         <option value="">Выберите врача</option>
                         {% for sp in specialists %}
@@ -214,11 +214,11 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Дата</label>
+                    <label class="form-label" style="font-weight:600; color:#334155;">Дата</label>
                     <input type="date" name="date" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Время</label>
+                    <label class="form-label" style="font-weight:600; color:#334155;">Время</label>
                     <input type="time" name="time" class="form-control" required>
                 </div>
             </div>
@@ -231,25 +231,46 @@
 </div>
 
 <script>
-    document.getElementById('selectAll').addEventListener('change', function() {
-        var checkboxes = document.querySelectorAll('.slot-checkbox');
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].checked = this.checked;
-        }
-    });
+    var selectAllEl = document.getElementById('selectAll');
+    if (selectAllEl) {
+        selectAllEl.addEventListener('change', function() {
+            var checkboxes = document.querySelectorAll('.slot-checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
+    }
 
     function openAddSlotModal() {
-        document.getElementById('addSlotModalBackdrop').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        var backdrop = document.getElementById('addSlotModalBackdrop');
+        if (backdrop) {
+            if (backdrop.parentElement !== document.body) {
+                document.body.appendChild(backdrop);
+            }
+            backdrop.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
     }
 
     function closeAddSlotModal() {
-        document.getElementById('addSlotModalBackdrop').style.display = 'none';
+        var backdrop = document.getElementById('addSlotModalBackdrop');
+        if (backdrop) {
+            backdrop.style.display = 'none';
+        }
         document.body.style.overflow = '';
     }
 
-    document.getElementById('addSlotModalBackdrop').addEventListener('click', function(e) {
-        if (e.target === this) {
+    var modalBackdrop = document.getElementById('addSlotModalBackdrop');
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddSlotModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
             closeAddSlotModal();
         }
     });

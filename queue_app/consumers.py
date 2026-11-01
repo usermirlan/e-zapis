@@ -13,6 +13,12 @@ class QueueConsumer(AsyncWebsocketConsumer):
         self.specialist_id = self.scope['url_route']['kwargs']['specialist_id']
         self.group_name = f'queue_{self.specialist_id}'
 
+        # Анонимные пользователи не допускаются (код закрытия 4001)
+        user = self.scope.get('user')
+        if user is None or user.is_anonymous:
+            await self.close(code=4001)
+            return
+
         # Join the specialist's queue group
         await self.channel_layer.group_add(
             self.group_name,

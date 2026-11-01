@@ -238,14 +238,40 @@
                                     </form>
                                     {% endif %}
                                     
-                                    {% if appt.status in 'pending confirmed' %}
+                                    {% if appt.status == 'pending' or appt.status == 'confirmed' %}
+                                    <form method="post" action="{% url 'doctor_update_status' appt.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="arrived">
+                                        <button class="btn btn-sm btn-outline-info" title="Пациент прибыл" data-bs-toggle="tooltip">
+                                            <i class="bi bi-person-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'doctor_update_status' appt.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="no_show">
+                                        <button class="btn btn-sm btn-outline-dark" title="Неявка" data-bs-toggle="tooltip">
+                                            <i class="bi bi-person-x"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    {% if appt.status == 'arrived' %}
+                                    <form method="post" action="{% url 'doctor_update_status' appt.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="in_progress">
+                                        <button class="btn btn-sm btn-outline-info" title="Начать приём" data-bs-toggle="tooltip">
+                                            <i class="bi bi-play-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                    {% if appt.status == 'pending' or appt.status == 'confirmed' or appt.status == 'arrived' or appt.status == 'in_progress' %}
                                     <a href="{% url 'doctor_add_medical_record' appt.id %}"
                                         class="btn btn-sm btn-outline-success" title="Выдать справку" data-bs-toggle="tooltip">
                                         <i class="bi bi-file-earmark-medical"></i>
                                     </a>
                                     {% endif %}
                                     
-                                    {% if appt.status in 'pending confirmed' %}
+                                    {% if appt.status == 'pending' or appt.status == 'confirmed' or appt.status == 'arrived' or appt.status == 'in_progress' %}
                                     <form method="post" action="{% url 'doctor_update_status' appt.id %}" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="status" value="cancelled">
@@ -259,6 +285,10 @@
                                     <span class="text-success small"><i class="bi bi-check-all me-1"></i>Завершено</span>
                                     {% endif %}
                                     
+                                    {% if appt.status == 'no_show' %}
+                                    <span class="text-dark small"><i class="bi bi-person-x me-1"></i>Неявка</span>
+                                    {% endif %}
+
                                     {% if appt.status == 'cancelled' %}
                                     <span class="text-danger small"><i class="bi bi-x me-1"></i>Отменено</span>
                                     {% endif %}

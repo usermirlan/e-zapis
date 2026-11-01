@@ -20,7 +20,9 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SpecialistViewSet(viewsets.ReadOnlyModelViewSet):
     """API для получения списка врачей/специалистов"""
-    queryset = Specialist.objects.filter(is_active=True)
+    # select_related + prefetch_related устраняют проблему «N+1 запросов»
+    queryset = (Specialist.objects.filter(is_active=True)
+                .select_related('service').prefetch_related('reviews'))
     serializer_class = SpecialistSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -40,7 +42,8 @@ class SpecialistViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 class AppointmentViewSet(viewsets.ModelViewSet):
-    """API для управления записями"""
+    """API для управления записями пациента (просмотр, создание, отмена)"""
+    http_method_names = ["get", "post", "delete", "head", "options"]
     serializer_class = AppointmentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -54,3 +57,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def destroy(self, request, *args, **kwargs):
+        """DELETE /api/v1/appointments/{id}/ — отмена записи пациентом (слот освобождается)."""
+        from .services import cancel_appointment
+        appointment = self.get_object()
+        if not cancel_appointment(appointment, by_user=request.user):
+            return Response({'detail': 'Эту запись нельзя отменить.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)

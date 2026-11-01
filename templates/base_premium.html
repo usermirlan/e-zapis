@@ -18,8 +18,6 @@
   <!-- Lottie Player for high-quality vector animations -->
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
-  <!-- Typed.js for typing animation -->
-  <script src="https://unpkg.com/typed.js@2.0.16/dist/typed.umd.js"></script>
 
   <style>
     /* ============================================================
@@ -43,8 +41,8 @@
       
       /* Dark Text for Light Theme */
       --text-main:  #0f172a;
-      --text-muted: #475569;
-      --text-light: #94a3b8;
+      --text-muted: #334155; /* контраст ≥ 7:1 на светлом фоне */
+      --text-light: #64748b; /* было #94a3b8 (контраст 2.6:1) */
       
       /* Borders & Glass */
       --glass:      rgba(255,255,255,0.7);
@@ -220,6 +218,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
 
+    html { font-size: 17px; overflow-x: clip; } /* крупнее базовый шрифт для пожилых пациентов */
     body {
       font-family: var(--f1);
       background: var(--dark);
@@ -448,7 +447,7 @@
     .p-search-inner input {
       background: transparent; border: none; outline: none;
       color: var(--text-main); font-size: 1rem; font-family: var(--f1);
-      padding: 1rem 0; flex: 1;
+      padding: 1rem 0; flex: 1; min-width: 0; /* иначе поле не сжимается и ломает ширину на телефоне */
     }
     .p-search-inner input::placeholder { color: var(--text-light); }
     .btn-search {
@@ -733,6 +732,8 @@
       .f-bottom { flex-direction:column; gap:.4rem; text-align:center; }
       .p-search { flex-direction: column; }
       .btn-search { width: 100%; border-radius: 12px; }
+      /* Кнопка внутри поля поиска не должна сжимать само поле ввода до нуля */
+      .p-search-inner .btn-search { width: auto; flex: none; border-radius: 0; padding: 1rem 1.1rem; }
       .filter-pills { gap: .5rem; }
       .btn-outline-g.nav-btn-hide { display:none; }
       .btn-gold-nav.nav-btn-hide { display:none; }
@@ -810,11 +811,25 @@
       .pnav { padding: 0.8rem; }
       .nav-logo { gap: 0.5rem; }
       .custom-dropdown-toggle { padding: 0 5px !important; }
+      /* Навбар должен помещаться в 360–375px: логотип и кнопки компактнее */
+      .logo-txt { font-size: 1.05rem; }
+      .logo-pulse-wrap { width: 36px; height: 36px; }
+      .logo-pulse-icon { font-size: 1.15rem; }
+      .nav-acts { gap: .3rem; }
     }
     {% block extra_css %}{% endblock %}
+    /* Уважение системной настройки «уменьшить движение» */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      .bg-orb { display: none; }
+    }
   </style>
 </head>
-<body class="dark-theme">
+<body>
+<script>
+  /* Светлая тема по умолчанию; тёмная — только если пользователь выбрал её сам */
+  if (localStorage.getItem('ezapis-theme') === 'dark') document.body.classList.add('dark-theme');
+</script>
 
 
 
@@ -953,24 +968,13 @@
 /* ================================================
    THEME TOGGLE
 ================================================ */
-(function(){
-  // Force dark theme by default, reset any stale 'light' preference
-  const saved = localStorage.getItem('med-theme');
-  if (!saved || saved === 'light') {
-    localStorage.setItem('med-theme', 'dark');
-  }
-  document.body.classList.add('dark-theme');
-})();
-
-
-
 document.addEventListener('DOMContentLoaded', function(){
   const btn = document.getElementById('themeToggle');
   if(btn){
     btn.addEventListener('click', function(){
       document.body.classList.toggle('dark-theme');
       const isDark = document.body.classList.contains('dark-theme');
-      localStorage.setItem('med-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('ezapis-theme', isDark ? 'dark' : 'light');
     });
   }
 });
@@ -1148,8 +1152,12 @@ document.addEventListener('DOMContentLoaded', function(){
   let mx = W/2, my = H/2;
   window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
 
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function draw(){
     cx.clearRect(0, 0, W, H);
+    // Светлая тема и режим «уменьшить движение»: фон без анимации
+    if (!isDark() || reduceMotion) { requestAnimationFrame(draw); return; }
 
     // Mouse glow spot
     if (isDark()) {

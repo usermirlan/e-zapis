@@ -34,11 +34,11 @@
                 </div>
 
                 <div class="pt-3 border-top d-flex justify-content-between align-items-center">
-                    <a href="{% url 'admin_toggle_whatsapp_template' tpl.id %}" class="btn-admin btn-admin-outline" style="font-size:0.75rem;">
+                    <a data-method="post" href="{% url 'admin_toggle_whatsapp_template' tpl.id %}" class="btn-admin btn-admin-outline" style="font-size:0.75rem;">
                         <i class="bi {% if tpl.is_active %}bi-pause-circle text-warning{% else %}bi-play-circle text-success{% endif %} me-1"></i>
                         {% if tpl.is_active %}Приостановить{% else %}Включить{% endif %}
                     </a>
-                    <a href="{% url 'admin_delete_whatsapp_template' tpl.id %}" class="btn-admin btn-admin-outline-danger" 
+                    <a data-method="post" href="{% url 'admin_delete_whatsapp_template' tpl.id %}" class="btn-admin btn-admin-outline-danger" 
                        style="font-size:0.75rem;" onclick="return confirm('Удалить этот шаблон?')" title="Удалить">
                         <i class="bi bi-trash"></i>
                     </a>

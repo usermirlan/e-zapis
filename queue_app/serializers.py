@@ -4,12 +4,20 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
+class BookingConflict(serializers.ValidationError):
+    """Ошибка бронирования, возвращаемая клиенту API с кодом HTTP 409 Conflict."""
+    status_code = 409
+
+    def __init__(self, message, code='conflict'):
+        super().__init__({'detail': message, 'code': code})
+
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'phone_number', 'full_name']
+        fields = ['id', 'email', 'first_name', 'last_name', 'phone', 'full_name']
 
     def get_full_name(self, obj):
         return obj.get_full_name()
@@ -57,23 +65,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
         read_only_fields = ['queue_number', 'status', 'created_at']
 
     def create(self, validated_data):
+        """Создание записи через тот же атомарный сервис, что и в веб-интерфейсе."""
+        from .services import book_slot, BookingError
         patient = self.context['request'].user
-        specialist_id = validated_data.pop('specialist_id')
-        service_id = validated_data.pop('service_id')
+        validated_data.pop('specialist_id', None)
+        validated_data.pop('service_id', None)
         time_slot_id = validated_data.pop('time_slot_id')
-
-        specialist = Specialist.objects.get(id=specialist_id)
-        service = Service.objects.get(id=service_id)
-        time_slot = TimeSlot.objects.get(id=time_slot_id)
-
-        if not time_slot.is_available:
-            raise serializers.ValidationError("Этот слот уже занят.")
-
-        appointment = Appointment.objects.create(
-            patient=patient,
-            specialist=specialist,
-            service=service,
-            time_slot=time_slot,
-            **validated_data
-        )
-        return appointment
+        try:
+            return book_slot(patient, time_slot_id, validated_data.get('complaint', ''))
+        except BookingError as exc:
+            raise BookingConflict(exc.message, exc.code)

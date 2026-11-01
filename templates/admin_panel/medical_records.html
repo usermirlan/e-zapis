@@ -93,7 +93,7 @@
                                     title="Открыть полностью">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <a href="{% url 'admin_delete_medical_record' r.id %}" class="btn-admin btn-admin-outline-danger" 
+                            <a data-method="post" href="{% url 'admin_delete_medical_record' r.id %}" class="btn-admin btn-admin-outline-danger" 
                                style="padding:0.25rem 0.5rem; font-size:0.75rem;" 
                                onclick="return confirm('Удалить эту медицинскую карту?')" title="Удалить">
                                 <i class="bi bi-trash"></i>

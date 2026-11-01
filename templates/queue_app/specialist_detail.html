@@ -1,4 +1,5 @@
 {% extends 'base_premium.html' %}
+{% load ru_plural %}
 {% load static %}
 
 {% block title %}{{ specialist.get_full_name }} — МедЗапись Premium{% endblock %}
@@ -91,7 +92,7 @@
                 </div>
                 <div>
                   <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.2rem;">{{ date|date:"l, d E Y" }}</h3>
-                  <div style="font-size: 0.85rem; color: var(--text-muted);">{{ slots|length }} свободн{{ slots|length|pluralize:"ый,ых,ых" }} слот{{ slots|length|pluralize:",,а,ов" }}</div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted);">{{ slots|length }} {{ slots|length|ru_plural:"свободный слот,свободных слота,свободных слотов" }}</div>
                 </div>
               </div>
               

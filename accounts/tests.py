@@ -20,7 +20,8 @@ class RegistrationTest(TestCase):
         })
         self.assertEqual(User.objects.filter(username='newuser').count(), 1)
         # После регистрации — редирект на verify-email
-        self.assertRedirects(response, '/accounts/verify-email/1/')
+        new_user = User.objects.get(username='newuser')
+        self.assertRedirects(response, f'/accounts/verify-email/{new_user.pk}/')
 
     def test_register_duplicate_email(self):
         User.objects.create_user(
