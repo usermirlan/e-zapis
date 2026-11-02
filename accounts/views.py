@@ -104,18 +104,33 @@ def verify_email_view(request, user_id):
                     messages.success(request, f'Добро пожаловать, {user.get_full_name()}! Ваш email успешно подтвержден.')
                     return redirect('home')
             else:
-                messages.error(request, 'Неверный код. Пожалуйста, проверьте и попробуйте снова.')
+                verification.attempts += 1
+                if verification.attempts >= EmailVerificationCode.MAX_ATTEMPTS:
+                    # Слишком много ошибок — код больше не принимается, нужен новый
+                    verification.delete()
+                    messages.error(request, 'Слишком много неверных попыток. Запросите новый код.')
+                else:
+                    verification.save(update_fields=['attempts'])
+                    left = EmailVerificationCode.MAX_ATTEMPTS - verification.attempts
+                    messages.error(request, f'Неверный код. Осталось попыток: {left}.')
         except EmailVerificationCode.DoesNotExist:
             messages.error(request, 'Код не найден. Пожалуйста, запросите новый код.')
 
     return render(request, 'accounts/verify_email.html', {'target_user': user})
 
 
+@ratelimit(key='ip', rate='5/m', block=False)
 def resend_code_view(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
-    
+
     if user.is_active:
         return redirect('login')
+
+    # Ограничение частоты: не чаще раза в минуту на аккаунт и не более 5 запросов в минуту с IP
+    previous = EmailVerificationCode.objects.filter(user=user).first()
+    if getattr(request, 'limited', False) or (previous and not previous.can_resend()):
+        messages.error(request, 'Новый код можно запросить не чаще одного раза в минуту.')
+        return redirect('verify_email', user_id=user.id)
 
     # Генерируем новый код
     code_str = EmailVerificationCode.generate_code()

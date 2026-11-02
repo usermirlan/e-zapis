@@ -94,3 +94,38 @@ class LoginTest(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'Обновлён')
         self.assertEqual(self.user.email, 'updated@test.com')
+
+
+class EmailVerificationLimitsTest(TestCase):
+    """Защита подтверждения email: лимит неверных попыток и частоты повторной отправки."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        from .models import EmailVerificationCode
+        cache.clear()
+        self.user = User.objects.create_user(
+            username='unverified', email='u@test.com', password='SecurePass123!',
+            phone='+77000000001', is_active=False)
+        self.code = EmailVerificationCode.objects.create(user=self.user, code='123456')
+        self.url = f'/accounts/verify-email/{self.user.pk}/'
+
+    def test_code_invalidated_after_max_attempts(self):
+        from .models import EmailVerificationCode
+        for _ in range(EmailVerificationCode.MAX_ATTEMPTS):
+            self.client.post(self.url, {'code': '000000'})
+        self.assertFalse(EmailVerificationCode.objects.filter(user=self.user).exists())
+        # Даже правильный код после этого не активирует аккаунт
+        self.client.post(self.url, {'code': '123456'})
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+
+    def test_correct_code_activates_after_few_mistakes(self):
+        self.client.post(self.url, {'code': '000000'})
+        self.client.post(self.url, {'code': '123456'})
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_resend_throttled_within_a_minute(self):
+        self.client.get(f'/accounts/resend-code/{self.user.pk}/')
+        self.code.refresh_from_db()
+        self.assertEqual(self.code.code, '123456')  # код не перевыпущен

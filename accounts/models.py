@@ -49,6 +49,11 @@ class EmailVerificationCode(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='verification_code')
     code = models.CharField(max_length=6, verbose_name='Код подтверждения')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    # Неверные попытки ввода: после MAX_ATTEMPTS код аннулируется (защита от перебора)
+    attempts = models.PositiveSmallIntegerField(default=0, verbose_name='Неверных попыток')
+
+    MAX_ATTEMPTS = 5
+    RESEND_INTERVAL = timedelta(seconds=60)
 
     class Meta:
         verbose_name = 'Код подтверждения'
@@ -60,6 +65,10 @@ class EmailVerificationCode(models.Model):
     def is_expired(self):
         # Код действителен 10 минут
         return timezone.now() > self.created_at + timedelta(minutes=10)
+
+    def can_resend(self):
+        # Новый код — не чаще раза в минуту, чтобы через форму нельзя было заспамить почту
+        return timezone.now() >= self.created_at + self.RESEND_INTERVAL
 
     @staticmethod
     def generate_code():
