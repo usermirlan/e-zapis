@@ -9,16 +9,16 @@
     .gen-layout { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
     .gen-card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
     .gen-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
-    .gen-card-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #6366f1); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; }
+    .gen-card-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #14b8a6); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; }
     .gen-card-title { font-size: 1rem; font-weight: 700; color: var(--text); }
     .gen-card-body { padding: 1.5rem; }
     .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .btn-generate { width: 100%; background: linear-gradient(135deg, var(--accent), #6366f1); color: white; border: none; border-radius: 10px; padding: 0.875rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .btn-generate { width: 100%; background: linear-gradient(135deg, var(--accent), #14b8a6); color: white; border: none; border-radius: 10px; padding: 0.875rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
     .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-glow); }
     .duration-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
     .duration-btn { padding: 0.6rem; border: 1.5px solid var(--border); border-radius: 8px; background: #f8fafc; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition); text-align: center; }
-    .duration-btn.selected, .duration-btn:hover { border-color: var(--accent); background: rgba(59,130,246,0.08); color: var(--accent); }
-    .tip-box { background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(99,102,241,0.04)); border: 1px solid rgba(59,130,246,0.15); border-radius: 10px; padding: 1rem; }
+    .duration-btn.selected, .duration-btn:hover { border-color: var(--accent); background: rgba(14,116,144,0.08); color: var(--accent); }
+    .tip-box { background: linear-gradient(135deg, rgba(14,116,144,0.06), rgba(20,184,166,0.04)); border: 1px solid rgba(14,116,144,0.15); border-radius: 10px; padding: 1rem; }
     .tip-box li { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
     @media (max-width: 768px) { .gen-layout { grid-template-columns: 1fr; } .time-row { grid-template-columns: 1fr; } }
 </style>
@@ -186,7 +186,7 @@ function calcSlots() {
                 <div style="font-size:1.4rem; font-weight:800; color:var(--warning);">${specCount}</div>
                 <div style="font-size:0.72rem; color:var(--muted);">врачей</div>
             </div>
-            <div style="background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(99,102,241,0.08)); border-radius:8px; padding:0.75rem; text-align:center;">
+            <div style="background:linear-gradient(135deg,rgba(14,116,144,0.1),rgba(20,184,166,0.08)); border-radius:8px; padding:0.75rem; text-align:center;">
                 <div style="font-size:1.4rem; font-weight:800; color:var(--accent);">${total}</div>
                 <div style="font-size:0.72rem; color:var(--muted);">итого слотов</div>
             </div>

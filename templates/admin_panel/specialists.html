@@ -24,7 +24,7 @@
                              style="width:56px;height:56px;border-radius:50%;object-fit:cover;">
                         {% else %}
                         <div class="user-avatar" style="width:56px;height:56px;font-size:1.25rem;
-                             background:linear-gradient(135deg,#3b82f6,#8b5cf6);">
+                             background:linear-gradient(135deg,#0e7490,#14b8a6);">
                             {{ s.last_name|first|upper }}
                         </div>
                         {% endif %}
@@ -47,7 +47,7 @@
 
                 <!-- Details -->
                 <div style="display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem;">
-                    <div style="font-size:0.75rem; color: #1e40af; background: rgba(59,130,246,0.1); display:inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700; width: fit-content; margin-bottom: 4px;">
+                    <div style="font-size:0.75rem; color: #155e75; background: rgba(14,116,144,0.1); display:inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700; width: fit-content; margin-bottom: 4px;">
                         <i class="bi bi-person-fill"></i> Логин: {{ s.user.username }}
                     </div>
                     {% if s.cabinet %}

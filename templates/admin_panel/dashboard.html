@@ -218,7 +218,7 @@
             </div>
             <div class="panel-card-body d-flex flex-column gap-2">
                 <a href="{% url 'staff_add_doctor' %}" class="quick-action">
-                    <div class="quick-action-icon" style="background:rgba(59,130,246,0.1);color:var(--accent);">
+                    <div class="quick-action-icon" style="background:rgba(14,116,144,0.1);color:var(--accent);">
                         <i class="bi bi-person-plus-fill"></i>
                     </div>
                     Добавить врача
@@ -251,7 +251,7 @@
             <div class="panel-card-body">
                 {% for item in top_specialists %}
                 <div class="specialist-item">
-                    <div class="user-avatar" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                    <div class="user-avatar" style="background: linear-gradient(135deg, #0e7490, #14b8a6);">
                         {{ item.specialist.last_name|first|upper }}
                     </div>
                     <div style="flex:1; min-width:0;">
@@ -260,7 +260,7 @@
                         </div>
                         <div style="font-size:0.75rem; color:var(--muted);">{{ item.specialist.service.name }}</div>
                         <div class="mini-bar mt-1">
-                            <div class="mini-bar-fill" style="width:{{ item.pct }}%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                            <div class="mini-bar-fill" style="width:{{ item.pct }}%; background: linear-gradient(90deg, #0e7490, #14b8a6);"></div>
                         </div>
                     </div>
                     <div style="font-size:0.8rem; font-weight:700; color:var(--accent); flex-shrink:0;">{{ item.count }}</div>
@@ -280,7 +280,7 @@
             <div class="panel-card-body">
                 {% for u in recent_users %}
                 <div class="specialist-item">
-                    <div class="user-avatar" style="background: linear-gradient(135deg, #10b981, #3b82f6); width:32px; height:32px; font-size:0.75rem;">
+                    <div class="user-avatar" style="background: linear-gradient(135deg, #10b981, #0e7490); width:32px; height:32px; font-size:0.75rem;">
                         {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
                     </div>
                     <div style="flex:1; min-width:0;">
@@ -346,10 +346,10 @@ const lineData = {
     datasets: [{
         label: 'Записи',
         data: {{ counts_list|safe }},
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59,130,246,0.08)',
+        borderColor: '#0e7490',
+        backgroundColor: 'rgba(14,116,144,0.08)',
         borderWidth: 2.5,
-        pointBackgroundColor: '#3b82f6',
+        pointBackgroundColor: '#0e7490',
         pointRadius: 5,
         pointHoverRadius: 7,
         fill: true,

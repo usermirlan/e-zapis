@@ -7,30 +7,30 @@
     <title>{% block title %}Кабинет врача — МедЗапись{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --sidebar-w: 260px;
-            --sidebar-bg: #0d1117;
-            --sidebar-border: rgba(255,255,255,0.06);
-            --accent: #10b981;
-            --accent-glow: rgba(16,185,129,0.25);
-            --accent-hover: #059669;
-            --accent-secondary: #6366f1;
+            --sidebar-bg: #0c2340;   /* тёмно-синий, как подвал сайта */
+            --sidebar-border: rgba(255,255,255,0.08);
+            --accent: #0e7490;
+            --accent-glow: rgba(14,116,144,0.25);
+            --accent-hover: #155e75;
+            --accent-secondary: #14b8a6;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
             --purple: #8b5cf6;
             --blue: #3b82f6;
-            --body-bg: #f0f4f8;
+            --body-bg: #f4f7fa;
             --card-bg: #ffffff;
             --text: #0f172a;
             --muted: #64748b;
             --border: #e2e8f0;
-            --radius: 14px;
+            --radius: 10px;
             --shadow: 0 4px 24px rgba(0,0,0,0.06);
-            --shadow-md: 0 8px 32px rgba(16,185,129,0.12);
-            --font: 'Outfit', -apple-system, sans-serif;  /* единый шрифт с сайтом пациента */
+            --shadow-md: 0 8px 32px rgba(14,116,144,0.12);
+            --font: 'Inter', -apple-system, sans-serif;  /* единый шрифт с сайтом пациента */
             --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -140,8 +140,8 @@
             color: rgba(255,255,255,0.9);
         }
         .nav-link-doctor.active {
-            background: linear-gradient(90deg, rgba(16,185,129,0.2), rgba(16,185,129,0.08));
-            color: #34d399;
+            background: linear-gradient(90deg, rgba(20,184,166,0.2), rgba(20,184,166,0.08));
+            color: #5eead4;
             border-left: 3px solid var(--accent);
         }
         .nav-link-doctor .badge-count {
@@ -547,7 +547,7 @@
         .form-control:focus, .form-select:focus {
             background-color: #ffffff;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 0 4px rgba(14,116,144, 0.1);
         }
         .form-label {
             font-weight: 600;
@@ -607,7 +607,7 @@
 
         /* Legacy compatibility aliases */
         .fade-in-up { animation: fadeIn 0.4s ease forwards; }
-        .bg-primary-soft { background: rgba(16,185,129,0.05); }
+        .bg-primary-soft { background: rgba(14,116,144,0.05); }
 
         /* ── Bottom Navigation (Mobile) ── */
         .bottom-nav {
@@ -652,6 +652,31 @@
             70% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
+        /* ── Bootstrap в цветах сайта (бирюзовый вместо стандартного синего) ── */
+        :root {
+            --bs-primary: var(--accent);
+            --bs-primary-rgb: 14, 116, 144;
+            --bs-link-color: var(--accent-hover);
+            --bs-link-color-rgb: 21, 94, 117;
+            --bs-link-hover-color: var(--accent);
+            --bs-body-font-family: var(--font);
+        }
+        .btn-primary {
+            --bs-btn-bg: var(--accent); --bs-btn-border-color: var(--accent);
+            --bs-btn-hover-bg: var(--accent-hover); --bs-btn-hover-border-color: var(--accent-hover);
+            --bs-btn-active-bg: var(--accent-hover); --bs-btn-active-border-color: var(--accent-hover);
+            --bs-btn-disabled-bg: var(--accent); --bs-btn-disabled-border-color: var(--accent);
+        }
+        .btn-outline-primary {
+            --bs-btn-color: var(--accent); --bs-btn-border-color: var(--accent);
+            --bs-btn-hover-bg: var(--accent); --bs-btn-hover-border-color: var(--accent);
+            --bs-btn-active-bg: var(--accent-hover); --bs-btn-active-border-color: var(--accent-hover);
+        }
+        .bg-primary { background-color: var(--accent) !important; }
+        .text-primary { color: var(--accent) !important; }
+        .border-primary { border-color: var(--accent) !important; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
     </style>
     {% block extra_css %}{% endblock %}
 </head>

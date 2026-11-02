@@ -7,29 +7,29 @@
     <title>{% block title %}Панель администратора — МедЗапись{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --sidebar-w: 260px;
-            --sidebar-bg: #0d1117;
-            --sidebar-border: rgba(255,255,255,0.06);
-            --accent: #3b82f6;
-            --accent-glow: rgba(59,130,246,0.25);
-            --accent-hover: #2563eb;
+            --sidebar-bg: #0c2340;   /* тёмно-синий, как подвал сайта */
+            --sidebar-border: rgba(255,255,255,0.08);
+            --accent: #0e7490;
+            --accent-glow: rgba(14,116,144,0.25);
+            --accent-hover: #155e75;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
             --purple: #8b5cf6;
-            --body-bg: #f0f4f8;
+            --body-bg: #f4f7fa;
             --card-bg: #ffffff;
             --text: #0f172a;
             --muted: #64748b;
             --border: #e2e8f0;
-            --radius: 14px;
+            --radius: 10px;
             --shadow: 0 4px 24px rgba(0,0,0,0.06);
-            --shadow-md: 0 8px 32px rgba(59,130,246,0.12);
-            --font: 'Outfit', -apple-system, sans-serif;  /* единый шрифт с сайтом пациента */
+            --shadow-md: 0 8px 32px rgba(14,116,144,0.12);
+            --font: 'Inter', -apple-system, sans-serif;  /* единый шрифт с сайтом пациента */
             --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -79,7 +79,7 @@
         }
         .logo-icon {
             width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--accent), #6366f1);
+            background: linear-gradient(135deg, var(--accent), #14b8a6);
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem;
@@ -139,8 +139,8 @@
             color: rgba(255,255,255,0.9);
         }
         .nav-link-admin.active {
-            background: linear-gradient(90deg, rgba(59,130,246,0.2), rgba(59,130,246,0.08));
-            color: #60a5fa;
+            background: linear-gradient(90deg, rgba(20,184,166,0.2), rgba(20,184,166,0.08));
+            color: #5eead4;
             border-left: 3px solid var(--accent);
         }
         .nav-link-admin .badge-count {
@@ -169,7 +169,7 @@
         }
         .sidebar-avatar {
             width: 36px; height: 36px;
-            background: linear-gradient(135deg, var(--accent), #6366f1);
+            background: linear-gradient(135deg, var(--accent), #14b8a6);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             color: white;
@@ -305,7 +305,7 @@
             font-size: 1.4rem;
             margin-bottom: 1rem;
         }
-        .stat-icon.blue { background: rgba(59,130,246,0.1); color: var(--accent); }
+        .stat-icon.blue { background: rgba(14,116,144,0.1); color: var(--accent); }
         .stat-icon.green { background: rgba(16,185,129,0.1); color: var(--success); }
         .stat-icon.orange { background: rgba(245,158,11,0.1); color: var(--warning); }
         .stat-icon.purple { background: rgba(139,92,246,0.1); color: var(--purple); }
@@ -446,7 +446,7 @@
         .user-avatar {
             width: 36px; height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), #6366f1);
+            background: linear-gradient(135deg, var(--accent), #14b8a6);
             display: flex; align-items: center; justify-content: center;
             font-size: 0.875rem;
             font-weight: 700;
@@ -602,7 +602,7 @@
         }
         .gsearch-result-icon {
             width: 34px; height: 34px;
-            background: linear-gradient(135deg, var(--accent), #6366f1);
+            background: linear-gradient(135deg, var(--accent), #14b8a6);
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
             color: white;
@@ -638,7 +638,7 @@
         .form-control:focus, .form-select:focus, select.admin-select:focus, input.admin-input:focus {
             background-color: #ffffff;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(14,116,144, 0.1);
         }
         .form-label {
             font-weight: 600;
@@ -655,6 +655,31 @@
             background-color: var(--accent);
             border-color: var(--accent);
         }
+        /* ── Bootstrap в цветах сайта (бирюзовый вместо стандартного синего) ── */
+        :root {
+            --bs-primary: var(--accent);
+            --bs-primary-rgb: 14, 116, 144;
+            --bs-link-color: var(--accent-hover);
+            --bs-link-color-rgb: 21, 94, 117;
+            --bs-link-hover-color: var(--accent);
+            --bs-body-font-family: var(--font);
+        }
+        .btn-primary {
+            --bs-btn-bg: var(--accent); --bs-btn-border-color: var(--accent);
+            --bs-btn-hover-bg: var(--accent-hover); --bs-btn-hover-border-color: var(--accent-hover);
+            --bs-btn-active-bg: var(--accent-hover); --bs-btn-active-border-color: var(--accent-hover);
+            --bs-btn-disabled-bg: var(--accent); --bs-btn-disabled-border-color: var(--accent);
+        }
+        .btn-outline-primary {
+            --bs-btn-color: var(--accent); --bs-btn-border-color: var(--accent);
+            --bs-btn-hover-bg: var(--accent); --bs-btn-hover-border-color: var(--accent);
+            --bs-btn-active-bg: var(--accent-hover); --bs-btn-active-border-color: var(--accent-hover);
+        }
+        .bg-primary { background-color: var(--accent) !important; }
+        .text-primary { color: var(--accent) !important; }
+        .border-primary { border-color: var(--accent) !important; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
     </style>
     {% block extra_css %}{% endblock %}
 </head>

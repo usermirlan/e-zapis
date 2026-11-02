@@ -43,7 +43,7 @@
             </thead>
             <tbody>
                 {% for n in notifications %}
-                <tr style="{% if not n.is_read %}background:rgba(59,130,246,0.03);{% endif %}">
+                <tr style="{% if not n.is_read %}background:rgba(14,116,144,0.03);{% endif %}">
                     <td>
                         {% if n.notification_type == 'new_appointment' %}
                         <span class="badge-status badge-confirmed"><i class="bi bi-calendar-plus me-1"></i>Новая запись</span>

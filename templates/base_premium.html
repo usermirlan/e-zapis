@@ -937,6 +937,22 @@
     .empty-box h3 { color: var(--text-main); font-size: 1.15rem; font-weight: 800; margin-bottom: .4rem; }
     .empty-box p { color: var(--text-muted); margin-bottom: 1.4rem; }
 
+    /* --- Сообщения Django (успех, ошибка, предупреждение) --- */
+    .flash-wrap { max-width: 1200px; margin: 1.2rem auto 0; padding: 0 2rem; display: flex; flex-direction: column; gap: .6rem; position: relative; z-index: 3; }
+    .flash {
+      display: flex; align-items: center; gap: .7rem; padding: .85rem 1rem; border-radius: var(--radius);
+      background: var(--dark2); border: 1px solid var(--border); border-left: 4px solid var(--primary);
+      box-shadow: var(--card-shadow); color: var(--text-main); font-size: .95rem; font-weight: 500;
+    }
+    .flash .bi { font-size: 1.15rem; color: var(--primary); }
+    .flash span { flex: 1; }
+    .flash-success { border-left-color: #16a34a; } .flash-success .bi { color: #16a34a; }
+    .flash-danger, .flash-error { border-left-color: #dc2626; } :is(.flash-danger, .flash-error) .bi { color: #dc2626; }
+    .flash-warning { border-left-color: #d97706; } .flash-warning .bi { color: #d97706; }
+    .flash-close { background: none; border: 0; font-size: 1.4rem; line-height: 1; color: var(--text-light); cursor: pointer; padding: 0 .2rem; }
+    .flash-close:hover { color: var(--text-main); }
+    @media (max-width:768px) { .flash-wrap { padding: 0 1rem; } }
+
     /* --- Подвал --- */
     .pfooter { background: var(--navy); border-top: 3px solid var(--accent); }
     .pfooter .logo-txt { color: #fff; }
@@ -952,7 +968,6 @@
       .main-content { padding-top: 68px; }
       .logo-sub { display: none; }
     }
-    {% block extra_css %}{% endblock %}
     /* Уважение системной настройки «уменьшить движение» */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -960,6 +975,9 @@
       html.js .reveal:not(.vis) { opacity:1; transform:none; }
     }
   </style>
+  {# Блок вне <style>: страницы кладут сюда свои <style>/<link>; вложенный <style> ломал CSS #}
+  {% block extra_head %}{% endblock %}
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
 <script>
@@ -1061,6 +1079,17 @@
 </div>
 
 <div class="main-content">
+  {% if messages %}
+  <div class="flash-wrap" role="status">
+    {% for message in messages %}
+    <div class="flash flash-{{ message.tags|default:'info' }}">
+      <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'danger' or message.tags == 'error' %}bi-exclamation-triangle-fill{% elif message.tags == 'warning' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+      <span>{{ message }}</span>
+      <button type="button" class="flash-close" aria-label="Закрыть" onclick="this.parentElement.remove()">&times;</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% block content %}{% endblock %}
 </div>
 
