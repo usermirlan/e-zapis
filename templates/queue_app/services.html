@@ -1,13 +1,13 @@
 {% extends 'base_premium.html' %}
-{% load static %}
+{% load static ru_plural %}
 
-{% block title %}Услуги — МедЗапись Premium{% endblock %}
+{% block title %}Услуги — МедЗапись{% endblock %}
 
 {% block content %}
 <section class="section">
   <div class="s-inner">
     <div class="s-head reveal">
-      <div class="s-tag">✦ Медицинские направления</div>
+      <div class="s-tag">Медицинские направления</div>
       <h1 class="s-title">Медицинские услуги</h1>
       <p class="s-desc">Выберите интересующее вас направление для записи к специалисту. Мы предлагаем современную диагностику и лечение.</p>
     </div>
@@ -23,7 +23,7 @@
         
         <div class="srv-meta">
           <span><i class="bi bi-clock" style="color:var(--gold); margin-right:5px;"></i> {{ service.duration_minutes }} мин</span>
-          <span><i class="bi bi-people" style="color:var(--cyan); margin-right:5px;"></i> {{ service.specialists.count }} специалист(ов)</span>
+          <span><i class="bi bi-people" style="color:var(--cyan); margin-right:5px;"></i> {% with n=service.specialists.count %}{{ n }} {{ n|ru_plural:"специалист,специалиста,специалистов" }}{% endwith %}</span>
         </div>
         
         <div class="srv-arrow">→</div>

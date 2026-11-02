@@ -54,40 +54,17 @@ def home_view(request):
     specialists_count = Specialist.objects.filter(is_active=True).count()
     appointments_count = Appointment.objects.count()
 
-    today = timezone.now().date()
-    now = timezone.now()
-
-    # Динамический расчет времени ожидания
-    active_appointments = Appointment.objects.filter(
-        time_slot__date=today,
-        status__in=['pending', 'confirmed']
-    ).count()
-
-    if specialists_count > 0:
-        wait_time = (active_appointments // specialists_count) * 10
-    else:
-        wait_time = 0
-
-    # Записей сегодня
-    today_appointments_count = Appointment.objects.filter(
-        time_slot__date=today
-    ).count()
-
-    # Ближайший приём (следующий подтверждённый слот)
-    next_slot = TimeSlot.objects.filter(
-        date=today,
-        is_available=False,
-        time__gte=now.time()
-    ).order_by('time').first()
+    # Средняя оценка показывается только если есть реальные отзывы
+    rating = Review.objects.aggregate(avg=Avg('rating'), n=Count('id'))
 
     return render(request, 'queue_app/home.html', {
         'services': services,
         'specialists': Specialist.objects.filter(is_active=True).select_related('service').annotate(avg_rating=Avg('reviews__rating'))[:6],
         'specialists_count': specialists_count,
         'appointments_count': appointments_count,
-        'wait_time': wait_time,
-        'today_appointments_count': today_appointments_count,
-        'next_slot': next_slot,
+        'services_count': services.count(),
+        'avg_rating': rating['avg'],
+        'reviews_count': rating['n'],
     })
 
 

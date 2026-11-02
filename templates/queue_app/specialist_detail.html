@@ -2,13 +2,13 @@
 {% load ru_plural %}
 {% load static %}
 
-{% block title %}{{ specialist.get_full_name }} — МедЗапись Premium{% endblock %}
+{% block title %}{{ specialist.get_full_name }} — МедЗапись{% endblock %}
 
 {% block content %}
 <section class="section" style="padding-bottom: 2rem;">
   <div class="s-inner">
     <div class="s-head reveal" style="margin-bottom: 2rem;">
-      <div class="s-tag">✦ Профиль врача</div>
+      <div class="s-tag">Профиль врача</div>
     </div>
     
     <div style="display: grid; grid-template-columns: 350px 1fr; gap: 3rem; align-items: start;">
@@ -16,7 +16,7 @@
       <!-- СЛЕВА: КАРТОЧКА ВРАЧА -->
       <div class="doc-card reveal" style="position: sticky; top: 100px;">
         <div class="doc-card-top" style="height: 140px;">
-          <div class="doc-verified" style="top: 15px; right: 15px;">⚕️ Врач-специалист</div>
+          <div class="doc-verified" style="top: 15px; right: 15px;"><i class="bi bi-patch-check-fill"></i> Врач-специалист</div>
           <div class="doc-avatar" style="width: 120px; height: 120px; bottom: -60px;">
             {% if specialist.photo %}
               <img src="{{ specialist.photo.url }}" alt="{{ specialist.get_full_name }}">
@@ -118,11 +118,11 @@
             {% endif %}
             
           {% else %}
-            <div style="text-align: center; padding: 4rem 2rem; background: rgba(0,0,0,0.02); border-radius: 20px; border: 1px dashed rgba(0,0,0,0.1);" class="reveal">
-              <div style="font-size: 3rem; margin-bottom: 1rem; color: rgba(0,0,0,0.2);">🕒</div>
-              <h3 style="color: var(--text-main); font-family: var(--f2); margin-bottom: 0.5rem;">Свободных слотов нет</h3>
-              <p style="color: var(--text-muted); margin-bottom: 1.5rem;">На ближайшие дни нет доступного времени. Попробуйте позже или выберите другого врача.</p>
-              <a href="{% url 'specialists' %}" class="btn-primary-h" style="padding: .8rem 2rem; border-radius: 10px; background: var(--gold); color:#fff; text-decoration:none; font-weight:700;">Все врачи</a>
+            <div class="empty-box reveal">
+              <i class="bi bi-calendar-x"></i>
+              <h3>Свободных слотов нет</h3>
+              <p>На ближайшие дни нет доступного времени. Попробуйте позже или выберите другого врача.</p>
+              <a href="{% url 'specialists' %}" class="btn-med">Все врачи</a>
             </div>
           {% endif %}
         {% endif %}

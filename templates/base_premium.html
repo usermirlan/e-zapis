@@ -4,19 +4,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}МедЗапись — Premium | Онлайн-запись к врачу{% endblock %}</title>
+  <title>{% block title %}МедЗапись — Онлайн-запись к врачу{% endblock %}</title>
   <meta name="description" content="Онлайн-запись в поликлинику нового поколения. Запишитесь к лучшим врачам быстро и удобно.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   
-  <!-- AOS CSS for advanced scroll animations -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-  <!-- Lottie Player for high-quality vector animations -->
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  <!-- Класс js: скрытие блоков до анимации появления включается только при работающем JS -->
+  <script>document.documentElement.classList.add('js');</script>
 
 
   <style>
@@ -27,7 +25,7 @@
       /* Medical Blues & Teals instead of Gold */
       --gold:       #0ea5e9; /* Sky Blue */
       --gold-d:     #0284c7; /* Darker Blue */
-      --gold-glow:  rgba(14, 165, 233, 0.4);
+      --gold-glow:  rgba(14, 165, 233, 0.25);
       --blue:       #3b82f6;
       --violet:     #6366f1; /* Indigo instead of violet */
       --cyan:       #06b6d4;
@@ -35,7 +33,7 @@
       --rose:       #f43f5e;
       
       /* Light Backgrounds */
-      --dark:       #f8fafc; /* Page Background */
+      --dark:       #f4f7fa; /* Page Background: чуть темнее белых карточек, чтобы они отделялись */
       --dark2:      #ffffff; /* Card Background */
       --dark3:      #f1f5f9; /* Secondary Background */
       
@@ -47,10 +45,10 @@
       /* Borders & Glass */
       --glass:      rgba(255,255,255,0.7);
       --glass-b:    rgba(255,255,255,0.9);
-      --border:     rgba(0,0,0,0.06);
+      --border:     rgba(15,23,42,0.09);
       
-      --f1:         'Outfit', sans-serif;
-      --f2:         'Space Grotesk', sans-serif;
+      --f1:         'Inter', sans-serif;
+      --f2:         'Inter', sans-serif;
       --ease:       cubic-bezier(.16,1,.3,1);
     }
 
@@ -233,9 +231,9 @@
     /* Light theme soft background */
     body:not(.dark-theme) {
       background:
-        radial-gradient(ellipse 70% 50% at 20% 10%, rgba(14,165,233,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(99,102,241,0.07) 0%, transparent 55%),
-        #f8fafc;
+        radial-gradient(ellipse 70% 50% at 20% 10%, rgba(14,165,233,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(99,102,241,0.05) 0%, transparent 55%),
+        var(--dark);
     }
 
     /* Ensure content is above bg layers */
@@ -470,7 +468,7 @@
       transition: all .4s var(--ease);
       position: relative;
       display: flex; flex-direction: column;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
     }
     .doc-card:hover {
       transform: translateY(-10px) scale(1.02);
@@ -544,7 +542,7 @@
       cursor: pointer; overflow: hidden;
       transform-style: preserve-3d;
       text-decoration: none; display: block;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
     }
     .srv-card::before {
       content: ''; position: absolute; inset: 0; border-radius: 22px;
@@ -658,8 +656,9 @@
     @keyframes fadeLeft  { from{transform:translateX(-30px);opacity:0} to{transform:translateX(0);opacity:1} }
     @keyframes fadeRight { from{transform:translateX(30px);opacity:0}  to{transform:translateX(0);opacity:1} }
 
-    .reveal { opacity:0; transform:translateY(38px); transition:all .7s var(--ease); }
-    .reveal.vis { opacity:1; transform:translateY(0); }
+    /* Появление при прокрутке: короткое и лёгкое, контент без JS виден сразу */
+    .reveal { transition: opacity .45s var(--ease), transform .45s var(--ease); }
+    html.js .reveal:not(.vis) { opacity:0; transform:translateY(14px); }
 
     /* ============================================================
        RESPONSIVE
@@ -817,11 +816,148 @@
       .logo-pulse-icon { font-size: 1.15rem; }
       .nav-acts { gap: .3rem; }
     }
+    /* ============================================================
+       МЕДИЦИНСКИЙ СТИЛЬ
+       Белая шапка с тёмной инфо-строкой, бирюзово-синий основной цвет,
+       спокойные светлые фоны, карточки с цветной полосой сверху, Inter.
+       Перекрывает «стеклянные» стили выше.
+    ============================================================ */
+    :root {
+      --navy:      #0c2340;     /* заголовки, инфо-строка, подвал */
+      --primary:   #0e7490;     /* кнопки и ссылки */
+      --primary-d: #155e75;
+      --primary-l: #e6f4f7;     /* светлая подложка */
+      --accent:    #14b8a6;     /* бирюзовый акцент */
+      --radius:    10px;
+      --card-shadow: 0 1px 2px rgba(12,35,64,.04), 0 6px 18px rgba(12,35,64,.06);
+      --gold: var(--primary); --gold-d: var(--primary-d); --gold-glow: rgba(14,116,144,.18);
+    }
+    body.dark-theme {
+      --primary: #22b8cf; --primary-d: #67d4e3; --primary-l: rgba(34,184,207,.12);
+      --card-shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+    }
+
+    /* --- Шапка --- */
+    .pnav, .pnav.scrolled {
+      flex-direction: column; align-items: stretch; padding: 0;
+      background: #fff; border-bottom: 1px solid var(--border);
+      backdrop-filter: none; -webkit-backdrop-filter: none;
+      box-shadow: 0 4px 20px rgba(12,35,64,.06);
+    }
+    body.dark-theme .pnav { background: var(--dark2); }
+    .pnav-top {
+      background: var(--navy); color: rgba(255,255,255,.8);
+      font-size: .74rem; font-weight: 600; letter-spacing: .3px;
+      padding: .35rem 2rem; display: flex; justify-content: space-between; gap: 1rem;
+    }
+    .pnav-top i { color: var(--accent); margin-right: .35rem; }
+    .pnav-row { display: flex; align-items: center; justify-content: space-between; padding: .75rem 2rem; gap: 1rem; }
+    .main-content { padding-top: 100px; }
+
+    .logo-pulse-wrap { background: var(--primary); border-radius: var(--radius); box-shadow: none; width: 42px; height: 42px; }
+    .logo-pulse-wrap::before, .logo-pulse-wrap::after { display: none; }
+    .logo-pulse-icon { animation: none; filter: none; color: #fff; font-size: 1.35rem; }
+    .logo-txt { font-weight: 800; letter-spacing: -.2px; color: var(--navy); }
+    body.dark-theme .logo-txt { color: var(--text-main); }
+    .logo-txt span { color: var(--primary); }
+    .logo-sub { display: block; font-size: .66rem; font-weight: 600; color: var(--text-light); letter-spacing: .4px; text-transform: uppercase; margin-top: 1px; }
+
+    .nav-links a { color: var(--text-muted); border-radius: var(--radius); }
+    .nav-links a:hover, .nav-links a.active { color: var(--primary-d); background: var(--primary-l); }
+    .theme-toggle { border-radius: var(--radius); background: var(--primary-l); border-color: transparent; color: var(--primary-d); }
+    .theme-toggle:hover { background: var(--primary); color: #fff; transform: none; box-shadow: none; }
+    .custom-dropdown-toggle { color: var(--primary-d) !important; }
+
+    /* --- Кнопки --- */
+    .btn-outline-g, .btn-gold-nav, .btn-book, .btn-search { border-radius: var(--radius); }
+    .btn-gold-nav { background: var(--primary); color: #fff; box-shadow: none; }
+    .btn-gold-nav::before { display: none; }
+    .btn-gold-nav:hover { background: var(--primary-d); color: #fff; transform: none; box-shadow: none; }
+    .btn-outline-g { border-color: var(--primary); color: var(--primary-d); }
+    .btn-outline-g:hover { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: none; }
+    .btn-book { background: var(--primary-l); border: 1.5px solid transparent; color: var(--primary-d); }
+    .btn-book:hover { background: var(--primary); color: #fff; transform: none; box-shadow: none; }
+    .btn-search { background: var(--primary); }
+    .btn-search:hover { background: var(--primary-d); }
+    .btn-med {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .8rem 1.6rem; border-radius: var(--radius); font-weight: 700; font-size: .95rem;
+      background: var(--primary); color: #fff; text-decoration: none; transition: background .2s;
+    }
+    .btn-med:hover { background: var(--primary-d); color: #fff; }
+
+    /* --- Заголовки секций --- */
+    .s-head { text-align: left; margin-bottom: 2.5rem; }
+    .s-desc { margin: 0; max-width: 620px; }
+    .s-tag {
+      background: none; border: 0; border-left: 3px solid var(--accent); border-radius: 0;
+      padding: .1rem 0 .1rem .6rem; color: var(--primary-d); letter-spacing: .8px;
+    }
+    .s-title { font-weight: 800; letter-spacing: -.6px; color: var(--navy); }
+    body.dark-theme .s-title { color: var(--text-main); }
+    /* Чередующийся фон секции: в светлой теме — мягкая полоса,
+       в тёмной — прозрачный, чтобы была видна анимация на заднем плане */
+    .section-alt { background: var(--dark3); }
+    body.dark-theme .section-alt { background: transparent; }
+
+    /* --- Карточки --- */
+    .doc-card, .srv-card {
+      border-radius: var(--radius); box-shadow: var(--card-shadow);
+      border: 1px solid var(--border); border-top: 3px solid var(--primary);
+    }
+    .doc-card:hover, .srv-card:hover {
+      transform: translateY(-4px); border-color: var(--border); border-top-color: var(--accent);
+      box-shadow: 0 2px 4px rgba(12,35,64,.06), 0 14px 32px rgba(12,35,64,.10);
+    }
+    .srv-card::before { display: none; }
+    .doc-card-top { height: 88px; background: linear-gradient(135deg, var(--primary-l) 0%, #cdeaf0 100%); }
+    body.dark-theme .doc-card-top { background: linear-gradient(135deg, #0f2a3a 0%, #134155 100%); }
+    .doc-avatar { border-radius: 50%; }
+    .doc-avatar .initials { background: var(--primary); }
+    .doc-spec { border-radius: 50px; background: var(--primary-l); color: var(--primary-d); }
+    .srv-ico, .srv-ico.gd, .srv-ico.vt, .srv-ico.cy, .srv-ico.em, .srv-ico.bl, .srv-ico.rs {
+      border-radius: var(--radius); box-shadow: none; width: 56px; height: 56px; font-size: 1.55rem;
+    }
+    /* Иконки направлений — одного цвета, без радуги */
+    .srv-card .srv-ico { color: var(--primary); background: var(--primary-l); border: 0; }
+    .srv-arrow { border-radius: var(--radius); }
+    .srv-card:hover .srv-arrow { background: var(--primary); border-color: var(--primary); transform: none; box-shadow: none; }
+    .pill, .dropdown-btn, .dropdown-content, .p-search-inner { border-radius: var(--radius); }
+    .pill.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: none; }
+    .p-search-inner:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,116,144,.15); }
+    .doc-verified { border-radius: 50px; color: var(--primary-d); }
+    body.dark-theme .doc-verified { background: rgba(6,13,31,.75); border-color: rgba(255,255,255,.12); }
+
+    /* Пустое состояние (нет слотов, нет отзывов) */
+    .empty-box {
+      text-align: center; padding: 3rem 2rem; border-radius: var(--radius);
+      background: var(--dark2); border: 1px dashed var(--border);
+    }
+    .empty-box .bi { font-size: 2.6rem; color: var(--primary); opacity: .6; display: block; margin-bottom: .8rem; }
+    .empty-box h3 { color: var(--text-main); font-size: 1.15rem; font-weight: 800; margin-bottom: .4rem; }
+    .empty-box p { color: var(--text-muted); margin-bottom: 1.4rem; }
+
+    /* --- Подвал --- */
+    .pfooter { background: var(--navy); border-top: 3px solid var(--accent); }
+    .pfooter .logo-txt { color: #fff; }
+    .pfooter .logo-txt span { color: var(--accent); }
+    .f-brand p, .f-col ul li a { color: rgba(255,255,255,.7); }
+    .f-col h4 { color: var(--accent); }
+    .f-col ul li a:hover { color: #fff; }
+    .f-bottom { border-top-color: rgba(255,255,255,.12); color: rgba(255,255,255,.55); }
+
+    @media (max-width:768px) {
+      .pnav-top { display: none; }
+      .pnav-row { padding: .7rem 1rem; }
+      .main-content { padding-top: 68px; }
+      .logo-sub { display: none; }
+    }
     {% block extra_css %}{% endblock %}
     /* Уважение системной настройки «уменьшить движение» */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
       .bg-orb { display: none; }
+      html.js .reveal:not(.vis) { opacity:1; transform:none; }
     }
   </style>
 </head>
@@ -842,11 +978,16 @@
 
 <!-- ===================== NAVBAR ===================== -->
 <nav class="pnav" id="pnav">
+  <div class="pnav-top">
+    <span><i class="bi bi-hospital"></i>{% if request.LANGUAGE_CODE == 'ky' %}Поликлиникага электрондук жазылуу кызматы{% else %}Сервис электронной записи в поликлинику{% endif %}</span>
+    <span><i class="bi bi-clock"></i>{% if request.LANGUAGE_CODE == 'ky' %}Онлайн жазылуу — күнү-түнү{% else %}Онлайн-запись — круглосуточно{% endif %}</span>
+  </div>
+  <div class="pnav-row">
   <a href="{% url 'home' %}" class="nav-logo">
     <div class="logo-pulse-wrap">
       <div class="logo-pulse-icon"><i class="bi bi-heart-pulse-fill"></i></div>
     </div>
-    <span class="logo-txt">Мед<span>Запись</span></span>
+    <span class="logo-txt">Мед<span>Запись</span><small class="logo-sub">{% if request.LANGUAGE_CODE == 'ky' %}Дарыгерге жазылуу{% else %}Запись к врачу{% endif %}</small></span>
   </a>
 
   <ul class="nav-links">
@@ -896,6 +1037,7 @@
       <span></span><span></span><span></span>
     </button>
   </div>
+  </div>
 </nav>
 
 <!-- Mobile overlay -->
@@ -927,7 +1069,7 @@
   <div class="f-inner">
     <div class="f-brand">
       <span class="logo-txt">Мед<span>Запись</span></span>
-      <p>Современная платформа онлайн-записи в клинику. Мы делаем медицину доступной и удобной для каждого.</p>
+      <p>Электронная запись к врачу, электронная очередь и напоминания о приёме — без звонков в регистратуру.</p>
     </div>
     <div class="f-col">
       <h4>Навигация</h4>
@@ -960,7 +1102,7 @@
   </div>
   <div class="f-bottom">
     <span>© 2026 МедЗапись. Все права защищены.</span>
-    <span>Сделано с ❤️ для здоровья</span>
+    <span>Сервис электронной записи</span>
   </div>
 </footer>
 
@@ -1156,11 +1298,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function draw(){
     cx.clearRect(0, 0, W, H);
-    // Светлая тема и режим «уменьшить движение»: фон без анимации
-    if (!isDark() || reduceMotion) { requestAnimationFrame(draw); return; }
+    // Режим «уменьшить движение»: фон без анимации
+    if (reduceMotion) { requestAnimationFrame(draw); return; }
+    const dark = isDark();
 
+    // Частицы, кольца и молекулы — только в тёмной теме; в светлой остаётся одна линия ЭКГ
+    if (dark) {
     // Mouse glow spot
-    if (isDark()) {
+    {
       const mg = cx.createRadialGradient(mx, my, 0, mx, my, 280);
       mg.addColorStop(0, 'rgba(14, 165, 233, 0.08)');
       mg.addColorStop(0.5, 'rgba(99, 102, 241, 0.04)');
@@ -1193,6 +1338,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // --- Draw Floating Bio-Molecules & Micro-Capsules ---
     bioMolecules.forEach(b => { b.update(); b.draw(); });
+    }
 
     // --- Draw ECG Line ---
     ecgX = (ecgX + ecgSpeed) % (W + 200);
@@ -1204,16 +1350,18 @@ document.addEventListener('DOMContentLoaded', function(){
       for (let i = 1; i < ecgPoints.length; i++) {
         const p1 = ecgPoints[i - 1];
         const p2 = ecgPoints[i];
+        if (p2.x < p1.x) continue; // линия дошла до края и началась заново — не соединяем
         const age = (i / ecgPoints.length); // fade tail
-        const lineAlpha = isDark() ? age * 0.6 : age * 0.3;
+        const lineAlpha = dark ? age * 0.6 : age * 0.5;
 
         cx.beginPath();
         cx.moveTo(p1.x, p1.y);
         cx.lineTo(p2.x, p2.y);
-        cx.strokeStyle = `rgba(14, 165, 233, ${lineAlpha})`;
-        cx.lineWidth = 1.8;
+        // В светлой теме — основной бирюзовый цвет сайта
+        cx.strokeStyle = dark ? `rgba(14, 165, 233, ${lineAlpha})` : `rgba(14, 116, 144, ${lineAlpha})`;
+        cx.lineWidth = dark ? 1.8 : 2;
         cx.shadowColor = '#0ea5e9';
-        cx.shadowBlur = isDark() ? 8 : 0;
+        cx.shadowBlur = dark ? 8 : 0;
         cx.stroke();
         cx.shadowBlur = 0; // reset
       }
@@ -1222,9 +1370,9 @@ document.addEventListener('DOMContentLoaded', function(){
       const lastP = ecgPoints[ecgPoints.length - 1];
       cx.beginPath();
       cx.arc(lastP.x, lastP.y, 3.5, 0, Math.PI * 2);
-      cx.fillStyle = isDark() ? '#38bdf8' : '#0284c7';
-      cx.shadowColor = '#38bdf8';
-      cx.shadowBlur = 12;
+      cx.fillStyle = dark ? '#38bdf8' : '#0e7490';
+      cx.shadowColor = dark ? '#38bdf8' : 'rgba(14, 116, 144, .5)';
+      cx.shadowBlur = dark ? 12 : 6;
       cx.fill();
       cx.shadowBlur = 0;
     }
@@ -1250,37 +1398,15 @@ const revs = document.querySelectorAll('.reveal');
 if(revs.length > 0 && window.IntersectionObserver){
   const ro = new IntersectionObserver(entries=>{
     entries.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target);} });
-  },{threshold:.12});
-  revs.forEach(el=>ro.observe(el));
-}
-
-// Init AOS
-document.addEventListener('DOMContentLoaded', function() {
-  const script = document.createElement('script');
-  script.src = 'https://unpkg.com/aos@2.3.1/dist/aos.js';
-  script.onload = () => {
-    AOS.init({
-      duration: 800,
-      easing: 'ease-out-cubic',
-      once: true,
-      offset: 50,
-    });
-  };
-  document.body.appendChild(script);
-});
-
-/* ================================================
-   3D TILT EFFECT
-================================================ */
-document.querySelectorAll('.srv-card, .doc-card').forEach(card=>{
-  card.addEventListener('mousemove',e=>{
-    const r=card.getBoundingClientRect();
-    const x=(e.clientX-r.left)/r.width-.5;
-    const y=(e.clientY-r.top)/r.height-.5;
-    card.style.transform=`translateY(-11px) rotateX(${-y*10}deg) rotateY(${x*10}deg) scale(1.02)`;
+  },{threshold:0, rootMargin:'0px 0px 15% 0px'});  // срабатывает чуть раньше, чем блок войдёт в экран
+  // Блоки первого экрана показываем сразу, не дожидаясь срабатывания observer
+  revs.forEach(el=>{
+    if (el.getBoundingClientRect().top < innerHeight * 1.15) el.classList.add('vis');
+    else ro.observe(el);
   });
-  card.addEventListener('mouseleave',()=>card.style.transform='');
-});
+} else {
+  revs.forEach(el=>el.classList.add('vis'));
+}
 
 /* ================================================
    MOBILE HAMBURGER MENU
