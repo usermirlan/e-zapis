@@ -996,10 +996,6 @@
 
 <!-- ===================== NAVBAR ===================== -->
 <nav class="pnav" id="pnav">
-  <div class="pnav-top">
-    <span><i class="bi bi-hospital"></i>{% if request.LANGUAGE_CODE == 'ky' %}Поликлиникага электрондук жазылуу кызматы{% else %}Сервис электронной записи в поликлинику{% endif %}</span>
-    <span><i class="bi bi-clock"></i>{% if request.LANGUAGE_CODE == 'ky' %}Онлайн жазылуу — күнү-түнү{% else %}Онлайн-запись — круглосуточно{% endif %}</span>
-  </div>
   <div class="pnav-row">
   <a href="{% url 'home' %}" class="nav-logo">
     <div class="logo-pulse-wrap">
